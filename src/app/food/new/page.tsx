@@ -21,10 +21,8 @@ export default function NewFood() {
       }),
     });
     console.log(response);
-    setName("");
-    setAmount("");
-    setUnit("");
     router.push("/");
+    router.refresh();
   };
 
   return (
