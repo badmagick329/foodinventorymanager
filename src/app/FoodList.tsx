@@ -21,6 +21,18 @@ async function getFoods() {
   return foods as Food[];
 }
 
+// async function getFoods() {
+//   const resp = await fetch("http://localhost:3000/api/foods", {
+//     method: "GET",
+//     headers: {
+//       "Content-Type": "application/json",
+//     },
+//     cache: "no-cache",
+//   });
+//   const foods = await resp.json();
+//   return foods as Food[];
+// }
+
 export default async function FoodList() {
   let foods = null;
   foods = await getFoods();
