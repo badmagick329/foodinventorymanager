@@ -1,9 +1,10 @@
 import prisma from "../../prisma/client";
 import { Food, MeasurementUnit } from "@prisma/client";
+import FoodRemove from "./FoodRemove";
 
 export const dynamic = "auto",
   dynamicParams = true,
-  revalidate = 1,
+  revalidate = 0,
   fetchCache = "auto",
   runTime = "nodejs",
   preferredRegion = "auto";
@@ -13,21 +14,25 @@ async function getFoods() {
   return foods as Food[];
 }
 
+// async function getFoods() {
+//   const resp = await fetch("http://localhost:3000/api/foods", {
+//     method: "GET",
+//     headers: {
+//       "Content-Type": "application/json",
+//     },
+//     cache: "no-cache",
+//   });
+//   const foods = await resp.json();
+//   return foods as Food[];
+// }
+
 export default async function FoodList() {
   let foods = null;
   foods = await getFoods();
   if (!foods) {
     return (
       <>
-        <tr className="hover:bg-slate-900" key="...">
-          <td>Loading</td>
-          <td>...</td>
-          <td>...</td>
-          <td className="flex space-x-2">
-            <button className="btn btn-outline btn-info">Edit</button>
-            <button className="btn btn-outline btn-info">Delete</button>
-          </td>
-        </tr>
+        <h1 className="text-3xl text-white">Loading...</h1>
       </>
     );
   }
@@ -40,7 +45,7 @@ export default async function FoodList() {
           <td>{food.unit}</td>
           <td className="flex space-x-2">
             <button className="btn btn-outline btn-info">Edit</button>
-            <button className="btn btn-outline btn-error">Delete</button>
+            <FoodRemove id={food.id} />
           </td>
         </tr>
       ))}

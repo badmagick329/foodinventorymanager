@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../prisma/client";
 import { Food, MeasurementUnit } from "@prisma/client";
-import { useRouter } from "next/router";
 
 function validateFood(name: string, unit: string, amount: string) {
   if (!name) {
@@ -43,14 +42,8 @@ export async function POST(request: NextRequest) {
   return NextResponse.json(food, { status: 201 });
 }
 
+// TODO: Not in use. Remove?
 export async function GET(request: NextRequest) {
   const foods: Food[] = await prisma.food.findMany();
   return NextResponse.json(foods, { status: 200 });
-}
-
-export async function DELETE(request: NextRequest) {
-  const router = useRouter();
-  const id = Number(router.query.id);
-  await prisma.food.delete({ where: { id } });
-  return NextResponse.json({ id }, { status: 200 });
 }
