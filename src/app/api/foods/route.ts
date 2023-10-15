@@ -1,27 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import prisma from "../../../../prisma/client";
-import { Food } from "@prisma/client";
+import { Food, MeasurementUnit } from "@prisma/client";
+import { useRouter } from "next/router";
 
-const FoodSchema = z.object({
-  name: z.string().min(1),
-  amount: z.number(),
-  unit: z.string(),
-});
+function validateFood(name: string, unit: string, amount: string) {
+  if (!name) {
+    return "Name is required";
+  }
+  if (!unit) {
+    return "Amount is required";
+  }
+  if (isNaN(Number(amount))) {
+    return "Amount must be a number";
+  }
+  if (!unit) {
+    return "Unit is required";
+  }
+  if (!Object.values(MeasurementUnit).includes(unit as MeasurementUnit)) {
+    return "Unit must be one of: " + Object.values(MeasurementUnit).join(", ");
+  }
+  return null;
+}
 
 export async function POST(request: NextRequest) {
   console.log(`Received request: ${JSON.stringify(request)}`);
   const body = await request.json();
-  console.log(`Received body: ${JSON.stringify(body)}`);
-  const validation = FoodSchema.safeParse(body);
-  if (!validation.success) {
-    return NextResponse.json(validation.error, { status: 400 });
+  const name = body.name.trim();
+  const unit = body.unit.toUpperCase().trim();
+  const amount = body.amount.trim();
+  console.log(`Received values: ${name}, ${unit}, ${amount}`);
+  const validationError = validateFood(name, unit, amount);
+  if (validationError) {
+    return NextResponse.json({ error: validationError }, { status: 400 });
   }
   const food = await prisma.food.create({
     data: {
-      name: body.name,
-      amount: body.amount,
-      unit: body.unit,
+      name,
+      amount: Number(amount),
+      unit,
     },
   });
   return NextResponse.json(food, { status: 201 });
@@ -30,4 +46,11 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const foods: Food[] = await prisma.food.findMany();
   return NextResponse.json(foods, { status: 200 });
+}
+
+export async function DELETE(request: NextRequest) {
+  const router = useRouter();
+  const id = Number(router.query.id);
+  await prisma.food.delete({ where: { id } });
+  return NextResponse.json({ id }, { status: 200 });
 }

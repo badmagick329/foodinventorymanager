@@ -1,14 +1,31 @@
 "use client";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-interface FormProps extends HTMLFormControlsCollection {
-  name: HTMLInputElement;
-  amount: HTMLInputElement;
-  unit: HTMLInputElement;
-}
-
 export default function NewFood() {
+  const [name, setName] = useState("");
+  const [amount, setAmount] = useState("");
+  const [unit, setUnit] = useState("");
   const router = useRouter();
+
+  const createFood = async () => {
+    console.log("Validating form");
+    console.log(name, amount, unit);
+    console.log("Creating food");
+    const response = await fetch("http://localhost:3000/api/foods", {
+      method: "POST",
+      body: JSON.stringify({
+        name,
+        amount,
+        unit,
+      }),
+    });
+    console.log(response);
+    setName("");
+    setAmount("");
+    setUnit("");
+    router.push("/");
+  };
 
   return (
     <>
@@ -17,36 +34,33 @@ export default function NewFood() {
         className="flex flex-col space-y-2"
         onSubmit={async (e) => {
           e.preventDefault();
-          const form = e.target as HTMLFormElement;
-          const { name, amount, unit } = form.elements as FormProps;
-          console.log(
-            `Creating new food: ${name.value} ${amount.value} ${unit.value}`,
-          );
-          const [nameValue, amountValue, unitValue] = [
-            name.value,
-            amount.value,
-            unit.value,
-          ];
-          console.log("Submit");
-          const food = await fetch("http://localhost:3000/api/foods", {
-            method: "POST",
-            body: JSON.stringify({
-              name: nameValue,
-              amount: amountValue,
-              unit: unitValue,
-            }),
-          });
-          console.log(food);
-          router.push("/");
+          await createFood();
         }}
       >
         <label className="text-white">Name</label>
-        <input className="input" type="text" name="name" />
+        <input
+          className="input"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
         <label className="text-white">Amount</label>
-        <input className="input" type="number" name="amount" />
+        <input
+          className="input"
+          type="number"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+        />
         <label className="text-white">Unit</label>
-        <input className="input" type="text" name="unit" />
-        <button className="btn btn-outline btn-info">Add</button>
+        <input
+          className="input"
+          type="text"
+          value={unit}
+          onChange={(e) => setUnit(e.target.value)}
+        />
+        <button className="btn btn-outline btn-info" type="submit">
+          Add
+        </button>
       </form>
     </>
   );

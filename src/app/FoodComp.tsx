@@ -1,5 +1,4 @@
 import { Food } from "@prisma/client";
-import FoodRemove from "./FoodRemove";
 
 interface FoodProps {
   food: Food;
@@ -13,7 +12,7 @@ export default function FoodComp({ food }: FoodProps) {
       <td>{food.unit}</td>
       <td className="flex space-x-2">
         <button className="btn btn-outline btn-info">Edit</button>
-        <FoodRemove id={food.id} />
+        <button className="btn btn-outline btn-info">Delete</button>
       </td>
     </tr>
   );
