@@ -14,7 +14,7 @@ export default function FoodUnit({ id, unit }: FoodUnitProps) {
   const [newUnit, setNewUnit] = useState(unit);
   const router = useRouter();
   const editAmount = async () => {
-    const response = await fetch(`http://localhost:3000/api/foods/${id}`, {
+    const response = await fetch("http://localhost:3000/api/foods", {
       method: "PATCH",
       body: JSON.stringify({
         id,

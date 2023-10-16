@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { MeasurementUnit } from "@prisma/client";
 
 export default function NewFood() {
   const [name, setName] = useState("");
@@ -50,12 +51,15 @@ export default function NewFood() {
           onChange={(e) => setAmount(e.target.value)}
         />
         <label className="text-white">Unit</label>
-        <input
+        <select
           className="input"
-          type="text"
           value={unit}
           onChange={(e) => setUnit(e.target.value)}
-        />
+        >
+          {Object.keys(MeasurementUnit).map((unit) => (
+            <option value={unit}>{unit}</option>
+          ))}
+        </select>
         <button className="btn btn-outline btn-info" type="submit">
           Add
         </button>

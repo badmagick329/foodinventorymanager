@@ -13,7 +13,7 @@ export default function FoodName({ id, name }: FoodNameProps) {
   const [newName, setNewName] = useState(name);
   const router = useRouter();
   const editName = async () => {
-    const response = await fetch(`http://localhost:3000/api/foods/${id}`, {
+    const response = await fetch("http://localhost:3000/api/foods", {
       method: "PATCH",
       body: JSON.stringify({
         id,

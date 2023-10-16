@@ -12,7 +12,7 @@ export default function FoodRemove({ id }: FoodRemoveProps) {
     const confirmed = confirm("Are you sure?");
     console.log(`Removing food with id ${id}`);
     if (confirmed) {
-      const response = await fetch(`http://localhost:3000/api/foods/${id}`, {
+      const response = await fetch("http://localhost:3000/api/foods", {
         method: "DELETE",
         body: JSON.stringify({ id }),
       });
