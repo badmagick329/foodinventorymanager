@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { MeasurementUnit } from "@prisma/client";
+import { useCallback, useEffect } from "react";
 
 interface FoodUnitProps {
   id: number;
@@ -13,6 +14,21 @@ export default function FoodUnit({ id, unit }: FoodUnitProps) {
   const [form, setForm] = useState(false);
   const [newUnit, setNewUnit] = useState(unit);
   const router = useRouter();
+  const onDismiss = useCallback(() => {
+    setForm(false);
+  }, [form]);
+
+  const onKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape") onDismiss();
+    },
+    [onDismiss],
+  );
+
+  useEffect(() => {
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onKeyDown]);
   const editAmount = async () => {
     const response = await fetch("http://localhost:3000/api/foods", {
       method: "PATCH",
@@ -37,7 +53,7 @@ export default function FoodUnit({ id, unit }: FoodUnitProps) {
   };
   if (form) {
     return (
-      <td>
+      <span>
         <form
           className="flex space-x-2"
           onSubmit={async (e) => {
@@ -48,7 +64,10 @@ export default function FoodUnit({ id, unit }: FoodUnitProps) {
           <select
             className="input"
             value={newUnit}
-            onChange={(e) => setNewUnit(e.target.value)}
+            onChange={(e) => {
+              console.log(`Changing unit to ${e.target.value}`);
+              setNewUnit(e.target.value);
+            }}
           >
             {Object.keys(MeasurementUnit).map((unit) => (
               <option value={unit}>{unit}</option>
@@ -58,8 +77,8 @@ export default function FoodUnit({ id, unit }: FoodUnitProps) {
             Edit
           </button>
         </form>
-      </td>
+      </span>
     );
   }
-  return <td onClick={(e) => setForm(true)}>{unit}</td>;
+  return <span onClick={(e) => setForm(true)}>{unit}</span>;
 }

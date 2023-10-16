@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useCallback, useEffect } from "react";
 
 interface FoodNameProps {
   id: number;
@@ -12,6 +13,22 @@ export default function FoodName({ id, name }: FoodNameProps) {
   const [form, setForm] = useState(false);
   const [newName, setNewName] = useState(name);
   const router = useRouter();
+  const onDismiss = useCallback(() => {
+    setForm(false);
+  }, [form]);
+
+  const onKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape") onDismiss();
+    },
+    [onDismiss],
+  );
+
+  useEffect(() => {
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onKeyDown]);
+
   const editName = async () => {
     const response = await fetch("http://localhost:3000/api/foods", {
       method: "PATCH",
@@ -36,7 +53,7 @@ export default function FoodName({ id, name }: FoodNameProps) {
   };
   if (form) {
     return (
-      <td>
+      <span>
         <form
           className="flex space-x-2"
           onSubmit={async (e) => {
@@ -54,8 +71,8 @@ export default function FoodName({ id, name }: FoodNameProps) {
             Edit
           </button>
         </form>
-      </td>
+      </span>
     );
   }
-  return <td onClick={(e) => setForm(true)}>{name}</td>;
+  return <span onClick={(e) => setForm(true)}>{name}</span>;
 }

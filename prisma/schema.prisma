@@ -15,12 +15,21 @@ model Food {
   name   String
   amount Float
   unit   MeasurementUnit
+  expiry String?
+  storage StorageType
 }
 
 enum MeasurementUnit {
-  G
-  KG
-  L
-  ML
-  UNIT
+  g
+  kg
+  l
+  ml
+  unit
+}
+
+enum StorageType {
+  fridge
+  freezer
+  pantry
+  spices
 }
