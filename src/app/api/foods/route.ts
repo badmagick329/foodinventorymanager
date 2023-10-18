@@ -1,41 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../prisma/client";
 import { Food, MeasurementUnit, StorageType } from "@prisma/client";
-
-export function validateFood(
-  name: string,
-  unit: string,
-  amount: string,
-  expiry: string | null,
-  storage: string,
-) {
-  if (!name) {
-    return "Name is required";
-  }
-  if (!unit) {
-    return "Amount is required";
-  }
-  if (isNaN(Number(amount))) {
-    return "Amount must be a number";
-  }
-  if (!unit) {
-    return "Unit is required";
-  }
-  if (!Object.values(MeasurementUnit).includes(unit as MeasurementUnit)) {
-    console.log(`Unit is: ${unit}`);
-    return "Unit must be one of: " + Object.values(MeasurementUnit).join(", ");
-  }
-  if (Number(amount) < 0) {
-    return "Amount must be greater than 0";
-  }
-  if (expiry !== null && isNaN(Date.parse(expiry))) {
-    return "Expiry must be a valid date";
-  }
-  if (!Object.values(StorageType).includes(storage as StorageType)) {
-    return "Storage must be one of: " + Object.values(StorageType).join(", ");
-  }
-  return null;
-}
+import { validateFood } from "@/lib/validators";
 
 export async function POST(request: NextRequest) {
   console.log(`Received request: ${JSON.stringify(request)}`);
@@ -45,8 +11,10 @@ export async function POST(request: NextRequest) {
   let unit = body.unit.toLowerCase().trim() as string;
   let expiry = body.expiry.trim() === "" ? null : body.expiry.trim();
   const storage = body.storage.trim() as string;
-  console.log(`Received values: ${name}, ${unit}, ${amount}, ${expiry}, ${storage}`);
-  const validationError = validateFood(name, unit, amount, expiry, storage);
+  console.log(
+    `Received values: ${name}, ${unit}, ${amount}, ${expiry}, ${storage}`,
+  );
+  const validationError = validateFood({ name, unit, amount, expiry, storage });
   if (validationError) {
     console.log(`Validation failed: ${validationError}`);
     return NextResponse.json({ error: validationError }, { status: 400 });
@@ -62,6 +30,20 @@ export async function POST(request: NextRequest) {
     },
   });
   return NextResponse.json(food, { status: 201 });
+}
+
+export async function GET(request: NextRequest) {
+  const foods = await prisma.food.findMany({
+    orderBy: [
+      {
+        id: "desc",
+      },
+      {
+        name: "asc",
+      },
+    ],
+  });
+  return NextResponse.json(foods, { status: 200 });
 }
 
 export async function DELETE(request: NextRequest) {

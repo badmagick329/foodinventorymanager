@@ -2,120 +2,139 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MeasurementUnit, StorageType } from "@prisma/client";
-
-export function validateFood(
-  name: string,
-  unit: string,
-  amount: string,
-  expiry: string | null,
-  storage: string,
-) {
-  if (!name) {
-    return "Name is required";
-  }
-  if (!unit) {
-    return "Amount is required";
-  }
-  if (isNaN(Number(amount))) {
-    return "Amount must be a number";
-  }
-  if (!unit) {
-    return "Unit is required";
-  }
-  if (!Object.values(MeasurementUnit).includes(unit as MeasurementUnit)) {
-    console.log(`Unit is: ${unit}`);
-    return "Unit must be one of: " + Object.values(MeasurementUnit).join(", ");
-  }
-  if (Number(amount) < 0) {
-    return "Amount must be greater than 0";
-  }
-  if (expiry !== null && isNaN(Date.parse(expiry))) {
-    return "Expiry must be a valid date";
-  }
-  if (!Object.values(StorageType).includes(storage as StorageType)) {
-    return "Storage must be one of: " + Object.values(StorageType).join(", ");
-  }
-  return null;
-}
+import { validateFood } from "@/lib/validators";
+import { useTransition } from "react";
+import { revalidateTag } from "next/cache";
+import { createFood as create } from "@/actions/serverActions";
 
 export default function NewFood() {
   const [name, setName] = useState("");
-  const [amount, setAmount] = useState("1");
+  const [amount, setAmount] = useState("");
   const [unit, setUnit] = useState("unit");
   const [expiry, setExpiry] = useState("");
-  const [storage, setStorage] = useState("pantry");
+  const [storage, setStorage] = useState("fridge");
+  const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
-  const createFood = async () => {
+  const _createFood = async () => {
     console.log("Validating form");
-    console.log("Creating food with: ");
     console.log(name, amount, unit, expiry, storage);
-    console.log("Creating food");
-    const nameValue = name.trim();
-    const amountValue = amount.trim();
-    const unitValue = unit.trim();
-    const expiryValue = expiry.trim() === "" ? null : expiry.trim();
-    const storageValue = storage.trim();
-    const error = validateFood(
-      nameValue,
-      unitValue,
-      amountValue,
-      expiryValue,
-      storageValue,
-    );
-    if (error) {
-      alert(error);
+    const errors = validateFood({
+      name: name.trim(),
+      unit: unit.trim(),
+      amount: amount.trim(),
+      expiry: expiry.trim() === "" ? null : expiry.trim(),
+      storage: storage.trim(),
+    });
+    if (errors) {
+      // TODO: alternative alert
+      alert(
+        JSON.parse(errors)
+          .map(
+            (err: any) =>
+              `${err.path[0].slice(0, 1).toUpperCase()}${err.path[0].slice(
+                1,
+              )}: ${err.message}`,
+          )
+          .join("\n"),
+      );
+      // alert(errors);
       return;
     }
-    const response = await fetch("http://localhost:3000/api/foods", {
-      method: "POST",
-      body: JSON.stringify({
-        name,
-        amount,
-        unit,
-        expiry,
-        storage,
-      }),
+    console.log("Creating food");
+    startTransition(async () => {
+      const response = await fetch("http://localhost:3000/api/foods", {
+        method: "POST",
+        body: JSON.stringify({
+          name,
+          amount,
+          unit,
+          expiry,
+          storage,
+        }),
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        // TODO: alternative alert
+        alert(data.message);
+        return;
+      }
+      console.log(response);
+      router.push("/");
+      router.refresh();
     });
-    console.log(response);
-    router.push("/");
-    router.refresh();
+  };
+
+  const createFood = async (e: FormData) => {
+    console.log("Creating food");
+    startTransition(async () => {
+      const result = await create(e);
+      if (result.error) {
+        alert(
+          JSON.parse(result.error)
+            .map(
+              (err: any) =>
+                `${err.path[0].slice(0, 1).toUpperCase()}${err.path[0].slice(
+                  1,
+                )}: ${err.message}`,
+            )
+            .join("\n"),
+        );
+        return;
+      }
+      console.log(`Received result: ${JSON.stringify(result)}`);
+      router.push("/");
+      router.refresh();
+    });
   };
 
   return (
     <div className="p-2 w-full sm:w-3/4 lg:w-1/2">
       <h1 className="text-3xl text-white w-full text-center">
-        Create New Food
+        {isPending ? "Creating..." : "Create Food"}
       </h1>
       <form
         className="flex flex-col space-y-2"
-        onSubmit={async (e) => {
-          e.preventDefault();
-          await createFood();
-        }}
+        action={createFood}
+        // onSubmit={async (e) => {
+        //   e.preventDefault();
+        //   await createFood();
+        // }}
       >
         <label className="text-white">Name</label>
         <input
           className="input"
           type="text"
           value={name}
+          name="name"
           onChange={(e) => setName(e.target.value)}
+          required
+          autoComplete="off"
         />
         <label className="text-white">Amount</label>
         <input
           className="input"
           type="number"
+          min="0.01"
+          step="0.01"
           value={amount}
+          name="amount"
           onChange={(e) => setAmount(e.target.value)}
+          required
+          autoComplete="off"
         />
         <label className="text-white">Unit</label>
         <select
           className="input"
           value={unit}
+          name="unit"
           onChange={(e) => setUnit(e.target.value)}
+          required
         >
           {Object.keys(MeasurementUnit).map((unit) => (
-            <option value={unit}>{unit}</option>
+            <option key={unit} value={unit}>
+              {unit}
+            </option>
           ))}
         </select>
         <label className="text-white">Expiry</label>
@@ -123,16 +142,22 @@ export default function NewFood() {
           className="input"
           type="date"
           value={expiry}
+          min={new Date().toISOString().slice(0, 10)}
+          name="expiry"
           onChange={(e) => setExpiry(e.target.value)}
         />
         <label className="text-white">Storage</label>
         <select
           className="input"
           value={storage}
+          name="storage"
           onChange={(e) => setStorage(e.target.value)}
+          required
         >
           {Object.keys(StorageType).map((storage) => (
-            <option value={storage}>{storage}</option>
+            <option key={storage} value={storage}>
+              {storage}
+            </option>
           ))}
         </select>
         <button className="btn btn-outline btn-info" type="submit">

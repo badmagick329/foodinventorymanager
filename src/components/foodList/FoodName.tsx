@@ -1,8 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useCallback, useEffect } from "react";
+import { updateFoodName } from "@/actions/serverActions";
 
 interface FoodNameProps {
   id: number;
@@ -12,7 +12,6 @@ interface FoodNameProps {
 export default function FoodName({ id, name }: FoodNameProps) {
   const [form, setForm] = useState(false);
   const [newName, setNewName] = useState(name);
-  const router = useRouter();
   const onDismiss = useCallback(() => {
     setForm(false);
   }, [form]);
@@ -29,43 +28,24 @@ export default function FoodName({ id, name }: FoodNameProps) {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [onKeyDown]);
 
-  const editName = async () => {
-    const response = await fetch("http://localhost:3000/api/foods", {
-      method: "PATCH",
-      body: JSON.stringify({
-        id,
-        values: {
-          name: newName,
-        },
-      }),
-    });
-    console.log(`Response code: ${response.status}`);
-    if (response.status === 400) {
-      const resp = await response.json();
-      setForm(false);
-      setNewName(name);
-      alert(resp.error);
-      return;
-    }
-    console.log(`Edited food with id ${id}`);
-    setForm(false);
-    router.refresh();
-  };
   if (form) {
     return (
-      <span>
+      <span className="w-full">
         <form
           className="flex space-x-2"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            await editName();
+          action={async () => {
+            await updateFoodName(id, newName);
+            setForm(false);
           }}
         >
           <input
             className="input"
             type="text"
+            name="name"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
+            autoComplete="off"
+            autoFocus
           />
           <button className="btn btn-outline btn-info" type="submit">
             Edit
@@ -74,5 +54,12 @@ export default function FoodName({ id, name }: FoodNameProps) {
       </span>
     );
   }
-  return <span onClick={(e) => setForm(true)}>{name}</span>;
+  return (
+    <span
+      className="w-full hover:cursor-pointer hover:bg-slate-800"
+      onClick={(e) => setForm(true)}
+    >
+      {name}
+    </span>
+  );
 }

@@ -44,6 +44,7 @@ export default function FoodUnit({ id, unit }: FoodUnitProps) {
       const resp = await response.json();
       setForm(false);
       setNewUnit(unit);
+      // TODO: alternative alert
       alert(resp.error);
       return;
     }

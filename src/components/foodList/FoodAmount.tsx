@@ -1,8 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useCallback, useEffect } from "react";
+import { updateFoodAmount } from "@/actions/serverActions";
 
 interface FoodAmountProps {
   id: number;
@@ -12,7 +12,6 @@ interface FoodAmountProps {
 export default function FoodAmount({ id, amount }: FoodAmountProps) {
   const [form, setForm] = useState(false);
   const [newAmount, setNewAmount] = useState(amount);
-  const router = useRouter();
   const onDismiss = useCallback(() => {
     setForm(false);
   }, [form]);
@@ -28,44 +27,25 @@ export default function FoodAmount({ id, amount }: FoodAmountProps) {
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [onKeyDown]);
-  const editAmount = async () => {
-    const response = await fetch("http://localhost:3000/api/foods", {
-      method: "PATCH",
-      body: JSON.stringify({
-        id,
-        values: {
-          amount: newAmount,
-        },
-      }),
-    });
-    console.log(`Response code: ${response.status}`);
-    if (response.status === 400) {
-      const resp = await response.json();
-      setForm(false);
-      setNewAmount(amount);
-      alert(resp.error);
-      return;
-    }
-    console.log(`Edited food with id ${id}`);
-    setForm(false);
-    router.refresh();
-  };
   if (form) {
     return (
-      <span>
+      <span className="w-full">
         <form
           className="flex space-x-2"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            await editAmount();
+          action={async () => {
+            await updateFoodAmount(id, Number(newAmount));
+            setForm(false);
           }}
         >
           <input
             className="input"
             type="number"
-            step="0.1"
+            min="0.01"
+            step="0.01"
+            name="amount"
             value={newAmount}
             onChange={(e) => setNewAmount(Number(e.target.value))}
+            autoComplete="off"
           />
           <button className="btn btn-outline btn-info" type="submit">
             Edit
@@ -74,5 +54,12 @@ export default function FoodAmount({ id, amount }: FoodAmountProps) {
       </span>
     );
   }
-  return <span onClick={(e) => setForm(true)}>{amount}</span>;
+  return (
+    <span
+      className="w-full hover:cursor-pointer hover:bg-slate-800"
+      onClick={(e) => setForm(true)}
+    >
+      {amount}
+    </span>
+  );
 }

@@ -1,29 +1,34 @@
 "use client";
-
-import { useRouter } from "next/navigation";
+import { revalidateTag } from "next/cache";
+import { removeFood } from "@/actions/serverActions";
+import { useTransition } from "react";
 
 interface FoodRemoveProps {
   id: number;
 }
 
 export default function FoodRemove({ id }: FoodRemoveProps) {
-  const router = useRouter();
-  const removeFood = async () => {
-    const confirmed = confirm("Are you sure?");
-    console.log(`Removing food with id ${id}`);
-    if (confirmed) {
-      const response = await fetch("http://localhost:3000/api/foods", {
-        method: "DELETE",
-        body: JSON.stringify({ id }),
-      });
-      console.log(`Response code: ${response.status}`);
-      router.refresh();
-      console.log(`Removed food with id ${id}`);
-    }
-  };
+  // const [isPending, startTransition] = useTransition();
   return (
-    <button className="btn btn-outline btn-error" onClick={removeFood}>
-      Remove
-    </button>
+    <form
+      className="w-full"
+      action={async (e) => {
+        // const remove = confirm("Are you sure you want to remove this food?");
+        // if (!remove) return;
+        // console.log("removing food");
+        // startTransition(() => {
+        //   removeFood(e);
+        // });
+        await removeFood(e);
+      }}
+    >
+      <input type="hidden" name="id" value={id} />
+      <input
+        className="btn btn-outline btn-error"
+        type="submit"
+        // value={isPending ? "......" : "Remove"}
+        value="Remove"
+      />
+    </form>
   );
 }
