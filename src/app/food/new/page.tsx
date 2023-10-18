@@ -6,6 +6,7 @@ import { validateFood } from "@/lib/validators";
 import { useTransition } from "react";
 import { revalidateTag } from "next/cache";
 import { createFood as create } from "@/actions/serverActions";
+import { parseErrors } from "@/lib/utils";
 
 export default function NewFood() {
   const [name, setName] = useState("");
@@ -28,16 +29,7 @@ export default function NewFood() {
     });
     if (errors) {
       // TODO: alternative alert
-      alert(
-        JSON.parse(errors)
-          .map(
-            (err: any) =>
-              `${err.path[0].slice(0, 1).toUpperCase()}${err.path[0].slice(
-                1,
-              )}: ${err.message}`,
-          )
-          .join("\n"),
-      );
+      alert(parseErrors(errors));
       // alert(errors);
       return;
     }
@@ -70,16 +62,7 @@ export default function NewFood() {
     startTransition(async () => {
       const result = await create(e);
       if (result.error) {
-        alert(
-          JSON.parse(result.error)
-            .map(
-              (err: any) =>
-                `${err.path[0].slice(0, 1).toUpperCase()}${err.path[0].slice(
-                  1,
-                )}: ${err.message}`,
-            )
-            .join("\n"),
-        );
+        alert(parseErrors(result.error));
         return;
       }
       console.log(`Received result: ${JSON.stringify(result)}`);

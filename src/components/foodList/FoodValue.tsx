@@ -2,20 +2,43 @@
 
 import { useState } from "react";
 import { useCallback, useEffect } from "react";
-import { updateFoodAmount, updateFoodName } from "@/actions/serverActions";
-import { FoodAmountForm, FoodNameForm } from "./FoodEditForm";
+import {
+  updateFoodAmount,
+  updateFoodExpiry,
+  updateFoodName,
+  updateFoodStorage,
+  updateFoodUnit,
+} from "@/actions/serverActions";
+import {
+  FoodAmountForm,
+  FoodExpiryForm,
+  FoodNameForm,
+  FoodStorageForm,
+  FoodUnitForm,
+} from "./FoodEditForm";
 import { FoodValueType } from "./FoodComp";
+import { parseErrors, uppercaseFirst } from "@/lib/utils";
+import { MeasurementUnit, StorageType } from "@prisma/client";
 
 interface Props {
   id: number;
   value: number | string;
   foodValueType: FoodValueType;
+  formOpen: boolean;
+  setFormOpen: CallableFunction;
 }
 
-export default function FoodValue({ id, value, foodValueType }: Props) {
+export default function FoodValue({
+  id,
+  value,
+  foodValueType,
+  formOpen,
+  setFormOpen,
+}: Props) {
   const [form, setForm] = useState(false);
   const onDismiss = useCallback(() => {
     setForm(false);
+    setFormOpen(false);
   }, [form]);
 
   const onKeyDown = useCallback(
@@ -33,8 +56,12 @@ export default function FoodValue({ id, value, foodValueType }: Props) {
             id={id}
             value={value as string}
             updater={async (id: number, value: string) => {
-              await updateFoodName(id, value);
+              const res = await updateFoodName(id, value);
+              if (res.errors) {
+                alert(parseErrors(res.errors));
+              }
               setForm(false);
+              setFormOpen(false);
             }}
           />
         );
@@ -44,8 +71,57 @@ export default function FoodValue({ id, value, foodValueType }: Props) {
             id={id}
             value={Number(value)}
             updater={async (id: number, value: string) => {
-              await updateFoodAmount(id, Number(value));
+              const res = await updateFoodAmount(id, Number(value));
+              if (res.errors) {
+                alert(parseErrors(res.errors));
+              }
               setForm(false);
+              setFormOpen(false);
+            }}
+          />
+        );
+      case "unit":
+        return (
+          <FoodUnitForm
+            id={id}
+            value={value}
+            updater={async (id: number, value: string) => {
+              const res = await updateFoodUnit(id, value as MeasurementUnit);
+              if (res.errors) {
+                alert(parseErrors(res.errors));
+              }
+              setForm(false);
+              setFormOpen(false);
+            }}
+          />
+        );
+      case "storage":
+        return (
+          <FoodStorageForm
+            id={id}
+            value={value}
+            updater={async (id: number, value: string) => {
+              const res = await updateFoodStorage(id, value as StorageType);
+              if (res.errors) {
+                alert(parseErrors(res.errors));
+              }
+              setForm(false);
+              setFormOpen(false);
+            }}
+          />
+        );
+      case "expiry":
+        return (
+          <FoodExpiryForm
+            id={id}
+            value={value ? value : new Date().toISOString().slice(0, 10)}
+            updater={async (id: number, value: string) => {
+              const res = await updateFoodExpiry(id, value);
+              if (res.errors) {
+                alert(parseErrors(res.errors));
+              }
+              setForm(false);
+              setFormOpen(false);
             }}
           />
         );
@@ -54,6 +130,20 @@ export default function FoodValue({ id, value, foodValueType }: Props) {
           <span className="text-2xl font-semibold">{foodValueType}???</span>
         );
     }
+  }
+
+  function getDisplayValue() {
+    if (foodValueType === FoodValueType.expiry && !value) {
+      return "No Expiry";
+    } else {
+      return uppercaseFirst(value as string);
+    }
+  }
+
+  function getSpanFontCss() {
+    return foodValueType === FoodValueType.name
+      ? "text-xl font-semibold"
+      : "text-base";
   }
 
   useEffect(() => {
@@ -65,10 +155,18 @@ export default function FoodValue({ id, value, foodValueType }: Props) {
   }
   return (
     <span
-      className="w-full hover:cursor-pointer hover:bg-slate-800"
-      onClick={(e) => setForm(true)}
+      className={`w-full hover:cursor-pointer hover:bg-slate-800 px-2 py-2 select-none ${getSpanFontCss()}`}
+      onClick={(e) => {
+        if (!formOpen) {
+          setFormOpen(true);
+          setForm(true);
+        }
+      }}
     >
-      {value}
+      {getDisplayValue()}
     </span>
   );
 }
+// {foodValueType === FoodValueType.unit
+//   ? (value as string).toUpperCase()
+//   : uppercaseFirst(value)}

@@ -25,10 +25,24 @@ const foodSchema = z.object({
   }),
 });
 
+const partialFoodSchema = foodSchema.partial();
+
 export function validateFood(
   data: Record<string, string | null>,
 ): string | null {
   const result = foodSchema.safeParse(data);
+
+  if (result.success) {
+    return null;
+  } else {
+    return result.error.message;
+  }
+}
+
+export function validatePartialFood(
+  data: Record<string, string | null>,
+): string | null {
+  const result = partialFoodSchema.safeParse(data);
 
   if (result.success) {
     return null;

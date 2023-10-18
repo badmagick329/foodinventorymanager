@@ -1,9 +1,8 @@
+"use client";
 import { Food } from "@prisma/client";
-import FoodName from "./FoodName";
-import FoodAmount from "./FoodAmount";
-import FoodUnit from "./FoodUnit";
 import FoodRemove from "./FoodRemove";
 import FoodValue from "./FoodValue";
+import { useState } from "react";
 
 interface FoodCompProps {
   food: Food;
@@ -18,31 +17,58 @@ export enum FoodValueType {
 }
 
 export default function FoodComp({ food }: FoodCompProps) {
+  const [formOpen, setFormOpen] = useState(false);
   return (
-    <div className="flex flex-col w-full p-2 sm:w-1/2 lg:w-1/2 border-2 rounded-lg mb-4">
-      <div className="flex gap-2 w-full">
-        <div className="flex w-1/2">
-          <FoodName id={food.id} name={food.name} />
-        </div>
-        <div className="flex w-1/2 self-end space-x-2">
+    <div className="flex flex-col w-96 border-2 rounded-md bg-slate-900">
+      <div className="flex w-full text-center border-b-2 border-blue-950 border-opacity-50 py-2">
+        <FoodValue
+          id={food.id}
+          value={food.name}
+          foodValueType={FoodValueType.name}
+          formOpen={formOpen}
+          setFormOpen={setFormOpen}
+        />
+      </div>
+      <div className="flex w-full text-center justify-center border-b-2 border-blue-950 border-opacity-50 py-2">
+        <FoodValue
+          id={food.id}
+          value={food.expiry ? food.expiry : ""}
+          foodValueType={FoodValueType.expiry}
+          formOpen={formOpen}
+          setFormOpen={setFormOpen}
+        />
+      </div>
+      <div className="flex w-full justify-start mt-2">
+        <div className="flex w-1/4 min-w-fit pl-2">
           <FoodValue
             id={food.id}
             value={food.amount}
             foodValueType={FoodValueType.amount}
+            formOpen={formOpen}
+            setFormOpen={setFormOpen}
           />
-          <FoodUnit id={food.id} unit={food.unit} />
+        </div>
+        <div className="flex w-3/4 flex-shrink min-w-fit pr-2">
+          <FoodValue
+            id={food.id}
+            value={food.unit}
+            foodValueType={FoodValueType.unit}
+            formOpen={formOpen}
+            setFormOpen={setFormOpen}
+          />
         </div>
       </div>
-      <div className="flex gap-2 w-full">
-        <div className="w-1/2">
-          {food.expiry ? (
-            <span className="text-xl">{food.expiry}</span>
-          ) : (
-            <span className="text-xl text-gray-700">No Expiry</span>
-          )}
+      <div className="flex w-full mt-2">
+        <div className="flex w-1/2 items-center pl-2">
+          <FoodValue
+            id={food.id}
+            value={food.storage}
+            foodValueType={FoodValueType.storage}
+            formOpen={formOpen}
+            setFormOpen={setFormOpen}
+          />
         </div>
-        <div className="flex w-1/2 self-end space-x-2">
-          <span className="text-xl">{food.storage}</span>
+        <div className="flex w-1/2 pr-2">
           <FoodRemove id={food.id} />
         </div>
       </div>

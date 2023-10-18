@@ -1,34 +1,42 @@
 "use client";
-import { revalidateTag } from "next/cache";
 import { removeFood } from "@/actions/serverActions";
-import { useTransition } from "react";
+import { useState } from "react";
+import { FaRegTrashAlt } from "react-icons/fa";
+import { GiCancel } from "react-icons/gi";
 
 interface FoodRemoveProps {
   id: number;
 }
 
 export default function FoodRemove({ id }: FoodRemoveProps) {
-  // const [isPending, startTransition] = useTransition();
+  const [confirm, setConfirm] = useState(false);
   return (
-    <form
-      className="w-full"
-      action={async (e) => {
-        // const remove = confirm("Are you sure you want to remove this food?");
-        // if (!remove) return;
-        // console.log("removing food");
-        // startTransition(() => {
-        //   removeFood(e);
-        // });
-        await removeFood(e);
-      }}
-    >
+    <form className="flex w-full justify-end gap-2 m-2">
       <input type="hidden" name="id" value={id} />
-      <input
-        className="btn btn-outline btn-error"
+      {confirm ? (
+        <button
+          className="btn btn-outline btn-warning"
+          onClick={() => {
+            setConfirm(false);
+          }}
+        >
+          <GiCancel />
+        </button>
+      ) : null}
+      <button
+        className={`btn btn-outline ${confirm ? "btn-error" : "btn-warning"}`}
         type="submit"
-        // value={isPending ? "......" : "Remove"}
         value="Remove"
-      />
+        formAction={async (e) => {
+          if (!confirm) {
+            setConfirm(true);
+            return;
+          }
+          await removeFood(e);
+        }}
+      >
+        <FaRegTrashAlt />
+      </button>
     </form>
   );
 }

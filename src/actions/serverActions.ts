@@ -3,7 +3,7 @@
 import { revalidateTag, revalidatePath } from "next/cache";
 import prisma from "../../prisma/client";
 import { Food, MeasurementUnit, StorageType } from "@prisma/client";
-import { validateFood } from "@/lib/validators";
+import { validateFood, validatePartialFood } from "@/lib/validators";
 
 export async function removeFood(e: FormData) {
   const id = Number(e.get("id"));
@@ -57,15 +57,77 @@ export async function createFood(e: FormData) {
 }
 
 export async function updateFoodName(id: number, name: string) {
-  // TODO: Validate name
+  const result = validatePartialFood({ name });
+  if (result) {
+    console.log(`Validation failed: ${result}`);
+    return {
+      errors: result,
+    };
+  }
   const food = await prisma.food.update({ where: { id }, data: { name } });
   revalidatePath("/");
+  return {
+    ok: "success",
+  };
 }
 
 export async function updateFoodAmount(id: number, amount: number) {
-  // TODO: Validate amount
-  console.log(`Updating food ${id} to amount ${amount}`);
+  const result = validatePartialFood({ amount: String(amount) });
+  if (result) {
+    console.log(`Validation failed: ${result}`);
+    return {
+      errors: result,
+    };
+  }
   const food = await prisma.food.update({ where: { id }, data: { amount } });
-  console.log(food);
   revalidatePath("/");
+  return {
+    ok: "success",
+  };
+}
+
+export async function updateFoodUnit(id: number, unit: MeasurementUnit) {
+  const result = validatePartialFood({ unit });
+  if (result) {
+    console.log(`Validation failed: ${result}`);
+    return {
+      errors: result,
+    };
+  }
+  const food = await prisma.food.update({ where: { id }, data: { unit } });
+  revalidatePath("/");
+  return {
+    ok: "success",
+  };
+}
+
+export async function updateFoodStorage(id: number, storage: StorageType) {
+  const result = validatePartialFood({ storage });
+  if (result) {
+    console.log(`Validation failed: ${result}`);
+    return {
+      errors: result,
+    };
+  }
+  const food = await prisma.food.update({ where: { id }, data: { storage } });
+  revalidatePath("/");
+  return {
+    ok: "success",
+  };
+}
+
+export async function updateFoodExpiry(id: number, e: string) {
+  let expiry = e === "" ? null : e;
+  const result = validatePartialFood({ expiry });
+  if (result) {
+    console.log(`Validation failed: ${result}`);
+    return {
+      errors: result,
+    };
+  }
+  const food = await prisma.food.update({ where: { id }, data: { expiry } });
+  revalidatePath("/");
+  return {
+    ok: "success",
+  };
 }
