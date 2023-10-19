@@ -12,17 +12,22 @@ export async function removeFood(e: FormData) {
 }
 
 export async function getAllFoods() {
-  const foods = await prisma.food.findMany({
-    orderBy: [
-      {
-        id: "desc",
-      },
-      {
-        name: "asc",
-      },
-    ],
-  });
-  return foods as Food[];
+  try {
+    const foods = await prisma.food.findMany({
+      orderBy: [
+        {
+          id: "desc",
+        },
+        {
+          name: "asc",
+        },
+      ],
+    });
+    return foods as Food[];
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
 }
 
 export async function createFood(e: FormData) {

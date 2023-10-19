@@ -33,17 +33,25 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  const foods = await prisma.food.findMany({
-    orderBy: [
-      {
-        id: "desc",
-      },
-      {
-        name: "asc",
-      },
-    ],
-  });
-  return NextResponse.json(foods, { status: 200 });
+  try {
+    const foods = await prisma.food.findMany({
+      orderBy: [
+        {
+          id: "desc",
+        },
+        {
+          name: "asc",
+        },
+      ],
+    });
+    return NextResponse.json(foods, { status: 200 });
+  } catch (error) {
+    console.log(error);
+    return NextResponse.json(
+      { error: "Something went wrong", foods: [] },
+      { status: 500 },
+    );
+  }
 }
 
 export async function DELETE(request: NextRequest) {
