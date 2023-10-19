@@ -1,20 +1,34 @@
-import { revalidatePath } from "next/cache";
 import FoodComp from "./foodList/FoodComp";
-import { getAllFoods } from "@/actions/serverActions";
+import { Food } from "@prisma/client";
 
-export const dynamic = "auto",
+export const dynamic = "force-dynamic",
   dynamicParams = true,
   revalidate = 0,
-  fetchCache = "auto",
+  fetchCache = "only-no-store",
   runTime = "nodejs",
   preferredRegion = "auto";
 
-export default async function FoodList() {
-  console.log("About to fetch foods");
-  const foods = await getAllFoods();
-  console.log(`Foods fetched ${foods}`);
-  if (!foods) {
-    return <span className="text-2xl font-semibold">Loading...</span>;
+export default async function FoodList({
+  baseUrl,
+}: {
+  baseUrl: string | undefined;
+}) {
+  let foods: Food[] | null = null;
+  try {
+    const res = await fetch(`${baseUrl}/api/foods`, {
+      method: "GET",
+      cache: "no-store",
+      next: {
+        tags: ["foods"],
+      },
+    });
+    foods = (await res.json()) as Food[];
+  } catch (error) {
+    console.log("Error fetching foods");
+    console.log(error);
+  }
+  if (foods === null) {
+    return <span className="text-4xl">Could not fetch data 😥</span>;
   }
   return (
     <div className="flex flex-col w-full items-center gap-2">

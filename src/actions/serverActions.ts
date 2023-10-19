@@ -5,6 +5,7 @@ import prisma from "../../prisma/client";
 import { Food, MeasurementUnit, StorageType } from "@prisma/client";
 import { validateFood, validatePartialFood } from "@/lib/validators";
 
+
 export async function removeFood(e: FormData) {
   const id = Number(e.get("id"));
   await prisma.food.delete({ where: { id } });
@@ -23,11 +24,16 @@ export async function getAllFoods() {
         },
       ],
     });
+    revalidatePath("/");
     return foods as Food[];
   } catch (error) {
     console.log(error);
-    return [];
+    return null;
   }
+}
+
+export async function reload() {
+  revalidatePath("/");
 }
 
 export async function createFood(e: FormData) {
@@ -56,6 +62,7 @@ export async function createFood(e: FormData) {
       storage: storage as StorageType,
     },
   });
+  revalidatePath("/");
   return {
     ok: "success",
   };

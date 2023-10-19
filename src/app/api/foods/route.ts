@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../prisma/client";
 import { Food, MeasurementUnit, StorageType } from "@prisma/client";
 import { validateFood } from "@/lib/validators";
+import { revalidateTag } from "next/cache";
 
 export async function POST(request: NextRequest) {
   console.log(`Received request: ${JSON.stringify(request)}`);
@@ -44,6 +45,7 @@ export async function GET(request: NextRequest) {
         },
       ],
     });
+    revalidateTag("foods");
     return NextResponse.json(foods, { status: 200 });
   } catch (error) {
     console.log(error);
