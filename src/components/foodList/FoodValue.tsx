@@ -155,9 +155,14 @@ export default function FoodValue({
   }
 
   function getSpanFontCss() {
-    return foodValueType === FoodValueType.name
-      ? "text-base md:text-2xl font-bold"
-      : "text-sm md:text-xl font-semibold";
+    switch (foodValueType) {
+      case FoodValueType.name:
+      case FoodValueType.amount:
+      case FoodValueType.unit:
+        return "text-base md:text-2xl font-bold";
+      default:
+        return "text-sm md:text-xl font-semibold";
+    }
   }
 
   useEffect(() => {

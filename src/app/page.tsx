@@ -9,7 +9,6 @@ export default function Home() {
       <Suspense
         fallback={<span className="text-2xl font-semibold">Loading...</span>}
       >
-        <Link href="/test">Click me</Link>
         <FoodList baseUrl={BASE_URL} />
       </Suspense>
     </>
