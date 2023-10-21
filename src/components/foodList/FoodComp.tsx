@@ -2,7 +2,7 @@
 import { Food } from "@prisma/client";
 import FoodRemove from "./FoodRemove";
 import FoodValue from "./FoodValue";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface FoodCompProps {
   food: Food;
@@ -19,8 +19,10 @@ export enum FoodValueType {
 export default function FoodComp({ food }: FoodCompProps) {
   const [formOpen, setFormOpen] = useState(false);
   return (
-    <div className="flex flex-col w-80 border-2 rounded-md bg-slate-900">
-      <div className="flex w-full text-center border-b-2 border-blue-950 border-opacity-50 py-2">
+    <div
+      className="flex flex-col w-80 border-2 rounded-lg border-color-0 bg-color-1 overflow-hidden"
+    >
+      <div className="flex w-full text-center border-b-2 border-color-0 border-opacity-50 py-2">
         <FoodValue
           id={food.id}
           value={food.name}
@@ -29,7 +31,7 @@ export default function FoodComp({ food }: FoodCompProps) {
           setFormOpen={setFormOpen}
         />
       </div>
-      <div className="flex w-full text-center justify-center border-b-2 border-blue-950 border-opacity-50 py-2">
+      <div className="flex w-full text-center justify-center border-b-2 border-color-0 border-opacity-50 py-2">
         <FoodValue
           id={food.id}
           value={food.expiry ? food.expiry : ""}
@@ -38,7 +40,7 @@ export default function FoodComp({ food }: FoodCompProps) {
           setFormOpen={setFormOpen}
         />
       </div>
-      <div className="flex w-full justify-start mt-2">
+      <div className="flex w-1/4 justify-start mt-2">
         <div className="flex w-1/4 min-w-fit pl-2">
           <FoodValue
             id={food.id}
@@ -48,7 +50,7 @@ export default function FoodComp({ food }: FoodCompProps) {
             setFormOpen={setFormOpen}
           />
         </div>
-        <div className="flex w-3/4 flex-shrink min-w-fit pr-2">
+        <div className="flex w-3/4 shrink min-w-fit pr-2">
           <FoodValue
             id={food.id}
             value={food.unit}

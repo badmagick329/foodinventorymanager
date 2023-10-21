@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "devlocal": "next dev -H 0.0.0.0 -p 3000",
     "build": "next build",
     "start": "next start",
     "startlocal": "next start -H 0.0.0.0 -p 3000",

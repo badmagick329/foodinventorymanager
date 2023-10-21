@@ -2,7 +2,6 @@
 
 import { MeasurementUnit, StorageType } from "@prisma/client";
 import { useState } from "react";
-import { GiConfirmed } from "react-icons/gi";
 import { AiOutlineClear } from "react-icons/ai";
 
 interface FormProps {
@@ -16,13 +15,13 @@ export function FoodAmountForm({ id, value, updater }: FormProps) {
   const [newValue, setNewValue] = useState(value);
   return (
     <form
-      className="flex space-x-2"
+      className="flex space-x-2 w-fit"
       action={async () => {
         await updater(id, newValue);
       }}
     >
       <input
-        className="input w-1/2 input-bordered max-w-xs"
+        className="input input-bordered"
         type="number"
         min="0.1"
         step="0.1"
@@ -107,7 +106,7 @@ export function FoodExpiryForm({ id, value, updater }: FormProps) {
       />
       <DoneButton />
       <button
-        className="btn btn-warning btn-outline"
+        className="btn btn-outline btn-warning"
         onClick={() => setNewValue("")}
       >
         <AiOutlineClear />
@@ -146,7 +145,7 @@ export function FoodStorageForm({ id, value, updater }: FormProps) {
 
 function DoneButton() {
   return (
-    <button className="btn btn-outline btn-primary" type="submit">
+    <button className="btn btn-outline text-green-300" type="submit">
       <AiOutlineCheck />
     </button>
   );

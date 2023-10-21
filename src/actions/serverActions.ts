@@ -5,11 +5,10 @@ import prisma from "../../prisma/client";
 import { Food, MeasurementUnit, StorageType } from "@prisma/client";
 import { validateFood, validatePartialFood } from "@/lib/validators";
 
-
 export async function removeFood(e: FormData) {
   const id = Number(e.get("id"));
   await prisma.food.delete({ where: { id } });
-  revalidatePath("/");
+  revalidateTag("food");
 }
 
 export async function getAllFoods() {
@@ -17,14 +16,19 @@ export async function getAllFoods() {
     const foods = await prisma.food.findMany({
       orderBy: [
         {
-          id: "desc",
+          expiry: "asc",
+        },
+        {
+          storage: "asc",
         },
         {
           name: "asc",
         },
+        {
+          id: "desc",
+        },
       ],
     });
-    revalidatePath("/");
     return foods as Food[];
   } catch (error) {
     console.log(error);
@@ -33,7 +37,7 @@ export async function getAllFoods() {
 }
 
 export async function reload() {
-  revalidatePath("/");
+  revalidateTag("food");
 }
 
 export async function createFood(e: FormData) {
@@ -62,7 +66,7 @@ export async function createFood(e: FormData) {
       storage: storage as StorageType,
     },
   });
-  revalidatePath("/");
+  revalidateTag("food");
   return {
     ok: "success",
   };
@@ -77,7 +81,7 @@ export async function updateFoodName(id: number, name: string) {
     };
   }
   const food = await prisma.food.update({ where: { id }, data: { name } });
-  revalidatePath("/");
+  revalidateTag("food");
   return {
     ok: "success",
   };
@@ -92,7 +96,7 @@ export async function updateFoodAmount(id: number, amount: number) {
     };
   }
   const food = await prisma.food.update({ where: { id }, data: { amount } });
-  revalidatePath("/");
+  revalidateTag("food");
   return {
     ok: "success",
   };
@@ -107,7 +111,7 @@ export async function updateFoodUnit(id: number, unit: MeasurementUnit) {
     };
   }
   const food = await prisma.food.update({ where: { id }, data: { unit } });
-  revalidatePath("/");
+  revalidateTag("food");
   return {
     ok: "success",
   };
@@ -122,7 +126,7 @@ export async function updateFoodStorage(id: number, storage: StorageType) {
     };
   }
   const food = await prisma.food.update({ where: { id }, data: { storage } });
-  revalidatePath("/");
+  revalidateTag("food");
   return {
     ok: "success",
   };
@@ -138,7 +142,7 @@ export async function updateFoodExpiry(id: number, e: string) {
     };
   }
   const food = await prisma.food.update({ where: { id }, data: { expiry } });
-  revalidatePath("/");
+  revalidateTag("food");
   return {
     ok: "success",
   };

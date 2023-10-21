@@ -86,7 +86,7 @@ export default function NewFood() {
       >
         <label className="text-white">Name</label>
         <input
-          className="input"
+          className="input bg-gray-700"
           type="text"
           value={name}
           name="name"
@@ -96,7 +96,7 @@ export default function NewFood() {
         />
         <label className="text-white">Amount</label>
         <input
-          className="input"
+          className="input bg-gray-700"
           type="number"
           min="0.01"
           step="0.01"
@@ -108,7 +108,7 @@ export default function NewFood() {
         />
         <label className="text-white">Unit</label>
         <select
-          className="input"
+          className="input bg-gray-700"
           value={unit}
           name="unit"
           onChange={(e) => setUnit(e.target.value)}
@@ -122,7 +122,7 @@ export default function NewFood() {
         </select>
         <label className="text-white">Expiry</label>
         <input
-          className="input"
+          className="input bg-gray-700"
           type="date"
           value={expiry}
           min={new Date().toISOString().slice(0, 10)}
@@ -131,7 +131,7 @@ export default function NewFood() {
         />
         <label className="text-white">Storage</label>
         <select
-          className="input"
+          className="input bg-gray-700"
           value={storage}
           name="storage"
           onChange={(e) => setStorage(e.target.value)}

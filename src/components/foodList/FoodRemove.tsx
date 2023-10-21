@@ -3,6 +3,7 @@ import { removeFood } from "@/actions/serverActions";
 import { useState } from "react";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { GiCancel } from "react-icons/gi";
+import { RxCross1 } from "react-icons/rx";
 
 interface FoodRemoveProps {
   id: number;
@@ -20,7 +21,7 @@ export default function FoodRemove({ id }: FoodRemoveProps) {
             setConfirm(false);
           }}
         >
-          <GiCancel />
+          <RxCross1 />
         </button>
       ) : null}
       <button

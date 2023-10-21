@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useCallback, useEffect } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import {
   updateFoodAmount,
   updateFoodExpiry,
@@ -36,6 +35,21 @@ export default function FoodValue({
   setFormOpen,
 }: Props) {
   const [form, setForm] = useState(false);
+  const ref = useRef<any>(null);
+
+  useEffect(() => {
+    const handleOutSideClick = (event: MouseEvent) => {
+      if (!ref.current?.contains(event.target) && form) {
+        setForm(false);
+        setFormOpen(false);
+      }
+    };
+    window.addEventListener("mousedown", handleOutSideClick);
+    return () => {
+      window.removeEventListener("mousedown", handleOutSideClick);
+    };
+  }, [ref, form]);
+
   const onDismiss = useCallback(() => {
     setForm(false);
     setFormOpen(false);
@@ -142,8 +156,8 @@ export default function FoodValue({
 
   function getSpanFontCss() {
     return foodValueType === FoodValueType.name
-      ? "text-xl font-semibold"
-      : "text-base";
+      ? "text-base md:text-2xl font-bold"
+      : "text-sm md:text-xl font-semibold";
   }
 
   useEffect(() => {
@@ -151,11 +165,15 @@ export default function FoodValue({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [onKeyDown]);
   if (form) {
-    return <span className="w-full">{renderForm()}</span>;
+    return (
+      <span ref={ref} className="flex w-full justify-center">
+        {renderForm()}
+      </span>
+    );
   }
   return (
     <span
-      className={`w-full hover:cursor-pointer hover:bg-slate-800 px-2 py-2 select-none ${getSpanFontCss()}`}
+      className={`w-full hover:cursor-pointer hover:bg-cyan-600 rounded-md px-4 py-2 select-none ${getSpanFontCss()}`}
       onClick={(e) => {
         if (!formOpen) {
           setFormOpen(true);
@@ -167,6 +185,3 @@ export default function FoodValue({
     </span>
   );
 }
-// {foodValueType === FoodValueType.unit
-//   ? (value as string).toUpperCase()
-//   : uppercaseFirst(value)}
