@@ -38,10 +38,16 @@ export async function GET(request: NextRequest) {
     const foods = await prisma.food.findMany({
       orderBy: [
         {
-          id: "desc",
+          expiry: "asc",
+        },
+        {
+          storage: "asc",
         },
         {
           name: "asc",
+        },
+        {
+          id: "desc",
         },
       ],
     });

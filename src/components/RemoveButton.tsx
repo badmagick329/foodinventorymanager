@@ -1,15 +1,14 @@
 "use client";
-import { removeFood } from "@/actions/serverActions";
 import { useState } from "react";
 import { FaRegTrashAlt } from "react-icons/fa";
-import { GiCancel } from "react-icons/gi";
 import { RxCross1 } from "react-icons/rx";
 
-interface FoodRemoveProps {
+interface RemoveProps {
   id: number;
+  removeCallback: CallableFunction;
 }
 
-export default function FoodRemove({ id }: FoodRemoveProps) {
+export default function RemoveButton({ id, removeCallback }: RemoveProps) {
   const [confirm, setConfirm] = useState(false);
   return (
     <form className="flex w-full justify-end gap-2 m-2">
@@ -27,13 +26,12 @@ export default function FoodRemove({ id }: FoodRemoveProps) {
       <button
         className={`btn btn-outline ${confirm ? "btn-error" : "btn-warning"}`}
         type="submit"
-        value="Remove"
         formAction={async (e) => {
           if (!confirm) {
             setConfirm(true);
             return;
           }
-          await removeFood(e);
+          await removeCallback(e);
         }}
       >
         <FaRegTrashAlt />

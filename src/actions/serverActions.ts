@@ -147,3 +147,11 @@ export async function updateFoodExpiry(id: number, e: string) {
     ok: "success",
   };
 }
+
+export async function removeShoppingItem(e: FormData) {
+  const id = Number(e.get("id"));
+  await prisma.shoppingItem.delete({ where: { id } });
+  revalidateTag("shoppingitem");
+}
+
+

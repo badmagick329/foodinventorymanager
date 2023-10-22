@@ -19,7 +19,7 @@ export default function NavBar() {
           </Link>
         </li>
         <li className="text-base md:text-xl">
-          <Link className="text-base md:text-xl" href="/food/new">
+          <Link className="text-base md:text-xl" href="/shopping">
             <span className="flex gap-2 items-center hover:text-color-1">
               List <FaCartPlus />
             </span>
