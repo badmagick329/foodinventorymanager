@@ -1,5 +1,4 @@
 import FoodListClient from "./FoodListClient";
-import FoodComp from "./foodList/FoodComp";
 import { Food } from "@prisma/client";
 
 // export const dynamic = "force-dynamic",

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import FoodList from "@/components/FoodList";
 import { Suspense } from "react";
 

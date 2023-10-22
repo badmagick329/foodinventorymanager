@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidateTag, revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 import prisma from "../../prisma/client";
 import { Food, MeasurementUnit, StorageType } from "@prisma/client";
 import { validateFood, validatePartialFood } from "@/lib/validators";

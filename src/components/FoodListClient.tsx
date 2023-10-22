@@ -17,12 +17,6 @@ function generateStorageState() {
   return storageFilters;
 }
 
-enum SortBy {
-  Expiry = "expiry",
-  Name = "name",
-  Storage = "storage",
-}
-
 export default function FoodListClient({ foods }: FoodListClientProps) {
   const [searchText, setSearchText] = useState("");
   const [storageFilters, setStorageFilters] = useState(generateStorageState);

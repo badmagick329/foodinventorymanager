@@ -1,6 +1,5 @@
 import { GiFoodTruck } from "react-icons/gi";
 import Link from "next/link";
-import { BsFillPlusSquareFill } from "react-icons/bs";
 import { FaCartPlus } from "react-icons/fa";
 import { AiOutlinePlus } from "react-icons/ai";
 
