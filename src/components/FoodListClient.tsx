@@ -9,12 +9,55 @@ interface FoodListClientProps {
   foods: Food[] | null;
 }
 
+interface StorageFiltersProps {
+  storageFilters: Record<string, boolean>;
+  setStorageFilters: CallableFunction;
+}
+
 function generateStorageState() {
   const storageFilters: Record<string, boolean> = {};
   for (const storage of Object.values(StorageType)) {
     storageFilters[storage] = true;
   }
   return storageFilters;
+}
+
+function StorageFilters({
+  storageFilters,
+  setStorageFilters,
+}: StorageFiltersProps) {
+  const isChecked = (key: keyof typeof storageFilters) => {
+    return storageFilters[key];
+  };
+
+  return (
+    <div className="flex space-x-1">
+      {Object.keys(storageFilters).map((key, idx) => (
+        <div key={idx} className="form-control">
+          <label
+            className={`cursor-pointer label space-x-2 px-2 btn ${
+              isChecked(key)
+                ? "bg-color-1 hover:bg-cyan-600"
+                : "bg-blue-850 hover:bg-slate-700"
+            }`}
+          >
+            <span className="label-text">{uppercaseFirst(key)}</span>
+            <input
+              type="checkbox"
+              checked={isChecked(key)}
+              className="hidden"
+              onChange={(e) =>
+                setStorageFilters({
+                  ...storageFilters,
+                  [key]: e.target.checked,
+                })
+              }
+            />
+          </label>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function FoodListClient({ foods }: FoodListClientProps) {
@@ -44,10 +87,6 @@ export default function FoodListClient({ foods }: FoodListClientProps) {
     return sortedByExpiry;
   };
 
-  const isChecked = (key: keyof typeof storageFilters) => {
-    return storageFilters[key];
-  };
-
   return (
     <div className="flex flex-col w-full items-center gap-2">
       <input
@@ -56,33 +95,15 @@ export default function FoodListClient({ foods }: FoodListClientProps) {
         className="input input-outline bg-gray-700 w-11/12 sm:w-3/4"
         onChange={(e) => setSearchText(e.target.value)}
       ></input>
-      <div className="flex space-x-1">
-        {Object.keys(storageFilters).map((key, idx) => (
-          <div key={idx} className="form-control">
-            <label
-              className={`cursor-pointer label space-x-2 px-2 btn ${
-                isChecked(key) ? "bg-color-1 hover:bg-cyan-600" : "bg-blue-850 hover:bg-slate-700"
-              }`}
-            >
-              <span className="label-text">{uppercaseFirst(key)}</span>
-              <input
-                type="checkbox"
-                checked={isChecked(key)}
-                className="hidden"
-                onChange={(e) =>
-                  setStorageFilters({
-                    ...storageFilters,
-                    [key]: e.target.checked,
-                  })
-                }
-              />
-            </label>
-          </div>
-        ))}
+      <StorageFilters
+        storageFilters={storageFilters}
+        setStorageFilters={setStorageFilters}
+      />
+      <div className="flex flex-wrap justify-center">
+        {sortedFoods(filteredFoods(foods))?.map((food: Food) => {
+          return <FoodComp key={food.id} food={food} />;
+        })}
       </div>
-      {sortedFoods(filteredFoods(foods))?.map((food: Food) => {
-        return <FoodComp key={food.id} food={food} />;
-      })}
     </div>
   );
 }
