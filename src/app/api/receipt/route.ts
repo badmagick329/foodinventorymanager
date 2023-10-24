@@ -10,6 +10,10 @@ export async function POST(request: NextRequest) {
   }
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
-  const foodItems: FoodItem[] = await processPdf(buffer);
-  return NextResponse.json({ foodItems }, { status: 200 });
+  try{
+    const foodItems: FoodItem[] = await processPdf(buffer);
+    return NextResponse.json({ data: foodItems }, { status: 200 });
+  } catch(error: any) {
+    return NextResponse.json({ error: "Error parsing pdf" }, { status: 400 });
+  }
 }

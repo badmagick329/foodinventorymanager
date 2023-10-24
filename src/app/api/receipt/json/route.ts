@@ -5,7 +5,7 @@ import prisma from "../../../../../prisma/client";
 import { revalidateTag } from "next/cache";
 
 export async function POST(request: NextRequest) {
-  const data = (await request.json())["foodItems"];
+  const data = (await request.json())["data"]
   // return NextResponse.json({ status: 200 });
   console.log(JSON.stringify(data, null, 2));
   const createErrors = [];
