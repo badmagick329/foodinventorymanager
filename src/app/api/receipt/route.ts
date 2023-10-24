@@ -1,0 +1,15 @@
+import { NextRequest, NextResponse } from "next/server";
+import processPdf from "@/receipt-reader/reader";
+import { FoodItem } from "@/receipt-reader/lib/types";
+
+export async function POST(request: NextRequest) {
+  const data = await request.formData();
+  const file: File | null = data.get("file") as unknown as File;
+  if (!file) {
+    return NextResponse.json({ error: "No file found" }, { status: 400 });
+  }
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
+  const foodItems: FoodItem[] = await processPdf(buffer);
+  return NextResponse.json({ foodItems }, { status: 200 });
+}

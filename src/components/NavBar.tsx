@@ -24,6 +24,13 @@ export default function NavBar() {
             </span>
           </Link>
         </li>
+        <li className="text-base md:text-xl">
+          <Link className="text-base md:text-xl" href="/receipt">
+            <span className="flex gap-2 items-center hover:text-color-1">
+              Receipt
+            </span>
+          </Link>
+        </li>
       </ul>
     </nav>
   );
