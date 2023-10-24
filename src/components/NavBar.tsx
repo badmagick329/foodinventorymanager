@@ -2,6 +2,8 @@ import { GiFoodTruck } from "react-icons/gi";
 import Link from "next/link";
 import { FaCartPlus } from "react-icons/fa";
 import { AiOutlinePlus } from "react-icons/ai";
+import { PiNoteFill } from "react-icons/pi";
+
 
 export default function NavBar() {
   return (
@@ -27,7 +29,7 @@ export default function NavBar() {
         <li className="text-base md:text-xl">
           <Link className="text-base md:text-xl" href="/receipt">
             <span className="flex gap-2 items-center hover:text-color-1">
-              Receipt
+              Receipt <PiNoteFill />
             </span>
           </Link>
         </li>

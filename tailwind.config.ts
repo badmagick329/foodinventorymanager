@@ -19,6 +19,11 @@ const config: Config = {
         "color-2": "#64CCC5",
         "color-3": "#EEEEEE",
       },
+      screens: {
+        xl: "1280px",
+        "2xl": "1536px",
+        "3xl": "1980px",
+      },
     },
   },
   plugins: [require("daisyui")],

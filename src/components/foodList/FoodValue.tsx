@@ -15,7 +15,7 @@ import {
   FoodStorageForm,
   FoodUnitForm,
 } from "./FoodEditForm";
-import { FoodValueType } from "./FoodComp";
+import { FoodValueType } from "./FoodCard";
 import { parseErrors, uppercaseFirst } from "@/lib/utils";
 import { MeasurementUnit, StorageType } from "@prisma/client";
 
@@ -157,8 +157,8 @@ export default function FoodValue({
   function getSpanFontCss() {
     switch (foodValueType) {
       case FoodValueType.name:
-      case FoodValueType.amount:
-      case FoodValueType.unit:
+        return "text-base md:text-2xl";
+      case FoodValueType.expiry:
         return "text-base md:text-2xl font-bold";
       default:
         return "text-sm md:text-xl font-semibold";

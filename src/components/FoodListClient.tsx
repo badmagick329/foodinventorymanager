@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Food } from "@prisma/client";
-import FoodComp from "./foodList/FoodComp";
+import FoodCard from "./foodList/FoodCard";
 import { uppercaseFirst } from "@/lib/utils";
 import { StorageType } from "@prisma/client";
 
@@ -88,20 +88,20 @@ export default function FoodListClient({ foods }: FoodListClientProps) {
   };
 
   return (
-    <div className="flex flex-col w-full items-center gap-2">
+    <div className="flex flex-col w-full items-center gap-4">
       <input
         type="text"
         placeholder="Search"
-        className="input input-outline bg-gray-700 w-11/12 sm:w-3/4"
+        className="input input-outline bg-gray-700 w-11/12 lg:w-9/12 2xl:w-2/3 3xl:w-1/2"
         onChange={(e) => setSearchText(e.target.value)}
       ></input>
       <StorageFilters
         storageFilters={storageFilters}
         setStorageFilters={setStorageFilters}
       />
-      <div className="flex flex-wrap justify-center">
+      <div className="flex flex-wrap justify-center gap-4 w-11/12 lg:w-9/12 2xl:w-2/3 3xl:w-1/2">
         {sortedFoods(filteredFoods(foods))?.map((food: Food) => {
-          return <FoodComp key={food.id} food={food} />;
+          return <FoodCard key={food.id} food={food} />;
         })}
       </div>
     </div>

@@ -1,9 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Receipt() {
   const [file, setFile] = useState<File>();
   const [receiptJson, setReceiptJson] = useState<string>("");
+  const router = useRouter();
 
   useEffect(() => {
     const postReceipt = async () => {
@@ -52,12 +54,13 @@ export default function Receipt() {
         console.error(await res.text());
         return;
       }
-      if (res.status === 201) {
-        console.log("Created");
+      const response = await res.json();
+      console.log("Response status:", res.status);
+      if (response.status === 201) {
+        router.push("/");
+        router.refresh();
         return;
       }
-      console.log(await res.json());
-      return;
     } catch (e: any) {
       // TODO: Better error handling
       console.error(e.message);
@@ -65,7 +68,7 @@ export default function Receipt() {
   };
 
   return (
-    <div className="flex flex-col w-11/12 items-center space-y-2">
+    <div className="flex flex-col items-center space-y-2 w-11/12 lg:w-9/12 2xl:w-2/3 3xl:w-1/2">
       <input
         type="file"
         accept="application/pdf"
