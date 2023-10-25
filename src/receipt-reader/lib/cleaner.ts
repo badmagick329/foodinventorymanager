@@ -11,6 +11,7 @@ const untrackedItems = [
   "BLEACH",
   "KITCHEN ROLL",
   "Substituted items",
+  "Age-restricted products",
 ];
 
 export default function cleanLines(lines: string[]) {

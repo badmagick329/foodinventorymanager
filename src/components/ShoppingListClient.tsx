@@ -45,7 +45,7 @@ export default function ShoppingListClient({
   }
 
   return (
-    <div className="flex flex-col items-start w-full">
+    <div className="flex flex-col items-start p-2 w-full sm:w-3/4 lg:w-1/2">
       {shoppingItems?.map((item) => (
         <div
           key={item.id}
