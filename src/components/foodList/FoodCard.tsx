@@ -4,6 +4,7 @@ import FoodValue from "./FoodValue";
 import { useState } from "react";
 import RemoveButton from "../RemoveButton";
 import { removeFood } from "@/actions/serverActions";
+import { getCardBgColor } from "@/lib/utils";
 
 interface FoodCardProps {
   food: Food;
@@ -20,7 +21,9 @@ export enum FoodValueType {
 export default function FoodCard({ food }: FoodCardProps) {
   const [formOpen, setFormOpen] = useState(false);
   return (
-    <div className="flex flex-col w-80 rounded-lg bg-color-1 overflow-hidden">
+    <div
+      className={`flex flex-col w-80 rounded-lg bg-opacity-50 overflow-hidden ${getCardBgColor(food.storage)}`}
+    >
       <div className="flex w-full text-center py-2">
         <FoodValue
           id={food.id}
@@ -28,6 +31,7 @@ export default function FoodCard({ food }: FoodCardProps) {
           foodValueType={FoodValueType.name}
           formOpen={formOpen}
           setFormOpen={setFormOpen}
+          storageType={food.storage}
         />
       </div>
       <div className="flex flex-col w-full h-full justify-end">
@@ -38,6 +42,7 @@ export default function FoodCard({ food }: FoodCardProps) {
             foodValueType={FoodValueType.expiry}
             formOpen={formOpen}
             setFormOpen={setFormOpen}
+            storageType={food.storage}
           />
         </div>
         <div className="flex w-1/4 justify-start mt-2">
@@ -48,6 +53,7 @@ export default function FoodCard({ food }: FoodCardProps) {
               foodValueType={FoodValueType.amount}
               formOpen={formOpen}
               setFormOpen={setFormOpen}
+              storageType={food.storage}
             />
           </div>
           <div className="flex w-3/4 shrink min-w-fit pr-2">
@@ -57,6 +63,7 @@ export default function FoodCard({ food }: FoodCardProps) {
               foodValueType={FoodValueType.unit}
               formOpen={formOpen}
               setFormOpen={setFormOpen}
+              storageType={food.storage}
             />
           </div>
         </div>
@@ -68,6 +75,7 @@ export default function FoodCard({ food }: FoodCardProps) {
               foodValueType={FoodValueType.storage}
               formOpen={formOpen}
               setFormOpen={setFormOpen}
+              storageType={food.storage}
             />
           </div>
           <div className="flex w-1/2 pr-2">

@@ -18,6 +18,7 @@ import {
 import { FoodValueType } from "./FoodCard";
 import { parseErrors, uppercaseFirst } from "@/lib/utils";
 import { MeasurementUnit, StorageType } from "@prisma/client";
+import { getCardHoverColor } from "@/lib/utils";
 
 interface Props {
   id: number;
@@ -25,6 +26,7 @@ interface Props {
   foodValueType: FoodValueType;
   formOpen: boolean;
   setFormOpen: CallableFunction;
+  storageType: StorageType;
 }
 
 export default function FoodValue({
@@ -33,6 +35,7 @@ export default function FoodValue({
   foodValueType,
   formOpen,
   setFormOpen,
+  storageType,
 }: Props) {
   const [form, setForm] = useState(false);
   const ref = useRef<any>(null);
@@ -59,7 +62,7 @@ export default function FoodValue({
     (e: KeyboardEvent) => {
       if (e.key === "Escape") onDismiss();
     },
-    [onDismiss],
+    [onDismiss]
   );
 
   function renderForm() {
@@ -178,7 +181,7 @@ export default function FoodValue({
   }
   return (
     <span
-      className={`w-full hover:cursor-pointer hover:bg-cyan-600 rounded-md px-4 py-2 select-none ${getSpanFontCss()}`}
+      className={`w-full hover:cursor-pointer ${getCardHoverColor(storageType)} rounded-md px-4 py-2 select-none ${getSpanFontCss()}`}
       onClick={(e) => {
         if (!formOpen) {
           setFormOpen(true);

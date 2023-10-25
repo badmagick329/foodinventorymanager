@@ -2,8 +2,9 @@
 import { useState } from "react";
 import { Food } from "@prisma/client";
 import FoodCard from "./foodList/FoodCard";
-import { uppercaseFirst } from "@/lib/utils";
+import { getCardHoverColor, uppercaseFirst } from "@/lib/utils";
 import { StorageType } from "@prisma/client";
+import { getCardBgColor } from "@/lib/utils";
 
 interface FoodListClientProps {
   foods: Food[] | null;
@@ -37,7 +38,7 @@ function StorageFilters({
           <label
             className={`cursor-pointer label space-x-2 px-2 btn ${
               isChecked(key)
-                ? "bg-color-1 hover:bg-cyan-600"
+                ? `${getCardBgColor(key)} ${getCardHoverColor(key)}`
                 : "bg-blue-850 hover:bg-slate-700"
             }`}
           >

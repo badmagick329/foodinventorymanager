@@ -51,7 +51,7 @@ export default function ShoppingListClient({
           key={item.id}
           className="flex w-full px-2 space-y-2 justify-between items-center"
         >
-          <span className="text-xl">{item.name}</span>
+          <span className="w-full text-xl">{item.name}</span>
           <RemoveButton id={item.id} removeCallback={removeShoppingItem} />
         </div>
       ))}
