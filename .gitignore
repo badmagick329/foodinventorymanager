@@ -34,10 +34,13 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.env*
-docker-compose*.yml
+.env
+.env.local
+docker-compose-db.yml
+docker-compose.yml
 .dockerignore
 Docker/*
+!Docker/Dockerfile.sample
 /db
 nginx/*
 notes/*
