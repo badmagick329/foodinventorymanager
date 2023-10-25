@@ -62,6 +62,7 @@ export default function ShoppingListClient({
           name="name"
           value={item}
           onChange={(e) => setItem(e.target.value)}
+          autoComplete="off"
         />
         <button
           className="btn bg-color-1 hover:bg-cyan-600"

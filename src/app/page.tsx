@@ -2,7 +2,7 @@ import FoodList from "@/components/FoodList";
 import { Suspense } from "react";
 
 export default function Home() {
-  const BASE_URL = process.env.BASE_URL;
+  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
   return (
     <>
       <Suspense

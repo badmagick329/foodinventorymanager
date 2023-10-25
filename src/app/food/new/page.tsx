@@ -2,9 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MeasurementUnit, StorageType } from "@prisma/client";
-import { validateFood } from "@/lib/validators";
 import { useTransition } from "react";
-import { revalidateTag } from "next/cache";
 import { createFood as create } from "@/actions/serverActions";
 import { parseErrors } from "@/lib/utils";
 
@@ -17,55 +15,13 @@ export default function NewFood() {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
-  const _createFood = async () => {
-    console.log("Validating form");
-    console.log(name, amount, unit, expiry, storage);
-    const errors = validateFood({
-      name: name.trim(),
-      unit: unit.trim(),
-      amount: amount.trim(),
-      expiry: expiry.trim() === "" ? null : expiry.trim(),
-      storage: storage.trim(),
-    });
-    if (errors) {
-      // TODO: alternative alert
-      alert(parseErrors(errors));
-      // alert(errors);
-      return;
-    }
-    console.log("Creating food");
-    startTransition(async () => {
-      const response = await fetch("http://localhost:3000/api/foods", {
-        method: "POST",
-        body: JSON.stringify({
-          name,
-          amount,
-          unit,
-          expiry,
-          storage,
-        }),
-      });
-      if (!response.ok) {
-        const data = await response.json();
-        // TODO: alternative alert
-        alert(data.message);
-        return;
-      }
-      console.log(response);
-      router.push("/");
-      router.refresh();
-    });
-  };
-
   const createFood = async (e: FormData) => {
-    console.log("Creating food");
     startTransition(async () => {
       const result = await create(e);
       if (result.error) {
         alert(parseErrors(result.error));
         return;
       }
-      console.log(`Received result: ${JSON.stringify(result)}`);
       router.push("/");
       router.refresh();
     });
@@ -79,10 +35,6 @@ export default function NewFood() {
       <form
         className="flex flex-col space-y-2"
         action={createFood}
-        // onSubmit={async (e) => {
-        //   e.preventDefault();
-        //   await createFood();
-        // }}
       >
         <label className="text-white">Name</label>
         <input

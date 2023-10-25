@@ -6,6 +6,7 @@ export default function Receipt() {
   const [file, setFile] = useState<File>();
   const [receiptJson, setReceiptJson] = useState<string>("");
   const router = useRouter();
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
   useEffect(() => {
     const postReceipt = async () => {
@@ -13,7 +14,7 @@ export default function Receipt() {
       try {
         const data = new FormData();
         data.append("file", file);
-        const res = await fetch(`/api/receipt`, {
+        const res = await fetch(`${baseUrl}/api/receipt`, {
           method: "POST",
           body: data,
         });
@@ -44,7 +45,7 @@ export default function Receipt() {
       return;
     }
     try {
-      const res = await fetch(`/api/receipt/json`, {
+      const res = await fetch(`${baseUrl}/api/receipt/json`, {
         method: "POST",
         body: JSON.stringify(parsed),
       });

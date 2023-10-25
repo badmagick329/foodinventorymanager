@@ -2,7 +2,7 @@ import ShoppingList from "@/components/ShoppingList";
 import { Suspense } from "react";
 
 export default function Shopping() {
-  const BASE_URL = process.env.BASE_URL;
+  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
   return (
     <>
       <Suspense

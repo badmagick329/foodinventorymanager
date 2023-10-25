@@ -13,11 +13,6 @@ type Food = {
 };
 
 export default async function createFood(food: Food) {
-  // console.log(`Name: ${food.name} ${typeof food.name}`);
-  // console.log(`Amount: ${food.amount} ${typeof food.amount}`);
-  // console.log(`Unit: ${food.unit} ${typeof food.unit}`);
-  // console.log(`Expiry: ${food.expiry} ${typeof food.expiry}`);
-  // console.log(`Storage: ${food.storage} ${typeof food.storage}`);
   let name = food.name.trim() as string;
   let amount = String(food.amount).trim() as string;
   let unit = food.unit.toLowerCase().trim() as string;
@@ -26,12 +21,6 @@ export default async function createFood(food: Food) {
   if (!MeasurementUnit.hasOwnProperty(unit)) {
     unit = "unit";
   }
-  // console.log("After trimming:");
-  // console.log(`Name: ${name} ${typeof name}`);
-  // console.log(`Amount: ${amount} ${typeof amount}`);
-  // console.log(`Unit: ${unit} ${typeof unit}`);
-  // console.log(`Expiry: ${expiry} ${typeof expiry}`);
-  // console.log(`Storage: ${storage} ${typeof storage}`);
   const validationError = validateFood({
     name,
     unit,
