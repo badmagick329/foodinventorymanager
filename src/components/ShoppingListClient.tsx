@@ -44,6 +44,11 @@ export default function ShoppingListClient({
     }
   }
 
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    createShoppingItem();
+  }
+
   return (
     <div className="flex flex-col items-start p-2 w-full sm:w-3/4 lg:w-1/2">
       {shoppingItems?.map((item) => (
@@ -55,7 +60,7 @@ export default function ShoppingListClient({
           <RemoveButton id={item.id} removeCallback={removeShoppingItem} />
         </div>
       ))}
-      <div className="flex w-full p-2 space-x-2">
+      <form className="flex w-full p-2 space-x-2" onSubmit={handleSubmit}>
         <input
           className="input input-primary w-full"
           type="text"
@@ -64,13 +69,10 @@ export default function ShoppingListClient({
           onChange={(e) => setItem(e.target.value)}
           autoComplete="off"
         />
-        <button
-          className="btn bg-color-1 hover:bg-cyan-600"
-          onClick={createShoppingItem}
-        >
+        <button className="btn bg-color-1 hover:bg-cyan-600" type="submit">
           Add
         </button>
-      </div>
+      </form>
     </div>
   );
 }
