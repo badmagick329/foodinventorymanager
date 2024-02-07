@@ -69,7 +69,7 @@ export default function FoodListClient({ foods }: FoodListClientProps) {
     if (foods === null) return null;
     return foods
       .filter((food) =>
-        food.name.toLowerCase().includes(searchText.toLowerCase()),
+        food.name.toLowerCase().includes(searchText.toLowerCase())
       )
       .filter((food) => {
         if (food.storage === null) return false;
@@ -90,12 +90,18 @@ export default function FoodListClient({ foods }: FoodListClientProps) {
 
   return (
     <div className="flex flex-col w-full items-center gap-4">
-      <input
-        type="text"
-        placeholder="Search"
-        className="input input-outline bg-gray-700 w-11/12 lg:w-9/12 2xl:w-2/3 3xl:w-1/2"
-        onChange={(e) => setSearchText(e.target.value)}
-      ></input>
+      <div className="flex w-full justify-center gap-4">
+        <input
+          type="search"
+          placeholder="Search"
+          className="input input-outline bg-gray-700 max-w-[720px] min-w-[150px] w-1/2"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+        <button className="btn" onClick={() => setSearchText("")}>
+          Clear
+        </button>
+      </div>
       <StorageFilters
         storageFilters={storageFilters}
         setStorageFilters={setStorageFilters}
