@@ -1,22 +1,39 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
-function getStorageValue(key: string, defaultValue: string) {
-  if (typeof window !== "undefined") {
-    const saved = localStorage.getItem(key);
-    const initial = saved !== null ? JSON.parse(saved) : defaultValue;
-    return initial;
-  }
-}
+export default function useLocalStorage<T>(
+  key: string,
+  initialValue: T
+): [T, (value: T) => void, () => void] {
+  const storedValue = localStorage.getItem(key);
 
-export const useLocalStorage = (key: string, defaultValue: string) => {
-  const [value, setValue] = useState(() => {
-    return getStorageValue(key, defaultValue);
+  const [value, setValue] = useState<T>(() => {
+    try {
+      return storedValue === null ? initialValue : JSON.parse(storedValue);
+    } catch (error) {
+      return initialValue;
+    }
   });
 
-  useEffect(() => {
-    localStorage.setItem(key, JSON.stringify(value));
-  }, [key, value]);
+  const updateValue = (newValue: T) => {
+    try {
+      const valueToStore =
+        newValue instanceof Function ? newValue(value) : newValue;
+      setValue(valueToStore);
+      localStorage.setItem(key, JSON.stringify(valueToStore));
+    } catch (error) {
+      console.error("Error on update local storage");
+    }
+  };
 
-  return [value, setValue];
-};
+  const removeValue = () => {
+    try {
+      localStorage.removeItem(key);
+      setValue(initialValue);
+    } catch (error) {
+      console.error("Error on remove local storage");
+    }
+  };
+
+  return [value, updateValue, removeValue];
+}

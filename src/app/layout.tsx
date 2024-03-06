@@ -32,7 +32,7 @@ const RootLayout: FC<LayoutProps> = ({ children, modal }) => {
   return (
     <html lang="en" data-theme="night" suppressHydrationWarning>
       <body
-        className={`${capriola.variable} text-color-3 min-h-screen gradiant-radial`}
+        className={`${inter.className} text-color-3 min-h-screen gradiant-radial`}
       >
         <NavBar />
         <main className="flex flex-col items-center">

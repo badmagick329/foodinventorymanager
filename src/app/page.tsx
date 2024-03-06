@@ -1,15 +1,26 @@
-import FoodList from "@/components/FoodList";
-import { Suspense } from "react";
+import FoodList from "@/app/_components/food-list";
+import { Food } from "@prisma/client";
 
-export default function Home() {
-  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
-  return (
-    <>
-      <Suspense
-        fallback={<span className="text-2xl font-semibold">Loading...</span>}
-      >
-        <FoodList baseUrl={BASE_URL} />
-      </Suspense>
-    </>
-  );
+export default async function Home() {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  let foods: Food[] | null = null;
+
+  try {
+    const res = await fetch(`${baseUrl}/api/foods`, {
+      method: "GET",
+      cache: "no-store",
+      next: {
+        tags: ["foods"],
+      },
+    });
+    foods = (await res.json()) as Food[];
+  } catch (error) {
+    console.log("Error fetching foods");
+    console.log(error);
+  }
+
+  if (foods === null) {
+    return <span className="text-4xl">Could not fetch data 😥</span>;
+  }
+  return <FoodList foods={foods} />;
 }

@@ -1,5 +1,3 @@
-"use client";
-
 import { MeasurementUnit, StorageType } from "@prisma/client";
 import { useState } from "react";
 import { AiOutlineClear } from "react-icons/ai";
@@ -11,20 +9,40 @@ interface FormProps {
 }
 import { AiOutlineCheck } from "react-icons/ai";
 
+function calcStepSize(value: number | string) {
+  if (typeof value === "string") {
+    value = Number(value);
+  }
+  if (isNaN(value)) {
+    return "0.1";
+  }
+
+  if (value > 1000) {
+    return "100";
+  } else if (value > 100) {
+    return "10";
+  } else if (value > 20) {
+    return "1";
+  }
+  return "0.1";
+}
+
 export function FoodAmountForm({ id, value, updater }: FormProps) {
   const [newValue, setNewValue] = useState(value);
+  const stepSize = calcStepSize(value);
+
   return (
     <form
-      className="flex space-x-2 w-fit"
+      className="flex gap-x-2"
       action={async () => {
         await updater(id, newValue);
       }}
     >
       <input
-        className="input input-bordered"
+        className="max-w-[120px]"
         type="number"
-        min="0.1"
-        step="0.1"
+        min={stepSize}
+        step={stepSize}
         name="amount"
         value={newValue}
         onChange={(e) => setNewValue(Number(e.target.value))}
@@ -40,7 +58,7 @@ export function FoodNameForm({ id, value, updater }: FormProps) {
   const [newValue, setNewValue] = useState(value);
   return (
     <form
-      className="flex w-full my-2 justify-center"
+      className="flex justify-center px-4 py-2"
       action={async () => {
         await updater(id, newValue);
       }}
@@ -63,13 +81,13 @@ export function FoodUnitForm({ id, value, updater }: FormProps) {
   const [newValue, setNewValue] = useState(value);
   return (
     <form
-      className="flex space-x-2"
+      className="flex gap-2"
       action={async () => {
         await updater(id, newValue);
       }}
     >
       <select
-        className="input"
+        className="rounded-md px-2"
         value={newValue}
         onChange={(e) => {
           setNewValue(e.target.value);

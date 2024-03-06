@@ -1,5 +1,4 @@
-import { z, ZodType } from "zod";
-import { StorageType, MeasurementUnit } from "@prisma/client";
+import { z } from "zod";
 
 const foodSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -28,7 +27,7 @@ const foodSchema = z.object({
 const partialFoodSchema = foodSchema.partial();
 
 export function validateFood(
-  data: Record<string, string | null>,
+  data: Record<string, string | null>
 ): string | null {
   const result = foodSchema.safeParse(data);
 
@@ -40,7 +39,7 @@ export function validateFood(
 }
 
 export function validatePartialFood(
-  data: Record<string, string | null>,
+  data: Record<string, string | null>
 ): string | null {
   const result = partialFoodSchema.safeParse(data);
 

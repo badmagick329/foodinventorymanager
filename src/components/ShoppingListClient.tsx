@@ -3,7 +3,7 @@ import { removeShoppingItem } from "@/actions/serverActions";
 import { useState } from "react";
 import { ShoppingItem } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import RemoveButton from "./RemoveButton";
+import RemoveButton from "./remove-button";
 
 interface ShoppingListClientProps {
   baseUrl: string | undefined;
