@@ -39,7 +39,7 @@ export function FoodAmountForm({ id, value, updater }: FormProps) {
       }}
     >
       <input
-        className="max-w-[120px]"
+        className="max-w-[120px] input input-bordered"
         type="number"
         min={stepSize}
         step={stepSize}
