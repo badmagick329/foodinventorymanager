@@ -1,20 +1,8 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import NavBar from "@/components/NavBar";
+import NavBar from "@/components/nav-bar";
 import type { ReactNode, FC } from "react";
-import { Advent_Pro, Capriola } from "next/font/google";
-
-const capriola = Capriola({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-capriola",
-});
-const adventPro = Advent_Pro({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-advent-pro",
-});
 
 const inter = Inter({ subsets: ["latin"] });
 

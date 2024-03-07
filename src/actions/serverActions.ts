@@ -154,4 +154,30 @@ export async function removeShoppingItem(e: FormData) {
   revalidateTag("shoppingitem");
 }
 
-
+export async function addShoppingItem(e: FormData) {
+  const name = e.get("name") as string;
+  if (name === "") {
+    return {
+      error: "Name cannot be empty",
+    };
+  }
+  const shoppingItemExists = await prisma.shoppingItem.findFirst({
+    where: {
+      name,
+    },
+  });
+  if (shoppingItemExists) {
+    return {
+      error: "Shopping item already exists",
+    };
+  }
+  const shoppingItem = await prisma.shoppingItem.create({
+    data: {
+      name,
+    },
+  });
+  revalidateTag("shoppingitem");
+  return {
+    ok: "success",
+  };
+}
