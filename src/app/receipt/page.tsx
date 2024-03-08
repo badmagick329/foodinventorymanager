@@ -30,7 +30,7 @@ export default function Receipt() {
       }
     };
     postReceipt();
-  }, [file]);
+  }, [file, baseUrl]);
 
   const onJsonSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

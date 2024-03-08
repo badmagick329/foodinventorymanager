@@ -28,7 +28,7 @@ export default function FoodValue({
   const onDismiss = useCallback(() => {
     setForm(false);
     setFormOpen(false);
-  }, [form]);
+  }, [form, setFormOpen]);
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -49,7 +49,7 @@ export default function FoodValue({
     return () => {
       window.removeEventListener("mousedown", handleOutSideClick);
     };
-  }, [ref, form]);
+  }, [ref, form, setFormOpen]);
 
   useEffect(() => {
     document.addEventListener("keydown", onKeyDown);

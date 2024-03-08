@@ -5,16 +5,9 @@ export default function useLocalStorage<T>(
   key: string,
   initialValue: T
 ): [T, (value: T) => void, () => void] {
-  let storedValue: string | null = null;
-
-  try {
-    storedValue = localStorage.getItem(key);
-  } catch (error) {
-    return [initialValue, () => {}, () => {}];
-  }
-
   const [value, setValue] = useState<T>(() => {
     try {
+      const storedValue = localStorage.getItem(key);
       return storedValue === null ? initialValue : JSON.parse(storedValue);
     } catch (error) {
       return initialValue;
