@@ -1,6 +1,7 @@
 import { z } from "zod";
+import { receiptStorageValues, unitValues } from "@/receipt-reader/lib/types";
 
-const foodSchema = z.object({
+export const foodSchema = z.object({
   name: z.string().min(1, "Name is required"),
   unit: z.enum(["l", "ml", "g", "kg", "unit"], {
     errorMap: (issue, ctx) => ({
@@ -49,3 +50,22 @@ export function validatePartialFood(
     return result.error.message;
   }
 }
+
+export const foodFromReceiptSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  expiry: z
+    .string()
+    .nullable()
+    .refine((value) => value === null || !isNaN(Date.parse(value)), {
+      message: "Expiry must be a valid date",
+    }),
+  storage: z.enum(receiptStorageValues),
+  amount: z
+    .number()
+    .refine((value) => value > 0, { message: "Amount must be greater than 0" }),
+  unit: z.enum(unitValues, {
+    errorMap: (issue, ctx) => ({
+      message: "Storage must be one of: fridge, freezer, pantry, spices",
+    }),
+  }),
+});

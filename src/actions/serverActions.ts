@@ -4,6 +4,7 @@ import { revalidateTag } from "next/cache";
 import prisma from "../../prisma/client";
 import { Food, MeasurementUnit, StorageType } from "@prisma/client";
 import { validateFood, validatePartialFood } from "@/lib/validators";
+import processPdf from "@/receipt-reader/reader";
 
 export async function removeFood(e: FormData) {
   const id = Number(e.get("id"));
@@ -31,13 +32,9 @@ export async function getAllFoods() {
     });
     return foods as Food[];
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return null;
   }
-}
-
-export async function reload() {
-  revalidateTag("food");
 }
 
 export async function createFood(e: FormData) {
@@ -46,12 +43,9 @@ export async function createFood(e: FormData) {
   let unit = e.get("unit") as string;
   let expiry = e.get("expiry") === "" ? null : (e.get("expiry") as string);
   const storage = e.get("storage") as string;
-  console.log(
-    `Received values: ${name}, ${unit}, ${amount}, ${expiry}, ${storage}`,
-  );
   const validationError = validateFood({ name, unit, amount, expiry, storage });
   if (validationError) {
-    console.log(`Validation failed: ${validationError}`);
+    console.error(`Validation failed: ${validationError}`);
     return {
       error: validationError,
     };
@@ -75,7 +69,7 @@ export async function createFood(e: FormData) {
 export async function updateFoodName(id: number, name: string) {
   const result = validatePartialFood({ name });
   if (result) {
-    console.log(`Validation failed: ${result}`);
+    console.error(`Validation failed: ${result}`);
     return {
       errors: result,
     };
@@ -90,7 +84,7 @@ export async function updateFoodName(id: number, name: string) {
 export async function updateFoodAmount(id: number, amount: number) {
   const result = validatePartialFood({ amount: String(amount) });
   if (result) {
-    console.log(`Validation failed: ${result}`);
+    console.error(`Validation failed: ${result}`);
     return {
       errors: result,
     };
@@ -105,7 +99,7 @@ export async function updateFoodAmount(id: number, amount: number) {
 export async function updateFoodUnit(id: number, unit: MeasurementUnit) {
   const result = validatePartialFood({ unit });
   if (result) {
-    console.log(`Validation failed: ${result}`);
+    console.error(`Validation failed: ${result}`);
     return {
       errors: result,
     };
@@ -136,7 +130,7 @@ export async function updateFoodExpiry(id: number, e: string) {
   let expiry = e === "" ? null : e;
   const result = validatePartialFood({ expiry });
   if (result) {
-    console.log(`Validation failed: ${result}`);
+    console.error(`Validation failed: ${result}`);
     return {
       errors: result,
     };
@@ -146,6 +140,26 @@ export async function updateFoodExpiry(id: number, e: string) {
   return {
     ok: "success",
   };
+}
+
+export async function getShoppingItems() {
+  try {
+    const shoppingItems = await prisma.shoppingItem.findMany({
+      orderBy: [
+        {
+          name: "asc",
+        },
+        {
+          id: "desc",
+        },
+      ],
+    });
+    revalidateTag("shoppingitems");
+    return shoppingItems;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
 }
 
 export async function removeShoppingItem(e: FormData) {

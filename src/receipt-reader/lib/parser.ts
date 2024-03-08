@@ -1,4 +1,4 @@
-import { ItemWithExpiry, LinesPerStorage, FoodItem, Unit } from "./types";
+import { ItemWithExpiry, LinesPerStorage, FoodFromReceipt, Unit } from "./types";
 
 const dayToIndex = {
   Sunday: 0,
@@ -17,7 +17,7 @@ const noExpiry = [
 
 export default function parseLines(lines: string[]) {
   const storageLines = splitByStorage(lines);
-  let out = [] as FoodItem[];
+  let out = [] as FoodFromReceipt[];
   for (const [key, value] of Object.entries(storageLines)) {
     const items = combineItems(
       getFoodItems(getItemsWithExpiry(value as string[], key))
@@ -87,8 +87,8 @@ function getItemsWithExpiry(
   return out;
 }
 
-function getFoodItems(items: ItemWithExpiry[]): FoodItem[] {
-  const out = [] as FoodItem[];
+function getFoodItems(items: ItemWithExpiry[]): FoodFromReceipt[] {
+  const out = [] as FoodFromReceipt[];
   for (const item of items) {
     let amount = getAmount(item.name);
     let unit = getUnit(item.name);
@@ -179,7 +179,7 @@ function normalizeAmounts(amount: number, unit: Unit): [number, Unit] {
   }
 }
 
-function combineItems(items: FoodItem[]): FoodItem[] {
+function combineItems(items: FoodFromReceipt[]): FoodFromReceipt[] {
   return items.reduce((acc, item) => {
     const existingItem = acc.find((i) => i.name === item.name);
     if (existingItem) {
@@ -187,5 +187,5 @@ function combineItems(items: FoodItem[]): FoodItem[] {
       return acc;
     }
     return acc.concat(item);
-  }, [] as FoodItem[]);
+  }, [] as FoodFromReceipt[]);
 }

@@ -29,7 +29,7 @@ export default async function createFood(food: Food) {
     storage,
   });
   if (validationError) {
-    console.log(`Validation failed: ${validationError}`);
+    console.error(`Validation failed: ${validationError}`);
     return NextResponse.json({ error: validationError }, { status: 400 });
   }
   unit = unit as MeasurementUnit;
@@ -45,7 +45,7 @@ export default async function createFood(food: Food) {
     });
     return NextResponse.json(food, { status: 201 });
   } catch (error: any) {
-    console.log(error);
+    console.error(error);
     return NextResponse.json(
       { error: "Something went wrong", foods: [] },
       { status: 400 }

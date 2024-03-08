@@ -40,7 +40,6 @@ export default function FoodValue({
   useEffect(() => {
     const handleOutSideClick = (event: MouseEvent) => {
       if (!ref.current?.contains(event.target) && form) {
-        console.log("closing form");
         setForm(false);
         setFormOpen(false);
       }

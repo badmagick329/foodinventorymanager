@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import processPdf from "@/receipt-reader/reader";
-import { FoodItem } from "@/receipt-reader/lib/types";
 
 export async function POST(request: NextRequest) {
   const data = await request.formData();
@@ -10,10 +9,10 @@ export async function POST(request: NextRequest) {
   }
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
-  try{
-    const foodItems: FoodItem[] = await processPdf(buffer);
+  try {
+    const foodItems = await processPdf(buffer);
     return NextResponse.json({ data: foodItems }, { status: 200 });
-  } catch(error: any) {
+  } catch (error: any) {
     return NextResponse.json({ error: "Error parsing pdf" }, { status: 400 });
   }
 }

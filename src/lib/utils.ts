@@ -39,3 +39,13 @@ export function getCardHoverColor(storageType: string) {
       return "hover:bg-orange-700";
   }
 }
+
+export function validDateStringOrNull(value: string | null | undefined) {
+  if (!value) {
+    return null;
+  }
+  if (isNaN(Date.parse(value))) {
+    return value;
+  }
+  return null;
+}

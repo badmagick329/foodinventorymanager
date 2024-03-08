@@ -18,10 +18,10 @@ export async function GET(request: NextRequest) {
     revalidateTag("shoppingitems");
     return NextResponse.json(shoppingItems, { status: 200 });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return NextResponse.json(
       { error: "Something went wrong", shoppingItems: [] },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
   if (name === "") {
     return NextResponse.json(
       { message: "Name cannot be empty" },
-      { status: 400 },
+      { status: 400 }
     );
   }
   try {
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     if (shoppingItemExists) {
       return NextResponse.json(
         { message: "Shopping item already exists" },
-        { status: 400 },
+        { status: 400 }
       );
     }
     const shoppingItem = await prisma.shoppingItem.create({
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     return NextResponse.json(
       { message: "Something went wrong" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

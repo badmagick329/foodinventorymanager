@@ -150,9 +150,9 @@ export function FoodStorageForm({ id, value, updater }: FormProps) {
         }}
         autoFocus
       >
-        {Object.keys(StorageType).map((unit) => (
-          <option key={unit} value={unit}>
-            {unit}
+        {Object.keys(StorageType).map((storageType) => (
+          <option key={storageType} value={storageType}>
+            {storageType}
           </option>
         ))}
       </select>

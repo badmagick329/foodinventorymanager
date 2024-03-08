@@ -15,8 +15,8 @@ export default async function Home() {
     });
     foods = (await res.json()) as Food[];
   } catch (error) {
-    console.log("Error fetching foods");
-    console.log(error);
+    console.error("Error fetching foods");
+    console.error(error);
   }
 
   if (foods === null) {

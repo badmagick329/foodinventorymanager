@@ -1,23 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../prisma/client";
-import { Food, MeasurementUnit, StorageType } from "@prisma/client";
+import { MeasurementUnit, StorageType } from "@prisma/client";
 import { validateFood } from "@/lib/validators";
 import { revalidateTag } from "next/cache";
 
 export async function POST(request: NextRequest) {
-  console.log(`Received request: ${JSON.stringify(request)}`);
   const body = await request.json();
   const name = body.name.trim() as string;
   const amount = body.amount.trim() as string;
   let unit = body.unit.toLowerCase().trim() as string;
   let expiry = body.expiry.trim() === "" ? null : body.expiry.trim();
   const storage = body.storage.trim() as string;
-  console.log(
-    `Received values: ${name}, ${unit}, ${amount}, ${expiry}, ${storage}`,
-  );
   const validationError = validateFood({ name, unit, amount, expiry, storage });
   if (validationError) {
-    console.log(`Validation failed: ${validationError}`);
+    console.error(`Validation failed: ${validationError}`);
     return NextResponse.json({ error: validationError }, { status: 400 });
   }
   unit = unit as MeasurementUnit;
@@ -54,10 +50,10 @@ export async function GET(request: NextRequest) {
     revalidateTag("foods");
     return NextResponse.json(foods, { status: 200 });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return NextResponse.json(
       { error: "Something went wrong", foods: [] },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -65,7 +61,6 @@ export async function GET(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const body = await request.json();
   const { id } = body;
-  console.log(`Received ID: ${id}`);
   await prisma.food.delete({ where: { id } });
   return NextResponse.json({ id }, { status: 200 });
 }
@@ -73,19 +68,18 @@ export async function DELETE(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   const body = await request.json();
   const { id, values } = body;
-  console.log(`Received ID: ${id} and values: ${JSON.stringify(values)}`);
   if (values.amount) {
     if (isNaN(Number(values.amount))) {
       return NextResponse.json(
         { error: "Amount must be a number" },
-        { status: 400 },
+        { status: 400 }
       );
     }
     values.amount = Number(values.amount);
     if (values.amount < 0) {
       return NextResponse.json(
         { error: "Amount must be greater than 0" },
-        { status: 400 },
+        { status: 400 }
       );
     }
   }
@@ -99,7 +93,7 @@ export async function PATCH(request: NextRequest) {
           error:
             "Unit must be one of: " + Object.values(MeasurementUnit).join(", "),
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
   }

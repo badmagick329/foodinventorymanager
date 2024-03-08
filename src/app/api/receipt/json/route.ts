@@ -5,9 +5,7 @@ import prisma from "../../../../../prisma/client";
 import { revalidateTag } from "next/cache";
 
 export async function POST(request: NextRequest) {
-  const data = (await request.json())["data"];
-  // return NextResponse.json({ status: 200 });
-  console.log(JSON.stringify(data, null, 2));
+  const data = await request.json();
   const createErrors = [];
   let created = 0;
   for (const foodItem of data) {
@@ -36,7 +34,7 @@ export async function POST(request: NextRequest) {
       storage,
     });
     if (validationError) {
-      console.log(`Validation failed: ${validationError}`);
+      console.error(`Validation failed: ${validationError}`);
       return NextResponse.json({ error: validationError }, { status: 400 });
     }
     unit = unit as MeasurementUnit;
@@ -57,7 +55,7 @@ export async function POST(request: NextRequest) {
   }
   if (createErrors.length > 0) {
     for (const error of createErrors) {
-      console.log(error);
+      console.error(error);
     }
   }
   if (created === 0) {
