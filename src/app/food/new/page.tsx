@@ -1,25 +1,35 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MeasurementUnit, StorageType } from "@prisma/client";
 import { useTransition } from "react";
-import { createFood as create } from "@/actions/serverActions";
+import { createFood } from "@/actions/serverActions";
 import { parseErrors } from "@/lib/utils";
+import FormErrors from "./_components/form-errors";
+import SubmitButton from "./_components/submit-button";
+import { NewFoodFormValues } from "@/lib/types";
+import NameInput from "./_components/name-input";
+import AmountInput from "./_components/amount-input";
+import UnitInput from "./_components/unit-input";
+import ExpiryInput from "./_components/expiry-input";
+import StorageInput from "./_components/storage-input";
 
 export default function NewFood() {
-  const [name, setName] = useState("");
-  const [amount, setAmount] = useState("");
-  const [unit, setUnit] = useState("unit");
-  const [expiry, setExpiry] = useState("");
-  const [storage, setStorage] = useState("fridge");
+  const [formValues, setFormValues] = useState<NewFoodFormValues>({
+    name: "",
+    amount: "",
+    unit: "unit",
+    expiry: "",
+    storage: "fridge",
+  });
   const [isPending, startTransition] = useTransition();
+  const [errors, setErrors] = useState<string[]>([]);
   const router = useRouter();
 
-  const createFood = async (e: FormData) => {
+  const submitForm = async (e: FormData) => {
     startTransition(async () => {
-      const result = await create(e);
+      const result = await createFood(e);
       if (result.error) {
-        alert(parseErrors(result.error));
+        setErrors(parseErrors(result.error));
         return;
       }
       router.push("/");
@@ -29,75 +39,17 @@ export default function NewFood() {
 
   return (
     <div className="p-2 w-full sm:w-3/4 lg:w-1/2">
-      <h1 className="text-3xl text-white w-full text-center">
-        {isPending ? "Creating..." : "Create Food"}
-      </h1>
-      <form
-        className="flex flex-col space-y-2"
-        action={createFood}
-      >
-        <label className="text-white">Name</label>
-        <input
-          className="input bg-gray-700"
-          type="text"
-          value={name}
-          name="name"
-          onChange={(e) => setName(e.target.value)}
-          required
-          autoComplete="off"
-        />
-        <label className="text-white">Amount</label>
-        <input
-          className="input bg-gray-700"
-          type="number"
-          min="0.01"
-          step="0.01"
-          value={amount}
-          name="amount"
-          onChange={(e) => setAmount(e.target.value)}
-          required
-          autoComplete="off"
-        />
-        <label className="text-white">Unit</label>
-        <select
-          className="input bg-gray-700"
-          value={unit}
-          name="unit"
-          onChange={(e) => setUnit(e.target.value)}
-          required
-        >
-          {Object.keys(MeasurementUnit).map((unit) => (
-            <option key={unit} value={unit}>
-              {unit}
-            </option>
-          ))}
-        </select>
-        <label className="text-white">Expiry</label>
-        <input
-          className="input bg-gray-700"
-          type="date"
-          value={expiry}
-          min={new Date().toISOString().slice(0, 10)}
-          name="expiry"
-          onChange={(e) => setExpiry(e.target.value)}
-        />
-        <label className="text-white">Storage</label>
-        <select
-          className="input bg-gray-700"
-          value={storage}
-          name="storage"
-          onChange={(e) => setStorage(e.target.value)}
-          required
-        >
-          {Object.keys(StorageType).map((storage) => (
-            <option key={storage} value={storage}>
-              {storage}
-            </option>
-          ))}
-        </select>
-        <button className="btn btn-outline btn-info" type="submit">
-          Add
-        </button>
+      <h1 className="text-3xl text-white w-full text-center">Create Food</h1>
+      <FormErrors errors={errors} />
+      <form className="flex flex-col space-y-2" action={submitForm}>
+        <NameInput formValues={formValues} setFormValues={setFormValues} />
+        <AmountInput formValues={formValues} setFormValues={setFormValues} />
+        <UnitInput formValues={formValues} setFormValues={setFormValues} />
+        <ExpiryInput formValues={formValues} setFormValues={setFormValues} />
+        <StorageInput formValues={formValues} setFormValues={setFormValues} />
+        <div className="flex justify-center py-2">
+          <SubmitButton isPending={isPending} />
+        </div>
       </form>
     </div>
   );
