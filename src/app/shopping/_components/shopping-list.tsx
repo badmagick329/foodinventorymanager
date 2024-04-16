@@ -22,7 +22,13 @@ export default function ShoppingList({ shoppingItems }: ShoppingListProps) {
           <RemoveButton id={item.id} removeCallback={removeShoppingItem} />
         </div>
       ))}
-      <form className="flex w-full p-2 space-x-2" action={addShoppingItem}>
+      <form
+        className="flex w-full p-2 space-x-2"
+        action={(e) => {
+          setItem("");
+          addShoppingItem(e);
+        }}
+      >
         <input
           className="input input-primary w-full"
           type="text"
