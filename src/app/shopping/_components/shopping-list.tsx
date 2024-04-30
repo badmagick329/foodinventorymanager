@@ -3,6 +3,7 @@ import { removeShoppingItem, addShoppingItem } from "@/actions/serverActions";
 import { useState } from "react";
 import { ShoppingItem } from "@prisma/client";
 import RemoveButton from "@/components/remove-button";
+import ShoppingItemDisplay from "./shopping-item-display";
 
 interface ShoppingListProps {
   shoppingItems: ShoppingItem[] | null;
@@ -18,7 +19,7 @@ export default function ShoppingList({ shoppingItems }: ShoppingListProps) {
           key={item.id}
           className="flex w-full px-2 space-y-2 justify-between items-center"
         >
-          <span className="w-full text-xl">{item.name}</span>
+          <ShoppingItemDisplay item={item} />
           <RemoveButton id={item.id} removeCallback={removeShoppingItem} />
         </div>
       ))}
