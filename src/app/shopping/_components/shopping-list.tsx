@@ -14,12 +14,12 @@ export default function ShoppingList({ shoppingItems }: ShoppingListProps) {
 
   return (
     <div className="flex flex-col items-start p-2 w-full sm:w-3/4 lg:w-1/2">
-      {shoppingItems?.map((item) => (
+      {shoppingItems?.map((item, idx) => (
         <div
           key={item.id}
-          className="flex w-full px-2 space-y-2 justify-between items-center"
+          className="flex w-full p-2 justify-between items-center"
         >
-          <ShoppingItemDisplay item={item} />
+          <ShoppingItemDisplay item={item} index={idx} />
           <RemoveButton id={item.id} removeCallback={removeShoppingItem} />
         </div>
       ))}

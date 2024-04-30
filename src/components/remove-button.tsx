@@ -12,7 +12,7 @@ export default function RemoveButton({
 }) {
   const [confirm, setConfirm] = useState(false);
   return (
-    <form className="flex w-full justify-end gap-2 m-2">
+    <form className="flex justify-end gap-2 m-2">
       <input type="hidden" name="id" value={id} />
       <CancelButton confirm={confirm} setConfirm={setConfirm} />
       <ConfirmRemoveButton
