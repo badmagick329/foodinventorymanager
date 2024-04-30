@@ -64,8 +64,8 @@ export default function FoodCard({ food }: FoodCardProps) {
             storageType={food.storage}
           />
         </div>
-        <div className="flex mt-2">
-          <div className="flex w-1/2 items-center pl-2">
+        <div className="flex justify-between p-2">
+          <div className="flex items-center">
             <FoodValue
               id={food.id}
               value={food.storage}
@@ -75,7 +75,7 @@ export default function FoodCard({ food }: FoodCardProps) {
               storageType={food.storage}
             />
           </div>
-          <div className="flex w-1/2 pr-2">
+          <div>
             <RemoveButton id={food.id} removeCallback={removeFood} />
           </div>
         </div>
