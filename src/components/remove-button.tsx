@@ -14,12 +14,12 @@ export default function RemoveButton({
   return (
     <form className="flex justify-end gap-2">
       <input type="hidden" name="id" value={id} />
+      <CancelButton confirm={confirm} setConfirm={setConfirm} />
       <ConfirmRemoveButton
         confirm={confirm}
         setConfirm={setConfirm}
         removeCallback={removeCallback}
       />
-      <CancelButton confirm={confirm} setConfirm={setConfirm} />
     </form>
   );
 }
