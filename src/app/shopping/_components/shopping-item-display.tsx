@@ -2,7 +2,13 @@ import { ShoppingItem } from "@prisma/client";
 
 const linkRegex = /https?:\/\/[^\s]+\.[^\s]+/g;
 
-export default function ShoppingItemDisplay({ item }: { item: ShoppingItem }) {
+export default function ShoppingItemDisplay({
+  item,
+  index,
+}: {
+  item: ShoppingItem;
+  index: number;
+}) {
   const links = item.name.matchAll(linkRegex);
   const text = `${item.name
     .replace(linkRegex, "")
@@ -11,6 +17,7 @@ export default function ShoppingItemDisplay({ item }: { item: ShoppingItem }) {
 
   return (
     <div className="flex flex-col w-full p-2 gap-4">
+      {index > 0 && <hr />}
       <span className="text-lg">{text}</span>
       <div className="flex flex-col">
         {[...links].map((link) => (

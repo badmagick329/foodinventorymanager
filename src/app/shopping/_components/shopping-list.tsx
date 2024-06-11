@@ -19,7 +19,7 @@ export default function ShoppingList({ shoppingItems }: ShoppingListProps) {
           key={item.id}
           className="flex w-full p-2 justify-between items-center"
         >
-          <ShoppingItemDisplay item={item} />
+          <ShoppingItemDisplay item={item} index={idx} />
           <RemoveButton id={item.id} removeCallback={removeShoppingItem} />
         </div>
       ))}
