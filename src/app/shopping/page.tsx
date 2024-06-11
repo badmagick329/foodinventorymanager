@@ -1,6 +1,6 @@
+import { getShoppingItems } from "@/actions/serverActions";
 import { ShoppingItem } from "@prisma/client";
 import ShoppingList from "./_components/shopping-list";
-import { getShoppingItems } from "@/actions/serverActions";
 
 export const dynamic = "force-dynamic";
 

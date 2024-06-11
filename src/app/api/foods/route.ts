@@ -1,8 +1,8 @@
+import { validateFood } from "@/lib/validators";
+import { MeasurementUnit, StorageType } from "@prisma/client";
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../prisma/client";
-import { MeasurementUnit, StorageType } from "@prisma/client";
-import { validateFood } from "@/lib/validators";
-import { revalidateTag } from "next/cache";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();

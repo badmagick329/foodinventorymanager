@@ -1,9 +1,9 @@
-import { Food } from "@prisma/client";
-import FoodValue from "./food-value";
-import { useState } from "react";
-import RemoveButton from "@/components/remove-button";
 import { removeFood } from "@/actions/serverActions";
+import RemoveButton from "@/components/remove-button";
 import { getCardBgColor } from "@/lib/utils";
+import { Food } from "@prisma/client";
+import { useState } from "react";
+import FoodValue from "./food-value";
 
 interface FoodCardProps {
   food: Food;

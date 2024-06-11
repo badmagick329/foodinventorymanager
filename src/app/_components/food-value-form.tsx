@@ -18,7 +18,7 @@ import {
 } from "@/actions/serverActions";
 
 import { parseErrors } from "@/lib/utils";
-import { StorageType, MeasurementUnit } from "@prisma/client";
+import { MeasurementUnit, StorageType } from "@prisma/client";
 
 export default function FoodValueForm({
   id,

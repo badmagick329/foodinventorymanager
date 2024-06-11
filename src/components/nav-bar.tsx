@@ -1,9 +1,8 @@
-import { GiFoodTruck } from "react-icons/gi";
 import Link from "next/link";
-import { FaCartPlus } from "react-icons/fa";
 import { AiOutlinePlus } from "react-icons/ai";
+import { FaCartPlus } from "react-icons/fa";
+import { GiFoodTruck } from "react-icons/gi";
 import { PiNoteFill } from "react-icons/pi";
-
 
 export default function NavBar() {
   return (

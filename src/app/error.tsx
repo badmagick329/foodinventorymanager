@@ -16,7 +16,8 @@ export default function Error({
   return (
     <div className="flex flex-col gap-2">
       <h2>Something went wrong!</h2>
-      <button className="btn btn-outline btn-error"
+      <button
+        className="btn btn-outline btn-error"
         onClick={
           // Attempt to recover by trying to re-render the segment
           () => reset()

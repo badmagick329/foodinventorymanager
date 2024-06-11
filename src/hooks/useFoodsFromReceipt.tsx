@@ -1,8 +1,8 @@
 "use client";
-import { useState } from "react";
 import { isArrayOfFoodFromReceipt } from "@/lib/predicates";
-import { FoodFromReceipt } from "@/receipt-reader/lib/types";
 import { foodFromReceiptSchema } from "@/lib/validators";
+import { FoodFromReceipt } from "@/receipt-reader/lib/types";
+import { useState } from "react";
 
 export default function useFoodsFromReceipt() {
   const [foodsFromReceipt, setFoodsFromReceipt] = useState<

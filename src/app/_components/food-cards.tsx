@@ -1,5 +1,5 @@
-import { Food } from "@prisma/client";
 import { StorageFiltersType } from "@/lib/types";
+import { Food } from "@prisma/client";
 import FoodCard from "./food-card";
 
 type FoodCardsProps = {

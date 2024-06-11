@@ -1,4 +1,9 @@
-import { ItemWithExpiry, LinesPerStorage, FoodFromReceipt, Unit } from "./types";
+import {
+  FoodFromReceipt,
+  ItemWithExpiry,
+  LinesPerStorage,
+  Unit,
+} from "./types";
 
 const dayToIndex = {
   Sunday: 0,

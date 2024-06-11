@@ -1,6 +1,5 @@
-import { FoodFromReceipt } from "@/receipt-reader/lib/types";
+import { FoodFromReceipt, unitValues } from "@/receipt-reader/lib/types";
 import { useState } from "react";
-import { unitValues } from "@/receipt-reader/lib/types";
 
 export default function UnitInput({
   style,

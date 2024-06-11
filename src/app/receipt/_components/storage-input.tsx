@@ -1,6 +1,6 @@
 import { FoodFromReceipt } from "@/receipt-reader/lib/types";
-import { useState } from "react";
 import { StorageType } from "@prisma/client";
+import { useState } from "react";
 
 export default function StorageInput({
   style,

@@ -1,10 +1,10 @@
 import { FoodFromReceipt } from "@/receipt-reader/lib/types";
-import NameInput from "./name-input";
-import ExpiryInput from "./expiry-input";
-import StorageInput from "./storage-input";
-import AmountInput from "./amount-input";
-import UnitInput from "./unit-input";
 import { useState } from "react";
+import AmountInput from "./amount-input";
+import ExpiryInput from "./expiry-input";
+import NameInput from "./name-input";
+import StorageInput from "./storage-input";
+import UnitInput from "./unit-input";
 
 export default function ReceiptItemForm({
   idx,

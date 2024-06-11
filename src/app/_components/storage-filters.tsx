@@ -1,5 +1,5 @@
-import { getCardHoverColor, uppercaseFirst, getCardBgColor } from "@/lib/utils";
 import { StorageFiltersType } from "@/lib/types";
+import { getCardBgColor, getCardHoverColor, uppercaseFirst } from "@/lib/utils";
 
 interface StorageFiltersProps {
   storageFilters: Record<string, boolean>;

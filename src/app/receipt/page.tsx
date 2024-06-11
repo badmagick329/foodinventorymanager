@@ -1,7 +1,7 @@
 "use client";
-import ReceiptItems from "./_components/receipt-items";
 import useFoodsFromReceipt from "@/hooks/useFoodsFromReceipt";
 import { useState } from "react";
+import ReceiptItems from "./_components/receipt-items";
 
 export default function Receipt() {
   const { foodsFromReceipt, readFile, sendData } = useFoodsFromReceipt();

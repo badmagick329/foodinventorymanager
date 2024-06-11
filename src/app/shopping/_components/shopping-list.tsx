@@ -1,8 +1,8 @@
 "use client";
-import { removeShoppingItem, addShoppingItem } from "@/actions/serverActions";
-import { useState } from "react";
-import { ShoppingItem } from "@prisma/client";
+import { addShoppingItem, removeShoppingItem } from "@/actions/serverActions";
 import RemoveButton from "@/components/remove-button";
+import { ShoppingItem } from "@prisma/client";
+import { useState } from "react";
 import ShoppingItemDisplay from "./shopping-item-display";
 
 interface ShoppingListProps {

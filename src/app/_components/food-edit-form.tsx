@@ -1,13 +1,12 @@
 import { MeasurementUnit, StorageType } from "@prisma/client";
 import { useState } from "react";
-import { AiOutlineClear } from "react-icons/ai";
+import { AiOutlineCheck, AiOutlineClear } from "react-icons/ai";
 
 interface FormProps {
   id: number;
   value: number | string;
   updater: CallableFunction;
 }
-import { AiOutlineCheck } from "react-icons/ai";
 
 function calcStepSize(value: number | string) {
   if (typeof value === "string") {

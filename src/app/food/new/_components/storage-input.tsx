@@ -1,6 +1,6 @@
-import { Dispatch, SetStateAction } from "react";
 import { NewFoodFormValues } from "@/lib/types";
 import { StorageType } from "@prisma/client";
+import { Dispatch, SetStateAction } from "react";
 
 export default function StorageInput({
   formValues,

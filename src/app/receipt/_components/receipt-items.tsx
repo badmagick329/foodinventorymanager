@@ -1,7 +1,7 @@
 import { FoodFromReceipt } from "@/receipt-reader/lib/types";
-import ReceiptItemForm from "./receipt-item-form";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import ReceiptItemForm from "./receipt-item-form";
 
 export default function ReceiptItems({
   foods,

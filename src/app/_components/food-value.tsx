@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import { FoodValueType } from "./food-card";
-import { uppercaseFirst } from "@/lib/utils";
+import { getCardHoverColor, uppercaseFirst } from "@/lib/utils";
 import { StorageType } from "@prisma/client";
-import { getCardHoverColor } from "@/lib/utils";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { FoodValueType } from "./food-card";
 import FoodValueForm from "./food-value-form";
 
 interface FoodValueProps {

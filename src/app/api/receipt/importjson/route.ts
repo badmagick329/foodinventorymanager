@@ -1,9 +1,6 @@
-import { StorageType, MeasurementUnit } from "@prisma/client";
-import fs from "fs";
-import prisma from "../../../../../prisma/client";
-import { validateFood } from "@/lib/validators";
-import { NextResponse } from "next/server";
 import createFood from "@/scripts/importfoods";
+import fs from "fs";
+import { NextResponse } from "next/server";
 
 type Food = {
   name: string;

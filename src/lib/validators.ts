@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { receiptStorageValues, unitValues } from "@/receipt-reader/lib/types";
+import { z } from "zod";
 
 export const foodSchema = z.object({
   name: z.string().min(1, "Name is required"),

@@ -1,5 +1,5 @@
-import { Dispatch, SetStateAction } from "react";
 import { NewFoodFormValues } from "@/lib/types";
+import { Dispatch, SetStateAction } from "react";
 
 export default function AmountInput({
   formValues,
