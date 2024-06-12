@@ -28,7 +28,6 @@ function calcStepSize(value: number | string) {
 
 export function FoodAmountForm({ id, value, updater }: FormProps) {
   const [newValue, setNewValue] = useState(value);
-  const stepSize = calcStepSize(value);
 
   return (
     <form
@@ -40,8 +39,7 @@ export function FoodAmountForm({ id, value, updater }: FormProps) {
       <input
         className="max-w-[120px] input input-bordered"
         type="number"
-        min={stepSize}
-        step={stepSize}
+        step="0.1"
         name="amount"
         value={newValue}
         onChange={(e) => setNewValue(Number(e.target.value))}
