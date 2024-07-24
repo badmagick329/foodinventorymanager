@@ -1,6 +1,6 @@
 import { FoodFromReceipt } from "@/receipt-reader/lib/types";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ReceiptItemForm from "./receipt-item-form";
 
 export default function ReceiptItems({
@@ -12,6 +12,18 @@ export default function ReceiptItems({
 }) {
   const router = useRouter();
   const [errors, setErrors] = useState("");
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        return;
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
