@@ -1,4 +1,7 @@
-import { receiptStorageValues, unitValues } from "@/receipt-reader/lib/types";
+import {
+  receiptStorageValues,
+  unitValues,
+} from "@/receipt-reader/parser/types";
 import { z } from "zod";
 
 export const foodSchema = z.object({

@@ -1,4 +1,4 @@
-import { FoodFromReceipt } from "@/receipt-reader/lib/types";
+import { FoodFromReceipt } from "@/receipt-reader/parser/types";
 import { foodFromReceiptSchema } from "./validators";
 
 export function isFoodFromReceipt(data: unknown): data is FoodFromReceipt {

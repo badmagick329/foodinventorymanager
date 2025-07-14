@@ -1,5 +1,5 @@
 import { validDateStringOrNull } from "@/lib/utils";
-import { FoodFromReceipt } from "@/receipt-reader/lib/types";
+import { FoodFromReceipt } from "@/receipt-reader/parser/types";
 import { useState } from "react";
 
 export default function ExpiryInput({

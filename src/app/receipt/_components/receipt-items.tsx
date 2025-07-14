@@ -1,4 +1,4 @@
-import { FoodFromReceipt } from "@/receipt-reader/lib/types";
+import { FoodFromReceipt } from "@/receipt-reader/parser/types";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ReceiptItemForm from "./receipt-item-form";

@@ -1,10 +1,10 @@
 export const receiptStorageValues = [
-  "fridge",
-  "pantry",
-  "freezer",
-  "spices",
+  'fridge',
+  'pantry',
+  'freezer',
+  'spices',
 ] as const;
-export const unitValues = ["g", "kg", "ml", "l", "unit", "cl"] as const;
+export const unitValues = ['g', 'kg', 'ml', 'l', 'unit', 'cl'] as const;
 
 export type ReceiptStorageType = (typeof receiptStorageValues)[number];
 export type Unit = (typeof unitValues)[number];

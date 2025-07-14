@@ -1,4 +1,4 @@
-import { FoodFromReceipt } from "@/receipt-reader/lib/types";
+import { FoodFromReceipt } from "@/receipt-reader/parser/types";
 import { StorageType } from "@prisma/client";
 import { useState } from "react";
 
