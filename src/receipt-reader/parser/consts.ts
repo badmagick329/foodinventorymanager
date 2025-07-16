@@ -11,3 +11,5 @@ export const untrackedItems = [
   'toilet cleaner',
   'ocadolife magazine',
 ] as const;
+
+export const untrackedWordCombinations = [['sparkling', 'water']];

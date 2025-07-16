@@ -1,6 +1,6 @@
 import { FoodFromReceipt, ItemWithExpiry, LinesPerStorage } from './types';
 import { getItemsWithExpiry } from './expiry-reader';
-import { untrackedItems } from './consts';
+import { untrackedItems, untrackedWordCombinations } from './consts';
 import { Cleaner } from './cleaner';
 
 type FullItemReGroups = {
@@ -15,7 +15,7 @@ export class Parser {
   _itemsWithExpiry: ItemWithExpiry[] | null = null;
   _foodItems: FoodFromReceipt[] | null = null;
 
-  private quantityPerRe = /.+(?<quantityText>(?<quantity>\d+) per ).+/;
+  private quantityPerRe = /.+?(?<quantityText>(?<quantity>\d+) per ).+/;
   private quantityXRe = /.+(?<quantityText>(?<quantity>\d+) x ).+/;
   private fullItemRe =
     /(?<description>[\w\s,%-_]+)?\s?(?<bundle>\d+)\/(?:\d+)£(?<price>\d+\.\d+)/;
@@ -42,7 +42,7 @@ export class Parser {
     if (!this._linesPerStorage) {
       throw new Error('Failed to parse lines per storage');
     }
-    this._toItemsWithExpiry();
+    this._toItemsWithExpiryAndRemoveUntracked();
     if (!this._itemsWithExpiry) {
       throw new Error('Failed to parse items with expiry');
     }
@@ -88,7 +88,7 @@ export class Parser {
     }
   }
 
-  _toItemsWithExpiry() {
+  _toItemsWithExpiryAndRemoveUntracked() {
     if (!this._linesPerStorage) {
       throw new Error('Lines per storage is not set');
     }
@@ -100,9 +100,8 @@ export class Parser {
     }
 
     let itemInRepair: ItemWithExpiry | undefined = undefined;
-    let itemTextIsBroken = false;
     this._itemsWithExpiry = [];
-
+    let itemTextIsBroken = false;
     // consolidate broken lines
     for (const item of items) {
       if (!itemTextIsBroken) {
@@ -121,6 +120,7 @@ export class Parser {
         if (typeof itemInRepair === 'undefined') {
           throw new Error('itemInRepair is undefined');
         }
+
         // Keep joining item text
         itemInRepair.name = `${itemInRepair.name} ${item.name}`;
         // until price regex is found
@@ -132,6 +132,26 @@ export class Parser {
         }
       }
     }
+
+    const isItemTracked = (itemName: string) => {
+      const lowerName = itemName.toLocaleLowerCase();
+      let isUntracked = untrackedItems.some((untrackedItem) =>
+        lowerName.includes(untrackedItem)
+      );
+      if (isUntracked) {
+        return false;
+      }
+
+      isUntracked = untrackedWordCombinations.some((words: string[]) =>
+        words.every((word) => lowerName.includes(word))
+      );
+
+      return !isUntracked;
+    };
+
+    this._itemsWithExpiry = this._itemsWithExpiry.filter((item) =>
+      isItemTracked(item.name)
+    );
   }
 
   _toFoodItems() {
@@ -141,13 +161,6 @@ export class Parser {
     this._foodItems = [];
 
     for (const item of this._itemsWithExpiry) {
-      const untrackedItemFound = untrackedItems.some((untrackedItem) =>
-        item.name.toLocaleLowerCase().includes(untrackedItem)
-      );
-      if (untrackedItemFound) {
-        continue;
-      }
-
       const matched = this.tryMatchFullItemRe(item.name);
       if (!matched) {
         console.warn(`Failed to match item: ${item.name}`);
