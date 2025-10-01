@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverActions: true,
     serverComponentsExternalPackages: ["pdf-parse"],
   },
+  allowedDevOrigins: ["192.168.*"],
 };
 
 module.exports = nextConfig;
