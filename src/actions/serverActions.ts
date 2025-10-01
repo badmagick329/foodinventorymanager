@@ -113,7 +113,7 @@ export async function updateFoodUnit(id: number, unit: MeasurementUnit) {
 export async function updateFoodStorage(id: number, storage: StorageType) {
   const result = validatePartialFood({ storage });
   if (result) {
-    console.log(`Validation failed: ${result}`);
+    console.error(`Validation failed: ${result}`);
     return {
       errors: result,
     };
