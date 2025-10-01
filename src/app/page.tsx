@@ -8,7 +8,6 @@ export default async function Home() {
   try {
     const res = await fetch(`${baseUrl}/api/foods`, {
       method: "GET",
-      cache: "no-store",
       next: {
         tags: ["foods"],
       },
