@@ -1,0 +1,17 @@
+{
+  "folders": [
+    {
+      "path": "frontend",
+      "name": "web-frontend"
+    }
+  ],
+  "settings": {
+    "typescript.tsdk": "frontend/node_modules/typescript/lib",
+    "eslint.workingDirectories": [
+      {
+        "directory": "frontend",
+        "changeProcessCWD": true
+      }
+    ]
+  }
+}
