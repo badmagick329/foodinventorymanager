@@ -1,19 +1,19 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
-/.pnp
+node_modules
+.pnp
 .pnp.js
 
 # testing
-/coverage
+coverage
 
 # next.js
-/.next/
-/out/
+.next/
+out/
 
 # production
-/build
+build
 
 # misc
 .DS_Store
@@ -39,10 +39,9 @@ next-env.d.ts
 docker-compose-db.yml
 docker-compose.yml
 .dockerignore
-Docker/*
-!Docker/Dockerfile.sample
+**/Docker/*
+!Dockerfile.sample
 /db
-nginx/*
 notes/*
 
 **/scripts/data/*
