@@ -27,7 +27,7 @@ export default function FoodValue({
   const onDismiss = useCallback(() => {
     setForm(false);
     setFormOpen(false);
-  }, [form, setFormOpen]);
+  }, [setFormOpen]);
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {

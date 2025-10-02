@@ -13,10 +13,9 @@ export const metadata: Metadata = {
 
 interface LayoutProps {
   children: ReactNode;
-  modal: ReactNode;
 }
 
-const RootLayout: FC<LayoutProps> = ({ children, modal }) => {
+const RootLayout: FC<LayoutProps> = ({ children }) => {
   return (
     <html lang="en" data-theme="night" suppressHydrationWarning>
       <body
@@ -25,7 +24,6 @@ const RootLayout: FC<LayoutProps> = ({ children, modal }) => {
         <NavBar />
         <main className="flex flex-col items-center min-h-screen">
           {children}
-          {modal}
         </main>
       </body>
     </html>
