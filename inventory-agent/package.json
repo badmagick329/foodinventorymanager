@@ -1,0 +1,16 @@
+{
+  "name": "inventory-agent",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "bullmq": "^5.59.0",
+    "ioredis": "^5.8.0"
+  }
+}

@@ -3,13 +3,30 @@
     {
       "path": "frontend",
       "name": "web-frontend"
+    },
+    {
+      "path": "inventory-agent",
+      "name": "inventory-agent"
+    },
+    {
+      "path": "foodbot",
+      "name": "foodbot"
     }
   ],
   "settings": {
     "typescript.tsdk": "frontend/node_modules/typescript/lib",
+
     "eslint.workingDirectories": [
       {
         "directory": "frontend",
+        "changeProcessCWD": true
+      },
+      {
+        "directory": "inventory-agent",
+        "changeProcessCWD": true
+      },
+      {
+        "directory": "foodbot",
         "changeProcessCWD": true
       }
     ]
