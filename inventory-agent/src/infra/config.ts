@@ -7,7 +7,13 @@ if (!discordWebhook) {
   throw new Error("DISCORD_WEBHOOK_URL not set");
 }
 
+const discordToken = process.env.DISCORD_TOKEN;
+if (!discordToken) {
+  throw new Error("DISCORD_TOKEN not set");
+}
+
 export const config = {
   redisConnection: { url: redisUrl },
   discordWebhook,
+  discordToken,
 };

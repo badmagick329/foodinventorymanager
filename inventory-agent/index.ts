@@ -5,10 +5,13 @@ import { config } from "./src/infra/config";
 import { AnswersWorker } from "./src/app/answers-worker";
 import { DiscordWebhookReploy } from "./src/infra/discord-webhook-reply";
 import { QueriesWorker } from "./src/app/queries-worker";
+import DiscordBot from "./src/infra/discord-bot";
 
 async function main() {
-  const webhookReply = new DiscordWebhookReploy(config.discordWebhook);
+  const discordBot = new DiscordBot(bullmqQueue);
+  await discordBot.start(config.discordToken);
 
+  const webhookReply = new DiscordWebhookReploy(config.discordWebhook);
   const answersWorker = new AnswersWorker({
     publishQueueName: PUBLISH,
     redisConnection: config.redisConnection,
