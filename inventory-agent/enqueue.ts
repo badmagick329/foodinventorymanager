@@ -1,4 +1,4 @@
-import { defaultJobOpts, queriesQueue } from "./queue";
+import { bullmqQueue } from "./src/infra/bullmq-queue";
 
 const jobId = crypto.randomUUID();
 
@@ -9,13 +9,9 @@ if (!instruction) {
 }
 
 const main = async () => {
-  const job = await queriesQueue.add(
-    "instruction",
-    { jobId, instruction },
-    { jobId, ...defaultJobOpts }
-  );
-  console.log("Enqueued", { id: job.id, instruction });
-  process.exit(0);
+  const id = await bullmqQueue.enqueueQuery({ jobId, instruction });
+  console.log("Enqueued", { id, instruction });
+  if (bullmqQueue.close) await bullmqQueue.close();
 };
 
 main().catch((err) => {

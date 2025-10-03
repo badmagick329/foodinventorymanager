@@ -1,32 +1,9 @@
 import { listFoods } from "./tool.foods";
 import type { FoodItem } from "./tool.foods";
-
-type Msg =
-  | { role: "system" | "user" | "assistant"; content: string }
-  // Ollama accepts a 'tool' role to return tool outputs
-  | { role: "tool"; content: string; name: string };
-
-type Tool = {
-  type: "function";
-  function: {
-    name: string;
-    description?: string;
-    parameters: Record<string, unknown>;
-  };
-};
-
-type ToolCall = {
-  function: { name: string; arguments?: Record<string, unknown> };
-};
-
-type ChatResp = {
-  message: {
-    role: "assistant";
-    content: string;
-    tool_calls?: ToolCall[];
-  };
-  done: boolean;
-};
+import type { AgentChatParams } from "../core/agent";
+import type { Tool } from "../core/agent";
+import type { ChatResp } from "../core/agent";
+import type { AgentMsg } from "../core/agent";
 
 const OLLAMA_URL = process.env.OLLAMA_URL ?? "http://localhost:11434/api/chat";
 const MODEL = process.env.OLLAMA_MODEL ?? "qwen2.5:7b-instruct";
@@ -47,7 +24,7 @@ const tools: Tool[] = [
   },
 ];
 
-async function ollamaChat(messages: Msg[], { tools }: { tools?: Tool[] } = {}) {
+async function ollamaChat({ messages, tools }: AgentChatParams) {
   const body: any = {
     model: MODEL,
     stream: false,
@@ -68,7 +45,7 @@ async function ollamaChat(messages: Msg[], { tools }: { tools?: Tool[] } = {}) {
   return json;
 }
 
-export const SYSTEM_PROMPT = [
+const SYSTEM_PROMPT = [
   "You are an assistant that answers questions about quantities of foods the user has.",
   "You have access to a tool `list_foods` that returns a JSON array of items with keys:",
   "name (string), amount (number), unit (string), expiry (ISO string or null), storage (string).",
@@ -81,8 +58,8 @@ export const SYSTEM_PROMPT = [
   "You do not have the tool for calculating this yet. Tell the user that you cannot do this yet!",
 ].join(" ");
 
-export async function answerInstruction(instruction: string) {
-  const messages: Msg[] = [
+async function answerInstruction(instruction: string) {
+  const messages: AgentMsg[] = [
     {
       role: "system",
       content: SYSTEM_PROMPT,
@@ -90,11 +67,11 @@ export async function answerInstruction(instruction: string) {
     { role: "user", content: instruction },
   ];
 
-  let resp = await ollamaChat(messages, { tools });
+  let resp = await ollamaChat({ messages, tools });
 
   // If it called a tool:
   if (resp.message.tool_calls && resp.message.tool_calls.length > 0) {
-    console.log(`[model] ${JSON.stringify(resp.message)}`);
+    console.log(`[agent] ${JSON.stringify(resp.message)}`);
     messages.push(resp.message); // include the model's tool_calls message
 
     for (const call of resp.message.tool_calls) {
@@ -118,10 +95,12 @@ export async function answerInstruction(instruction: string) {
     }
 
     // ask the model to use the tool outputs and craft the final answer
-    resp = await ollamaChat(messages);
+    resp = await ollamaChat({ messages });
   }
 
   return {
     answer: resp.message.content?.trim() || "",
   };
 }
+
+export const OllamaAgent = { answerInstruction };

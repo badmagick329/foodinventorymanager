@@ -14,7 +14,7 @@ export async function listFoods(): Promise<FoodItem[]> {
   }
   const result = await fetch(listUrl);
   if (!result.ok) {
-    console.error("Failed to fetch food list, using hardcoded list");
+    console.error("Failed to fetch food list");
     throw new Error(`API error ${result.status}: ${await result.text()}`);
   }
 
