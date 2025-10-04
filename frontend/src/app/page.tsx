@@ -1,6 +1,8 @@
 import FoodList from "@/app/_components/food-list";
 import { Food } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
   let foods: Food[] | null = null;
