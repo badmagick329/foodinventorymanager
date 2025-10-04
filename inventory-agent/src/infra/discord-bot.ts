@@ -39,6 +39,33 @@ export class DiscordBot {
     this.started = false;
   }
 
+  async replyToMessage({
+    messageId,
+    content,
+    channelId,
+  }: {
+    messageId: string;
+    content: string;
+    channelId: string;
+  }) {
+    try {
+      const channel = await this.client.channels.fetch(channelId);
+      if (!channel?.isTextBased()) {
+        throw new Error(`Channel ${channelId} is not a text channel`);
+      }
+
+      const message = await channel.messages.fetch(messageId);
+      await message.reply(content);
+      console.log(`[discord-bot] Replied to message ${messageId}`);
+    } catch (err) {
+      console.error(
+        `[discord-bot] Failed to reply to message ${messageId}:`,
+        err
+      );
+      throw err;
+    }
+  }
+
   private async onMessageCreate(message: Message) {
     if (message.author?.bot) return;
 
@@ -54,7 +81,7 @@ export class DiscordBot {
 
       console.log(`[discord-bot] ${messageWithoutMention}`);
       const id = await this.queuePort.enqueueQuery({
-        jobId: message.id,
+        jobId: this.messageToJobId(message),
         instruction: messageWithoutMention,
       });
 
@@ -69,6 +96,30 @@ export class DiscordBot {
     } catch (err) {
       console.error(`[discord-bot] ${err}`);
     }
+  }
+
+  messageToJobId(message: Message) {
+    return `${message.channel.id}-${message.id}`;
+  }
+
+  async jobIdToMessage(jobId: string) {
+    if (!jobId.includes("-")) {
+      throw new Error(
+        `Cannot extract channelId and messageId from jobId: ${jobId}`
+      );
+    }
+    const [channelId, messageId] = jobId.split("-");
+    if (!channelId || !messageId) {
+      throw new Error(`Invalid jobId format: ${jobId}`);
+    }
+
+    const channel = await this.client.channels.fetch(channelId);
+    if (!channel?.isTextBased()) {
+      throw new Error(`Channel ${channelId} is not a text channel`);
+    }
+    const message = await channel.messages.fetch(messageId);
+
+    return message;
   }
 }
 
