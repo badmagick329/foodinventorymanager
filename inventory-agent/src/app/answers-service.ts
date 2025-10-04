@@ -1,8 +1,8 @@
 import { Worker } from "bullmq";
-import type { QueryJob, PublishJob } from "../core/queue";
+import type { PublishJob } from "../core/queue";
 import type { Reply } from "../ports/reply";
 
-export class AnswersWorker {
+export class AnswersService {
   public answersWorker: Worker<PublishJob> | undefined;
 
   private readonly publishQueueName: string;
@@ -24,7 +24,7 @@ export class AnswersWorker {
   }
 
   startWork() {
-    return new Worker<PublishJob>(
+    this.answersWorker = new Worker<PublishJob>(
       this.publishQueueName,
       async (job) => {
         console.log("[answers-worker] processing job...");
@@ -44,5 +44,6 @@ export class AnswersWorker {
       },
       { connection: this.redisConnection }
     );
+    return this.answersWorker;
   }
 }

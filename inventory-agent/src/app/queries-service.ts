@@ -2,7 +2,7 @@ import { Worker } from "bullmq";
 import type { QueuePort, QueryJob } from "../core/queue";
 import type { AgentPort } from "../core/agent";
 
-export class QueriesWorker {
+export class QueriesService {
   public queriesWorker: Worker<QueryJob> | undefined;
 
   private readonly queuePort: QueuePort;
@@ -28,7 +28,7 @@ export class QueriesWorker {
   }
 
   startWork() {
-    return new Worker<QueryJob>(
+    this.queriesWorker = new Worker<QueryJob>(
       this.queriesQueueName,
       async (job) => {
         console.log("[queries-worker] processing job...");
@@ -46,5 +46,6 @@ export class QueriesWorker {
       },
       { connection: this.redisConnection }
     );
+    return this.queriesWorker;
   }
 }

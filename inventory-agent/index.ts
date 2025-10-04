@@ -1,9 +1,13 @@
-import { bullmqQueue } from "./src/infra/bullmq-queue";
+import {
+  bullmqQueue,
+  publishQueue,
+  queriesQueue,
+} from "./src/infra/bullmq-queue";
 import { PUBLISH, QUERIES } from "./src/infra/bullmq-queue";
 import { OllamaAgent } from "./src/infra/ollama-agent";
 import { config } from "./src/infra/config";
-import { AnswersWorker } from "./src/app/answers-worker";
-import { QueriesWorker } from "./src/app/queries-worker";
+import { AnswersService } from "./src/app/answers-service";
+import { QueriesService } from "./src/app/queries-service";
 import DiscordBot from "./src/infra/discord-bot";
 import { DiscordMessageReploy } from "./src/infra/discord-message-reply";
 
@@ -12,20 +16,37 @@ async function main() {
   await discordBot.start(config.discordToken);
 
   const messageReply = new DiscordMessageReploy(discordBot);
-  const answersWorker = new AnswersWorker({
+  const answersService = new AnswersService({
     publishQueueName: PUBLISH,
     redisConnection: config.redisConnection,
     reply: messageReply,
   });
-  const queriesWorker = new QueriesWorker({
+  const queriesService = new QueriesService({
     queuePort: bullmqQueue,
     agentPort: OllamaAgent,
     queriesQueueName: QUERIES,
     redisConnection: config.redisConnection,
   });
 
-  const p1 = answersWorker.startWork();
-  const p2 = queriesWorker.startWork();
+  const answersWorkerInstance = answersService.startWork();
+  const queriesWorkerInstance = queriesService.startWork();
+
+  answersWorkerInstance.on("failed", async (job) => {
+    if (!job) return;
+    console.error(`[answers-worker] job ${job.id} failed:`, job.failedReason);
+    await messageReply.send({
+      sourceId: job.data.jobId,
+      answer: `❌ Failed to post answer: ${job.failedReason}`,
+    });
+  });
+  queriesWorkerInstance.on("failed", async (job) => {
+    if (!job) return;
+    console.error(`[queries-worker] job ${job.id} failed:`, job.failedReason);
+    await messageReply.send({
+      sourceId: job.data.jobId,
+      answer: `❌ Failed to process instruction: ${job.failedReason}`,
+    });
+  });
   console.log("[main] workers started");
 }
 

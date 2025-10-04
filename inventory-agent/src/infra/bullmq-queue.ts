@@ -8,8 +8,8 @@ export const QUERIES = "inventory_queries";
 export const PUBLISH = "inventory_publish";
 
 export const defaultJobOpts: JobsOptions = {
-  attempts: 3,
-  backoff: { type: "exponential", delay: 500 },
+  attempts: 2,
+  backoff: { type: "exponential", delay: 1500 },
   removeOnComplete: 1000,
   removeOnFail: 1000,
 };
