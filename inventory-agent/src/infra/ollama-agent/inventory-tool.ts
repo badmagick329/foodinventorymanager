@@ -1,9 +1,11 @@
-import { listFoods } from "./tool.foods";
-import type { FoodItem } from "./tool.foods";
-import type { AgentChatParams } from "../core/agent";
-import type { Tool } from "../core/agent";
-import type { ChatResp } from "../core/agent";
-import type { AgentMsg } from "../core/agent";
+import { listFoods } from "../tool.foods";
+import type { FoodItem } from "../tool.foods";
+import type {
+  AgentChatParams,
+  Tool,
+  ChatResp,
+  AgentMsg,
+} from "../../core/agent";
 
 const OLLAMA_URL = process.env.OLLAMA_URL ?? "http://localhost:11434/api/chat";
 const MODEL = process.env.OLLAMA_MODEL ?? "qwen2.5:7b-instruct";
@@ -17,7 +19,7 @@ const tools: Tool[] = [
         "Return the current list of food items with name, quantity, unit, expiry, and storage location.",
       parameters: {
         type: "object",
-        properties: {}, // no params needed for this
+        properties: {},
         additionalProperties: false,
       },
     },
@@ -48,17 +50,17 @@ async function ollamaChat({ messages, tools }: AgentChatParams) {
 const SYSTEM_PROMPT = [
   "You are an assistant that answers questions about quantities of foods the user has.",
   "You have access to a tool `list_foods` that returns a JSON array of items with keys:",
-  "name (string), amount (number), unit (string), expiry (ISO string or null), storage (string).",
+  "name (string), quantity (number), unit (string), expiry (ISO string or null), storage (string).",
   "When the user asks about an item (e.g., 'how much milk do I have?'), you SHOULD call `list_foods`,",
   "sum quantities for matching item names (case-insensitive), report the total + unit,",
   "mention the soonest expiry date for that item if present, and list storage location of the items.",
   "If the item is not found, say so clearly.",
   "Be concise and factual.",
-  "When asked about which items have expired, DO NOT TRY TO ANSWER THIS.",
-  "You do not have the tool for calculating this yet. Tell the user that you cannot do this yet!",
 ].join(" ");
 
-async function answerInstruction(instruction: string) {
+export async function handleInventoryQuery(
+  instruction: string
+): Promise<string> {
   const messages: AgentMsg[] = [
     {
       role: "system",
@@ -71,21 +73,19 @@ async function answerInstruction(instruction: string) {
 
   // If it called a tool:
   if (resp.message.tool_calls && resp.message.tool_calls.length > 0) {
-    console.log(`[agent] ${JSON.stringify(resp.message)}`);
-    messages.push(resp.message); // include the model's tool_calls message
+    console.log(`[inventory-tool] ${JSON.stringify(resp.message)}`);
+    messages.push(resp.message);
 
     for (const call of resp.message.tool_calls) {
       if (call.function.name === "list_foods") {
         const items: FoodItem[] = await listFoods();
 
-        // Ollama's docs: provide tool results via messages with the 'tool' role.
         messages.push({
           role: "tool",
           name: "list_foods",
           content: JSON.stringify({ items }),
         });
       } else {
-        // Unknown tool - reply with an error payload so the model can handle it.
         messages.push({
           role: "tool",
           name: call.function.name,
@@ -94,13 +94,8 @@ async function answerInstruction(instruction: string) {
       }
     }
 
-    // ask the model to use the tool outputs and craft the final answer
     resp = await ollamaChat({ messages });
   }
 
-  return {
-    answer: resp.message.content?.trim() || "",
-  };
+  return resp.message.content?.trim() || "";
 }
-
-export const OllamaAgent = { answerInstruction };
