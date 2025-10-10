@@ -1,29 +1,10 @@
 import { handleInventoryQuery } from "./inventory-tool";
 import { handleExpiryQuery } from "./expiry-tool";
-import type { AgentChatParams, AgentMsg, ChatResp } from "../../core/agent";
-
-const OLLAMA_URL = process.env.OLLAMA_URL ?? "http://localhost:11434/api/chat";
-const MODEL = process.env.OLLAMA_MODEL ?? "qwen2.5:7b-instruct";
-
-async function ollamaChat({ messages }: AgentChatParams) {
-  const body = {
-    model: MODEL,
-    stream: false,
-    messages,
-  };
-
-  const res = await fetch(OLLAMA_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Ollama error ${res.status}: ${await res.text()}`);
-  }
-  const json = (await res.json()) as ChatResp;
-  return json;
-}
+import type { AgentMsg } from "../../core/agent";
+import type { ConfirmationPort } from "../../core/confirmation";
+import { createDeletionPlan, executeDeletion } from "./delete-tool";
+import { ollamaChat } from "./helpers";
+import { listFoods } from "../tool.foods";
 
 const ROUTER_SYSTEM_PROMPT = [
   "You are a routing assistant that categorizes user questions about food inventory.",
@@ -35,18 +16,21 @@ const ROUTER_SYSTEM_PROMPT = [
   "- What needs to be used soon",
   "- What has gone bad",
   "",
+  "Choose 'delete' if the question is about:",
+  "- Removing / Deleting one or more item from the invetory",
+  "",
   "Choose 'inventory' for all other questions about:",
   "- How much of an item they have",
   "- What items are in storage",
   "- Quantities and locations",
   "- General food inventory queries",
   "",
-  "Respond with ONLY one word: either 'expiry' or 'inventory'.",
+  "Respond with ONLY one word: either 'expiry' or 'delete' or 'inventory'.",
 ].join("\n");
 
 async function routeQuery(
   instruction: string
-): Promise<"expiry" | "inventory"> {
+): Promise<"expiry" | "delete" | "inventory"> {
   const messages: AgentMsg[] = [
     {
       role: "system",
@@ -68,16 +52,56 @@ async function routeQuery(
   if (response.includes("expiry")) {
     return "expiry";
   }
+  if (response.includes("delete")) {
+    return "delete";
+  }
   return "inventory";
 }
 
-async function answerInstruction(instruction: string) {
+async function answerInstruction(
+  instruction: string,
+  options?: {
+    confirmationPort?: ConfirmationPort;
+    sourceId?: string;
+  }
+) {
   const route = await routeQuery(instruction);
 
   let answer: string;
+
   if (route === "expiry") {
     console.log("[hub] Delegating to expiry-tool");
     answer = await handleExpiryQuery(instruction);
+  } else if (route === "delete") {
+    console.log("[hub] Delete selected");
+    const foodList = await listFoods();
+    const plan = await createDeletionPlan(instruction, foodList);
+
+    if (plan.itemsToDelete.length === 0) {
+      answer = plan.confirmationText;
+    } else if (options?.confirmationPort && options?.sourceId) {
+      await options.confirmationPort.requestConfirmation({
+        sourceId: options.sourceId,
+        message: plan.confirmationText,
+        items: plan.itemsToDelete,
+        onConfirm: async () => {
+          const result = await executeDeletion(
+            plan.itemsToDelete.map((item) => item.id)
+          );
+          console.log(
+            `[hub] Deletion ${result.success ? "succeeded" : "failed"}:`,
+            result
+          );
+          await options.confirmationPort?.sendResult({
+            sourceId: options.sourceId!,
+            text: `🗑️ Deletion ${result.success ? "succeeded" : "failed"}`,
+          });
+        },
+      });
+      answer = "";
+    } else {
+      answer = plan.confirmationText;
+    }
   } else {
     console.log("[hub] Delegating to inventory-tool");
     answer = await handleInventoryQuery(instruction);

@@ -1,29 +1,7 @@
 import { listFoods } from "../tool.foods";
 import { checkExpiry } from "./expiry-checker";
-import type { AgentChatParams, AgentMsg, ChatResp } from "../../core/agent";
-
-const OLLAMA_URL = process.env.OLLAMA_URL ?? "http://localhost:11434/api/chat";
-const MODEL = process.env.OLLAMA_MODEL ?? "qwen2.5:7b-instruct";
-
-async function ollamaChat({ messages }: AgentChatParams) {
-  const body = {
-    model: MODEL,
-    stream: false,
-    messages,
-  };
-
-  const res = await fetch(OLLAMA_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Ollama error ${res.status}: ${await res.text()}`);
-  }
-  const json = (await res.json()) as ChatResp;
-  return json;
-}
+import type { AgentMsg } from "../../core/agent";
+import { ollamaChat } from "./helpers";
 
 const SYSTEM_PROMPT = [
   "You are an assistant that reports on expired and expiring food items.",

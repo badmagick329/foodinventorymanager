@@ -1,14 +1,7 @@
 import { listFoods } from "../tool.foods";
 import type { FoodItem } from "../tool.foods";
-import type {
-  AgentChatParams,
-  Tool,
-  ChatResp,
-  AgentMsg,
-} from "../../core/agent";
-
-const OLLAMA_URL = process.env.OLLAMA_URL ?? "http://localhost:11434/api/chat";
-const MODEL = process.env.OLLAMA_MODEL ?? "qwen2.5:7b-instruct";
+import type { Tool, AgentMsg } from "../../core/agent";
+import { ollamaChat } from "./helpers";
 
 const tools: Tool[] = [
   {
@@ -25,27 +18,6 @@ const tools: Tool[] = [
     },
   },
 ];
-
-async function ollamaChat({ messages, tools }: AgentChatParams) {
-  const body: any = {
-    model: MODEL,
-    stream: false,
-    messages,
-  };
-  if (tools) body.tools = tools;
-
-  const res = await fetch(OLLAMA_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Ollama error ${res.status}: ${await res.text()}`);
-  }
-  const json = (await res.json()) as ChatResp;
-  return json;
-}
 
 const SYSTEM_PROMPT = [
   "You are an assistant that answers questions about quantities of foods the user has.",
@@ -71,7 +43,6 @@ export async function handleInventoryQuery(
 
   let resp = await ollamaChat({ messages, tools });
 
-  // If it called a tool:
   if (resp.message.tool_calls && resp.message.tool_calls.length > 0) {
     console.log(`[inventory-tool] ${JSON.stringify(resp.message)}`);
     messages.push(resp.message);

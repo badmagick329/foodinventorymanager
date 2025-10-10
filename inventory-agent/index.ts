@@ -10,12 +10,15 @@ import { AnswersService } from "./src/app/answers-service";
 import { QueriesService } from "./src/app/queries-service";
 import DiscordBot from "./src/infra/discord-bot";
 import { DiscordMessageReploy } from "./src/infra/discord-message-reply";
+import { DiscordConfirmation } from "./src/infra/discord-confirmation";
 
 async function main() {
   const discordBot = new DiscordBot(bullmqQueue);
   await discordBot.start(config.discordToken);
 
   const messageReply = new DiscordMessageReploy(discordBot);
+  const confirmationPort = new DiscordConfirmation(discordBot);
+
   const answersService = new AnswersService({
     publishQueueName: PUBLISH,
     redisConnection: config.redisConnection,
@@ -24,6 +27,7 @@ async function main() {
   const queriesService = new QueriesService({
     queuePort: bullmqQueue,
     agentPort: OllamaAgent,
+    confirmationPort,
     queriesQueueName: QUERIES,
     redisConnection: config.redisConnection,
   });

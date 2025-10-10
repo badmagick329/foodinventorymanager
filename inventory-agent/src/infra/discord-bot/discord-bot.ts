@@ -1,5 +1,6 @@
 import { Client, GatewayIntentBits, Partials, Message } from "discord.js";
-import type { QueuePort } from "../ports/queue";
+import type { QueuePort } from "../../ports/queue";
+import { askForConfirmation } from "./helpers";
 
 export class DiscordBot {
   private client: Client;
@@ -18,6 +19,7 @@ export class DiscordBot {
     });
 
     this.onMessageCreate = this.onMessageCreate.bind(this);
+
     this.client.on("messageCreate", this.onMessageCreate);
   }
 
@@ -74,12 +76,18 @@ export class DiscordBot {
     if (!message.mentions.has(clientUser)) return;
 
     try {
-      console.log("[discord-bot] enqueuing message");
       const messageWithoutMention = message.content
         .replace(/<@!?(\d+)>/, "")
         .trim();
 
       console.log(`[discord-bot] ${messageWithoutMention}`);
+
+      // if (messageWithoutMention.toLowerCase().includes("confirm")) {
+      //   await confirmationDemo(message);
+      //   return;
+      // }
+
+      console.log("[discord-bot] enqueuing message");
       const id = await this.queuePort.enqueueQuery({
         jobId: this.messageToJobId(message),
         instruction: messageWithoutMention,
@@ -148,3 +156,28 @@ const AMUSING_REPLIES: string[] = [
 ];
 
 export default DiscordBot;
+
+async function confirmationDemo(message: Message) {
+  const mockItems = ["item 1", "item 2", "item 3"];
+
+  const confirmationText = `**Delete Confirmation**\n\nFound ${
+    mockItems.length
+  } items:\n${mockItems
+    .map((item) => `- ${item}`)
+    .join("\n")}\n\n**Are you sure you want to delete all of these?**`;
+
+  await askForConfirmation({
+    message,
+    confirmationText,
+    onConfirm: async () => {
+      console.log("[discord-bot] User confirmed deletion");
+      await message.reply(`✅ Successfully deleted ${mockItems.length} items.`);
+    },
+    onCancel: async () => {
+      console.log("[discord-bot] User cancelled deletion");
+    },
+    timeout: 30000,
+  });
+
+  return;
+}

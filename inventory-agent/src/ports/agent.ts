@@ -1,5 +1,13 @@
+import type { ConfirmationPort } from "./confirmation";
+
 interface AgentPort {
-  answerInstruction(instruction: string): Promise<{ answer: string }>;
+  answerInstruction(
+    instruction: string,
+    options?: {
+      confirmationPort?: ConfirmationPort;
+      sourceId?: string;
+    }
+  ): Promise<{ answer: string }>;
 }
 
 type AgentChatParams = {
