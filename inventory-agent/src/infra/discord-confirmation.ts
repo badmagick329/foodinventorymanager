@@ -16,7 +16,7 @@ export class DiscordConfirmation implements ConfirmationPort {
       confirmationText: request.message,
       onConfirm: request.onConfirm,
       onCancel: request.onCancel,
-      timeout: 60000,
+      timeout: 1000 * 60 * 10,
     });
   }
 
