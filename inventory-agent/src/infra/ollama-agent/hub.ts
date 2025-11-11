@@ -2,7 +2,11 @@ import { handleInventoryQuery } from "./inventory-tool";
 import { handleExpiryQuery } from "./expiry-tool";
 import type { AgentMsg } from "../../core/agent";
 import type { ConfirmationPort } from "../../core/confirmation";
-import { createDeletionPlan, executeDeletion } from "./delete-tool";
+import {
+  createDeletionPlan,
+  executeDeletion,
+  handleDeletionQuery,
+} from "./delete-tool";
 import { ollamaChat } from "./helpers";
 import { listFoods } from "../tool.foods";
 
@@ -69,42 +73,29 @@ async function answerInstruction(
 
   let answer: string;
 
-  if (route === "expiry") {
-    console.log("[hub] Delegating to expiry-tool");
-    answer = await handleExpiryQuery(instruction);
-  } else if (route === "delete") {
-    console.log("[hub] Delete selected");
-    const foodList = await listFoods();
-    const plan = await createDeletionPlan(instruction, foodList);
-
-    if (plan.itemsToDelete.length === 0) {
-      answer = plan.confirmationText;
-    } else if (options?.confirmationPort && options?.sourceId) {
-      await options.confirmationPort.requestConfirmation({
-        sourceId: options.sourceId,
-        message: plan.confirmationText,
-        items: plan.itemsToDelete,
-        onConfirm: async () => {
-          const result = await executeDeletion(
-            plan.itemsToDelete.map((item) => item.id)
-          );
-          console.log(
-            `[hub] Deletion ${result.success ? "succeeded" : "failed"}:`,
-            result
-          );
-          await options.confirmationPort?.sendResult({
-            sourceId: options.sourceId!,
-            text: `🗑️ Deletion ${result.success ? "succeeded" : "failed"}`,
-          });
-        },
-      });
-      answer = "";
-    } else {
-      answer = plan.confirmationText;
-    }
-  } else {
-    console.log("[hub] Delegating to inventory-tool");
-    answer = await handleInventoryQuery(instruction);
+  switch (route) {
+    case "delete":
+      console.log("[hub] Delegating to delete-tool");
+      answer = await handleDeletionQuery(
+        instruction,
+        options?.sourceId,
+        options?.confirmationPort
+      );
+      break;
+    case "expiry":
+      console.log("[hub] Delegating to expiry-tool");
+      answer = await handleExpiryQuery(instruction);
+      break;
+    case "inventory":
+      console.log("[hub] Delegating to inventory-tool");
+      answer = await handleInventoryQuery(instruction);
+      break;
+    default:
+      console.error(
+        `[hub] Unknown route: ${route}, defaulting to inventory-tool`
+      );
+      answer = await handleInventoryQuery(instruction);
+      break;
   }
 
   return { answer };

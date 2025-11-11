@@ -1,11 +1,12 @@
 import type { AgentMsg, Tool } from "../../core/agent";
+import type { ConfirmationPort } from "../../ports/confirmation";
 import { identifyItemsToDelete, listFoods, type FoodItem } from "../tool.foods";
 import { ollamaChat } from "./helpers";
 
 export type DeletionPlan = {
   itemsToDelete: FoodItem[];
   reason: string;
-  confirmationText: string;
+  planResponse: string;
 };
 
 const tools: Tool[] = [
@@ -87,7 +88,7 @@ export async function createDeletionPlan(
         return {
           itemsToDelete: [],
           reason,
-          confirmationText: `❌ No items found matching your request.\n\n${reason}`,
+          planResponse: `❌ No items found matching your request.\n\n${reason}`,
         };
       }
 
@@ -118,7 +119,7 @@ export async function createDeletionPlan(
       return {
         itemsToDelete,
         reason,
-        confirmationText,
+        planResponse: confirmationText,
       };
     }
   }
@@ -126,7 +127,7 @@ export async function createDeletionPlan(
   return {
     itemsToDelete: [],
     reason: "Unable to process deletion request",
-    confirmationText:
+    planResponse:
       "❌ I couldn't understand your deletion request. Please try rephrasing.",
   };
 }
@@ -172,4 +173,41 @@ export async function executeDeletion(itemIds: number[]): Promise<{
     deletedCount,
     error: errors.length > 0 ? errors.join("; ") : undefined,
   };
+}
+
+export async function handleDeletionQuery(
+  instruction: string,
+  sourceId?: string,
+  confirmationPort?: ConfirmationPort
+): Promise<string> {
+  const foodList = await listFoods();
+  const plan = await createDeletionPlan(instruction, foodList);
+
+  if (plan.itemsToDelete.length === 0) {
+    return plan.planResponse;
+  }
+
+  if (confirmationPort && sourceId) {
+    await confirmationPort.requestConfirmation({
+      sourceId: sourceId,
+      message: plan.planResponse,
+      items: plan.itemsToDelete,
+      onConfirm: async () => {
+        const result = await executeDeletion(
+          plan.itemsToDelete.map((item) => item.id)
+        );
+        console.log(
+          `[hub] Deletion ${result.success ? "succeeded" : "failed"}:`,
+          result
+        );
+        await confirmationPort?.sendResult({
+          sourceId: sourceId!,
+          text: `🗑️ Deletion ${result.success ? "succeeded" : "failed"}`,
+        });
+      },
+    });
+    return "";
+  }
+
+  return plan.planResponse;
 }
