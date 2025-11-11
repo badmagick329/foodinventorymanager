@@ -61,13 +61,13 @@ export const askForConfirmation = async ({
     try {
       if (interaction.customId === confirmId) {
         await interaction.update({
-          content: "✅ Confirmed! Processing...",
+          content: `${reply.content}\n\n✅ Confirmed! Processing...`,
           components: [],
         });
         await onConfirm();
       } else if (interaction.customId === cancelId) {
         await interaction.update({
-          content: "❌ Cancelled.",
+          content: `${reply.content}\n\n❌ Cancelled.`,
           components: [],
         });
         if (onCancel) {
@@ -89,7 +89,7 @@ export const askForConfirmation = async ({
     if (collected.size === 0) {
       await reply
         .edit({
-          content: "⏱️ Confirmation timed out. Request cancelled.",
+          content: `${reply.content}\n\n⏱️ Confirmation timed out. Request cancelled.`,
           components: [],
         })
         .catch(console.error);
