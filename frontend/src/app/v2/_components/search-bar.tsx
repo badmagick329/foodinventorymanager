@@ -9,18 +9,16 @@ export default function SearchBar({
   setFilter: React.Dispatch<React.SetStateAction<SearchFilter>>;
 }) {
   return (
-    <div className="w-full">
-      <Input
-        className="bg-foreground/5"
-        type="text"
-        placeholder="Search by name..."
-        onChange={(e) => {
-          setFilter((prev) => ({
-            ...prev,
-            text: e.target.value,
-          }));
-        }}
-      />
-    </div>
+    <Input
+      className="w-full bg-black"
+      type="text"
+      placeholder="Search by name..."
+      onChange={(e) => {
+        setFilter((prev) => ({
+          ...prev,
+          text: e.target.value,
+        }));
+      }}
+    />
   );
 }

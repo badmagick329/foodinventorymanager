@@ -2,6 +2,7 @@ import { MeasurementUnit, StorageType } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../../prisma/client";
+import { getNewExpiryValFromUserInput } from "@/lib/utils";
 
 // GET /api/foods/:id
 export async function GET(
@@ -98,8 +99,11 @@ export async function PATCH(
     }
 
     if (expiry !== undefined) {
-      updateData.expiry =
-        expiry === "" || expiry === null ? null : String(expiry).trim();
+      const result = getNewExpiryValFromUserInput(expiry);
+      if (result.isError) {
+        return NextResponse.json({ error: result.val }, { status: 400 });
+      }
+      updateData.expiry = result.val;
     }
 
     if (storage !== undefined) {

@@ -56,3 +56,30 @@ export function validDateStringOrNull(value: string | null | undefined) {
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+export function getNewExpiryValFromUserInput(expiry: string): {
+  val: string | null;
+  isError: boolean;
+} {
+  let val = expiry === "" || expiry === null ? null : String(expiry).trim();
+  if (val === null) {
+    return { val, isError: false };
+  }
+
+  if (!new RegExp(/^\d{4}-\d{2}-\d{2}$/).test(val)) {
+    return {
+      val: "Expiry must be in YYYY-MM-DD format or empty",
+      isError: true,
+    };
+  }
+
+  const expiryDate = new Date(val);
+  if (isNaN(expiryDate.getTime())) {
+    return {
+      val: "Expiry must be a valid date or null",
+      isError: true,
+    };
+  }
+  val = expiryDate.toISOString().slice(0, 10);
+  return { val, isError: false };
+}

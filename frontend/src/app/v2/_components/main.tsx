@@ -15,9 +15,11 @@ export default function Main({ foods }: { foods: Food[] }) {
   );
 
   return (
-    <div className="flex flex-col w-full items-center gap-2 max-w-6xl px-2">
-      <StorageFilter setFilter={setFilter} />
-      <SearchBar setFilter={setFilter} />
+    <div className="flex w-full max-w-6xl flex-col items-center px-2">
+      <div className="sticky top-0 z-10 flex w-full flex-col gap-2 bg-background py-4">
+        <StorageFilter setFilter={setFilter} />
+        <SearchBar setFilter={setFilter} />
+      </div>
       <FoodTable foods={filteredFoods} />
     </div>
   );

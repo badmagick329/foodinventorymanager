@@ -1,0 +1,36 @@
+"use client";
+
+import ModifyFoodForm from "@/app/v2/edit/[id]/_components/modify-food-form";
+import { Food } from "@prisma/client";
+import { useQuery } from "@tanstack/react-query";
+
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+
+export default function EditTest({ params }: { params: { id: string } }) {
+  const {
+    data: food,
+    error,
+    isPending,
+  } = useQuery({
+    queryKey: ["foods", params.id],
+    queryFn: async () => {
+      const res = await fetch(`${baseUrl}/api/foods/${params.id}`, {
+        method: "GET",
+      });
+      return (await res.json()) as Food;
+    },
+  });
+  if (isPending) {
+    return <p>Loading...</p>;
+  }
+  if (error) {
+    console.error(error);
+    return <span className="text-4xl">Could not fetch data 😥</span>;
+  }
+
+  return (
+    <div className="flex w-full max-w-4xl grow flex-col items-center px-2">
+      <ModifyFoodForm food={food} />
+    </div>
+  );
+}

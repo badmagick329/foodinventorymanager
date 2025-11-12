@@ -1,3 +1,4 @@
+import { StorageType } from "@prisma/client";
 export type StorageFiltersType = Record<string, boolean>;
 
 export type NewFoodFormValues = {
@@ -8,7 +9,6 @@ export type NewFoodFormValues = {
   storage: string;
 };
 
-export type StorageType = "fridge" | "freezer" | "pantry" | "spices";
 export type StorageFiltersState = Record<StorageType, boolean>;
 
 export type SearchFilter = {

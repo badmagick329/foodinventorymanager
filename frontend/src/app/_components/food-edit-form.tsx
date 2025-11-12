@@ -8,24 +8,6 @@ interface FormProps {
   updater: CallableFunction;
 }
 
-function calcStepSize(value: number | string) {
-  if (typeof value === "string") {
-    value = Number(value);
-  }
-  if (isNaN(value)) {
-    return "0.1";
-  }
-
-  if (value > 1000) {
-    return "100";
-  } else if (value > 100) {
-    return "10";
-  } else if (value > 20) {
-    return "1";
-  }
-  return "0.1";
-}
-
 export function FoodAmountForm({ id, value, updater }: FormProps) {
   const [newValue, setNewValue] = useState(value);
 
@@ -37,7 +19,7 @@ export function FoodAmountForm({ id, value, updater }: FormProps) {
       }}
     >
       <input
-        className="max-w-[120px] input input-bordered"
+        className="input input-bordered max-w-[120px]"
         type="number"
         step="0.1"
         name="amount"
@@ -106,7 +88,7 @@ export function FoodExpiryForm({ id, value, updater }: FormProps) {
   const [newValue, setNewValue] = useState(value);
   return (
     <form
-      className="flex space-x-2 justify-center"
+      className="flex justify-center space-x-2"
       action={async () => {
         await updater(id, newValue);
       }}
@@ -134,7 +116,7 @@ export function FoodStorageForm({ id, value, updater }: FormProps) {
   const [newValue, setNewValue] = useState(value);
   return (
     <form
-      className="flex space-x-2 justify-center"
+      className="flex justify-center space-x-2"
       action={async () => {
         await updater(id, newValue);
       }}

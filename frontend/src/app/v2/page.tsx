@@ -1,5 +1,4 @@
 "use client";
-import FoodTable from "@/app/v2/_components/food-table";
 import Main from "@/app/v2/_components/main";
 import LoadingCat from "@/components/loading-cat";
 import { Food } from "@prisma/client";
@@ -32,5 +31,6 @@ export default function HomeV2() {
     return <span className="text-4xl">Could not fetch data 😥</span>;
   }
 
+  console.log(foods);
   return <Main foods={foods} />;
 }
