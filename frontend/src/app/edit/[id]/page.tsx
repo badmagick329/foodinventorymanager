@@ -1,9 +1,9 @@
 "use client";
 
-import ModifyFoodForm from "@/app/v2/edit/[id]/_components/modify-food-form";
+import ModifyFoodForm from "@/app/edit/[id]/_components/modify-food-form";
 import { Food } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
-import { FOODS_URL } from "@/lib/consts";
+import { FOODS_URL } from "@/lib/urls";
 
 export default function EditPage({ params }: { params: { id: string } }) {
   const {

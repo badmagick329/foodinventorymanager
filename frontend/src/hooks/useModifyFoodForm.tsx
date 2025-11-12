@@ -1,5 +1,5 @@
 "use client";
-import { FOODS_URL, V2_HOME } from "@/lib/consts";
+import { FOODS_URL, V2_HOME } from "@/lib/urls";
 import { ModifyFoodFormInput } from "@/lib/types";
 import { Food } from "@prisma/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";

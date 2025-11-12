@@ -1,7 +1,7 @@
 "use client";
-import FoodTable from "@/app/v2/_components/food-table";
-import SearchBar from "@/app/v2/_components/search-bar";
-import StorageFilter from "@/app/v2/_components/storage-filter";
+import FoodTable from "@/app/_components/food-table";
+import SearchBar from "@/app/_components/search-bar";
+import StorageFilter from "@/app/_components/storage-filter";
 import { SearchFilter } from "@/lib/types";
 import { Food } from "@prisma/client";
 import { useEffect, useState } from "react";

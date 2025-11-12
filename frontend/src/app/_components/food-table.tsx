@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { getHoverColorByStorage, getColorByStorage } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { FOOD_EDIT_URL } from "@/lib/urls";
 
 export default function FoodTable({ foods }: { foods: Food[] }) {
   const router = useRouter();
@@ -33,7 +34,7 @@ export default function FoodTable({ foods }: { foods: Food[] }) {
                 f.storage
               )} ${getHoverColorByStorage(f.storage)}`}
               onDoubleClick={() => {
-                router.push(`/v2/edit/${f.id}`);
+                router.push(`${FOOD_EDIT_URL}${f.id}/`);
               }}
             >
               <TableCell>{f.name}</TableCell>

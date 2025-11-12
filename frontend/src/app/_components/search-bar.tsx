@@ -1,24 +1,24 @@
+import "react";
 import React from "react";
+import { Input } from "@/components/ui/input";
+import { SearchFilter } from "@/lib/types";
 
 export default function SearchBar({
-  searchText,
-  setSearchText,
+  setFilter,
 }: {
-  searchText: string;
-  setSearchText: React.Dispatch<React.SetStateAction<string>>;
+  setFilter: React.Dispatch<React.SetStateAction<SearchFilter>>;
 }) {
   return (
-    <div className="flex w-full justify-center gap-4">
-      <input
-        type="search"
-        placeholder="Search"
-        className="input input-outline bg-gray-700 max-w-[720px] min-w-[150px] w-1/2"
-        value={searchText}
-        onChange={(e) => setSearchText(e.target.value)}
-      />
-      <button className="btn" onClick={() => setSearchText("")}>
-        Clear
-      </button>
-    </div>
+    <Input
+      className="w-full bg-black"
+      type="text"
+      placeholder="Search by name..."
+      onChange={(e) => {
+        setFilter((prev) => ({
+          ...prev,
+          text: e.target.value,
+        }));
+      }}
+    />
   );
 }

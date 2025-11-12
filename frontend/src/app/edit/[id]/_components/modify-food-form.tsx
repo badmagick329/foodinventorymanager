@@ -24,7 +24,7 @@ import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { ModifyFoodFormInput } from "@/lib/types";
 import useModifyFoodForm from "@/hooks/useModifyFoodForm";
-import { V2_HOME } from "@/lib/consts";
+import { V2_HOME } from "@/lib/urls";
 
 export default function ModifyFoodForm({ food }: { food: Food }) {
   const {

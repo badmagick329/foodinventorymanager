@@ -1,27 +1,36 @@
-import FoodList from "@/app/_components/food-list";
+"use client";
+import Main from "@/app/_components/main";
+import LoadingCat from "@/components/loading-cat";
 import { Food } from "@prisma/client";
+import { useQuery } from "@tanstack/react-query";
+import { FOODS_URL } from "@/lib/urls";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-  let foods: Food[] | null = null;
+export default function Home() {
+  const {
+    data: foods,
+    error,
+    isPending,
+  } = useQuery({
+    queryKey: ["foods"],
+    queryFn: async () => {
+      const res = await fetch(FOODS_URL, {
+        method: "GET",
+      });
+      return (await res.json()) as Food[];
+    },
+  });
 
-  try {
-    const res = await fetch(`${baseUrl}/api/foods`, {
-      method: "GET",
-      next: {
-        tags: ["foods"],
-      },
-    });
-    foods = (await res.json()) as Food[];
-  } catch (error) {
-    console.error("Error fetching foods");
-    console.error(error);
+  if (isPending) {
+    return <LoadingCat />;
   }
 
-  if (foods === null) {
+  if (!isPending && error) {
+    console.error(error);
     return <span className="text-4xl">Could not fetch data 😥</span>;
   }
-  return <FoodList foods={foods} />;
+
+  console.log(foods);
+  return <Main foods={foods} />;
 }
