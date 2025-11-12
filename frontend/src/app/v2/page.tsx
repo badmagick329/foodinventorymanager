@@ -3,9 +3,9 @@ import Main from "@/app/v2/_components/main";
 import LoadingCat from "@/components/loading-cat";
 import { Food } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
+import { FOODS_URL } from "@/lib/consts";
 
 export const dynamic = "force-dynamic";
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
 export default function HomeV2() {
   const {
@@ -15,7 +15,7 @@ export default function HomeV2() {
   } = useQuery({
     queryKey: ["foods"],
     queryFn: async () => {
-      const res = await fetch(`${baseUrl}/api/foods`, {
+      const res = await fetch(FOODS_URL, {
         method: "GET",
       });
       return (await res.json()) as Food[];

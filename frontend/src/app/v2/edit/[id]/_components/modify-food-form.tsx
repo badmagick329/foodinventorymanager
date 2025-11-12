@@ -1,10 +1,9 @@
 "use client";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
-import { Food, MeasurementUnit, StorageType } from "@prisma/client";
+import { Food, MeasurementUnit } from "@prisma/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Select,
   SelectContent,
@@ -23,14 +22,9 @@ import {
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
-
-interface IFormInput {
-  name: string;
-  amount: number;
-  unit: string;
-  expiry: string;
-  storage: StorageType;
-}
+import { ModifyFoodFormInput } from "@/lib/types";
+import useModifyFoodForm from "@/hooks/useModifyFoodForm";
+import { V2_HOME } from "@/lib/consts";
 
 export default function ModifyFoodForm({ food }: { food: Food }) {
   const {
@@ -38,7 +32,7 @@ export default function ModifyFoodForm({ food }: { food: Food }) {
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<IFormInput>({
+  } = useForm<ModifyFoodFormInput>({
     defaultValues: {
       name: food.name,
       amount: food.amount,
@@ -47,55 +41,10 @@ export default function ModifyFoodForm({ food }: { food: Food }) {
       storage: food.storage,
     },
   });
-  const queryClient = useQueryClient();
   const router = useRouter();
+  const { editMutation, deleteMutation } = useModifyFoodForm(food);
 
-  const editMutation = useMutation({
-    mutationFn: async (data: IFormInput) => {
-      const response = await fetch(`/api/foods/${food.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to update food");
-      }
-
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["foods"] });
-      queryClient.invalidateQueries({ queryKey: ["food", food.id.toString()] });
-    },
-    onError: (error: Error) => {
-      console.error("Failed to update food:", error.message);
-    },
-  });
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch(`/api/foods/${food.id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to delete food");
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["foods"] });
-      queryClient.invalidateQueries({ queryKey: ["food", food.id.toString()] });
-      router.push("/v2");
-    },
-    onError: (error: Error) => {
-      console.error("Failed to delete food:", error.message);
-    },
-  });
-
-  const onSubmit: SubmitHandler<IFormInput> = (data) => {
+  const onSubmit: SubmitHandler<ModifyFoodFormInput> = (data) => {
     editMutation.mutate(data);
   };
   const disableButtons = editMutation.isPending || deleteMutation.isPending;
@@ -228,10 +177,9 @@ export default function ModifyFoodForm({ food }: { food: Food }) {
         >
           {deleteMutation.isPending ? "Deleting..." : "Delete"}
         </Button>
-        {/* TODO: Update Route */}
         <Button
           disabled={disableButtons}
-          onClick={() => router.push("/v2")}
+          onClick={() => router.push(V2_HOME)}
           variant={"outline"}
           className="bg-black"
         >

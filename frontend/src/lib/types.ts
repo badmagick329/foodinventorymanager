@@ -15,3 +15,11 @@ export type SearchFilter = {
   text?: string;
   storageTypes?: StorageType[];
 };
+
+export type ModifyFoodFormInput = {
+  name: string;
+  amount: number;
+  unit: string;
+  expiry: string;
+  storage: StorageType;
+};
