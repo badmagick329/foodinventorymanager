@@ -1,4 +1,4 @@
-import { getExpiryDate } from "../lib/parser";
+import { getExpiryDate } from "../parser/expiry-reader";
 
 test("getExpiryDate returns something", () => {
   expect(getExpiryDate("Friday")).toBeTruthy();
