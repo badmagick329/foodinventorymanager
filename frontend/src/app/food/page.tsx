@@ -7,6 +7,7 @@ import { useState, useTransition } from "react";
 import AmountInput from "./_components/amount-input";
 import ExpiryInput from "./_components/expiry-input";
 import FormErrors from "./_components/form-errors";
+
 import NameInput from "./_components/name-input";
 import StorageInput from "./_components/storage-input";
 import SubmitButton from "./_components/submit-button";
@@ -37,8 +38,8 @@ export default function NewFood() {
   };
 
   return (
-    <div className="p-2 w-full sm:w-3/4 lg:w-1/2">
-      <h1 className="text-3xl text-white w-full text-center">Create Food</h1>
+    <div className="w-full p-2 sm:w-3/4 lg:w-1/2">
+      <h1 className="w-full text-center text-3xl text-white">Create Food</h1>
       <FormErrors errors={errors} />
       <form className="flex flex-col space-y-2" action={submitForm}>
         <NameInput formValues={formValues} setFormValues={setFormValues} />

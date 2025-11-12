@@ -1,6 +1,6 @@
 "use client";
 
-import ModifyFoodForm from "@/app/edit/[id]/_components/modify-food-form";
+import ModifyFoodForm from "@/app/food/[id]/_components/modify-food-form";
 import { Food } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import { FOODS_URL } from "@/lib/urls";
