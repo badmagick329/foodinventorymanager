@@ -1,5 +1,5 @@
 "use client";
-import { FOODS_URL, V2_HOME } from "@/lib/urls";
+import { API_FOODS_URL, V2_HOME } from "@/lib/urls";
 import { ModifyFoodFormInput } from "@/lib/types";
 import { Food } from "@prisma/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 export default function useModifyFoodForm(food: Food) {
   const queryClient = useQueryClient();
   const router = useRouter();
-  const targetUrl = `${FOODS_URL}${food.id}/`;
+  const targetUrl = `${API_FOODS_URL}${food.id}/`;
 
   const editMutation = useMutation({
     mutationFn: async (data: ModifyFoodFormInput) => {

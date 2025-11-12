@@ -146,10 +146,10 @@ export async function getShoppingItems() {
     const shoppingItems = await prisma.shoppingItem.findMany({
       orderBy: [
         {
-          name: "asc",
+          id: "asc",
         },
         {
-          id: "desc",
+          name: "asc",
         },
       ],
     });

@@ -3,7 +3,7 @@
 import ModifyFoodForm from "@/app/food/[id]/_components/modify-food-form";
 import { Food } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
-import { FOODS_URL } from "@/lib/urls";
+import { API_FOODS_URL } from "@/lib/urls";
 
 export default function EditPage({ params }: { params: { id: string } }) {
   const {
@@ -13,7 +13,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
   } = useQuery({
     queryKey: ["food", params.id],
     queryFn: async () => {
-      const res = await fetch(`${FOODS_URL}${params.id}/`, {
+      const res = await fetch(`${API_FOODS_URL}${params.id}/`, {
         method: "GET",
       });
       return (await res.json()) as Food;

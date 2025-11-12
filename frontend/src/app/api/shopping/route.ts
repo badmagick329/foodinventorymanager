@@ -1,21 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../prisma/client";
-import { ShoppingItem } from "@prisma/client";
-import { revalidateTag } from "next/cache";
 
 export async function GET(request: NextRequest) {
   try {
     const shoppingItems = await prisma.shoppingItem.findMany({
       orderBy: [
         {
-          name: "asc",
+          id: "asc",
         },
         {
-          id: "desc",
+          name: "asc",
         },
       ],
     });
-    revalidateTag("shoppingitems");
     return NextResponse.json(shoppingItems, { status: 200 });
   } catch (error) {
     console.error(error);
@@ -29,6 +26,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const name = body.name.trim() as string;
+  console.log("Creating shopping item with name:", name);
   if (name === "") {
     return NextResponse.json(
       { message: "Name cannot be empty" },
@@ -52,7 +50,7 @@ export async function POST(request: NextRequest) {
         name,
       },
     });
-    revalidateTag("shoppingitems");
+    console.log("Created shopping item:", shoppingItem);
     return NextResponse.json(shoppingItem, { status: 201 });
   } catch (error) {
     return NextResponse.json(

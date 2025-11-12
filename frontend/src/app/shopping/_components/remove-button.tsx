@@ -1,16 +1,32 @@
 "use client";
+import { Button } from "@/components/ui/button";
+import { API_SHOPPING_URL } from "@/lib/urls";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { RxCross1 } from "react-icons/rx";
 
-export default function RemoveButton({
-  id,
-  removeCallback,
-}: {
-  id: number;
-  removeCallback: CallableFunction;
-}) {
+export default function RemoveButton({ id }: { id: number }) {
   const [confirm, setConfirm] = useState(false);
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`${API_SHOPPING_URL}${id}/`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to remove shopping item");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shopping"] });
+    },
+    onError: (error: Error) => {
+      console.error("Failed to remove shopping item:", error.message);
+    },
+  });
+
   return (
     <form className="flex justify-end gap-2">
       <input type="hidden" name="id" value={id} />
@@ -18,7 +34,7 @@ export default function RemoveButton({
       <ConfirmRemoveButton
         confirm={confirm}
         setConfirm={setConfirm}
-        removeCallback={removeCallback}
+        removeCallback={mutation.mutate}
       />
     </form>
   );
@@ -33,14 +49,14 @@ function CancelButton({
 }) {
   if (confirm) {
     return (
-      <button
-        className="btn btn-outline btn-warning"
+      <Button
+        variant={"warning"}
         onClick={() => {
           setConfirm(false);
         }}
       >
         <RxCross1 />
-      </button>
+      </Button>
     );
   }
   return null;
@@ -55,11 +71,9 @@ function ConfirmRemoveButton({
   setConfirm: React.Dispatch<React.SetStateAction<boolean>>;
   removeCallback: CallableFunction;
 }) {
-  const buttonColor = confirm ? "btn-error" : "btn-warning";
-
   return (
-    <button
-      className={`btn btn-outline ${buttonColor}`}
+    <Button
+      variant={confirm ? "destructive" : "default"}
       type="submit"
       formAction={async (e) => {
         if (!confirm) {
@@ -70,6 +84,6 @@ function ConfirmRemoveButton({
       }}
     >
       <FaRegTrashAlt />
-    </button>
+    </Button>
   );
 }

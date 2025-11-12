@@ -16,6 +16,10 @@ export default function Main({ foods }: { foods: Food[] }) {
 
   return (
     <div className="flex w-full max-w-6xl flex-col items-center px-2">
+      <h1 className="w-full text-center text-3xl font-semibold">
+        {filteredFoods.length} Item{filteredFoods.length !== 1 ? "s" : ""} in
+        stock {randomFoodEmoji()}
+      </h1>
       <div className="sticky top-0 z-10 flex w-full flex-col gap-2 bg-background py-4">
         <StorageFilter setFilter={setFilter} />
         <SearchBar setFilter={setFilter} />
@@ -39,4 +43,20 @@ function getNewFilteredFoods(foods: Food[], filter: SearchFilter): Food[] {
     }
     return matches;
   });
+}
+
+function randomFoodEmoji(): string {
+  const foodEmojis = [
+    "🍎",
+    "🍌",
+    "🍇",
+    "🍕",
+    "🍔",
+    "🍣",
+    "🍩",
+    "🥗",
+    "🌮",
+    "🍜",
+  ];
+  return foodEmojis[Math.floor(Math.random() * foodEmojis.length)];
 }
