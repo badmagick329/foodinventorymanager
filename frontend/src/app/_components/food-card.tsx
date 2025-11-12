@@ -1,6 +1,6 @@
 import { removeFood } from "@/actions/serverActions";
 import RemoveButton from "@/components/remove-button";
-import { getCardBgColor } from "@/lib/utils";
+import { getColorByStorage } from "@/lib/utils";
 import { Food } from "@prisma/client";
 import { useState } from "react";
 import FoodValue from "./food-value";
@@ -19,7 +19,7 @@ export enum FoodValueType {
 
 export default function FoodCard({ food }: FoodCardProps) {
   const [formOpen, setFormOpen] = useState(false);
-  const cardBgColor = getCardBgColor(food.storage);
+  const cardBgColor = getColorByStorage(food.storage);
 
   return (
     <div

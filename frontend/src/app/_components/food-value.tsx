@@ -1,4 +1,4 @@
-import { getCardHoverColor, uppercaseFirst } from "@/lib/utils";
+import { getHoverColorByStorage, uppercaseFirst } from "@/lib/utils";
 import { StorageType } from "@prisma/client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FoodValueType } from "./food-card";
@@ -69,7 +69,7 @@ export default function FoodValue({
   }
 
   const spanCss = getSpanFontCss(foodValueType);
-  const hoverCardColor = getCardHoverColor(storageType);
+  const hoverCardColor = getHoverColorByStorage(storageType);
 
   return (
     <span

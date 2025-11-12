@@ -1,5 +1,9 @@
 import { StorageFiltersType } from "@/lib/types";
-import { getCardBgColor, getCardHoverColor, uppercaseFirst } from "@/lib/utils";
+import {
+  getColorByStorage,
+  getHoverColorByStorage,
+  uppercaseFirst,
+} from "@/lib/utils";
 
 interface StorageFiltersProps {
   storageFilters: Record<string, boolean>;
@@ -16,7 +20,7 @@ export default function StorageFilters({
         const filterIsChecked = isChecked(key, storageFilters);
 
         const filterCss = filterIsChecked
-          ? `${getCardBgColor(key)} ${getCardHoverColor(key)}`
+          ? `${getColorByStorage(key)} ${getHoverColorByStorage(key)}`
           : "bg-blue-850 hover:bg-slate-700";
 
         return (

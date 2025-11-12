@@ -7,3 +7,11 @@ export type NewFoodFormValues = {
   expiry: string;
   storage: string;
 };
+
+export type StorageType = "fridge" | "freezer" | "pantry" | "spices";
+export type StorageFiltersState = Record<StorageType, boolean>;
+
+export type SearchFilter = {
+  text?: string;
+  storageTypes?: StorageType[];
+};

@@ -1,3 +1,6 @@
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
 export function parseErrors(errors: string): string[] {
   return JSON.parse(errors).map(
     (err: any) =>
@@ -14,7 +17,7 @@ export function uppercaseFirst(str: string | number) {
   return `${str.slice(0, 1).toUpperCase()}${str.slice(1)}`;
 }
 
-export function getCardBgColor(storageType: string) {
+export function getColorByStorage(storageType: string) {
   switch (storageType) {
     case "fridge":
       return "bg-green-900";
@@ -27,7 +30,7 @@ export function getCardBgColor(storageType: string) {
   }
 }
 
-export function getCardHoverColor(storageType: string) {
+export function getHoverColorByStorage(storageType: string) {
   switch (storageType) {
     case "fridge":
       return "hover:bg-green-700";
@@ -48,4 +51,8 @@ export function validDateStringOrNull(value: string | null | undefined) {
     return value;
   }
   return null;
+}
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
 }

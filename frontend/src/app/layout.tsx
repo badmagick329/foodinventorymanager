@@ -1,29 +1,26 @@
+"use client";
 import NavBar from "@/components/nav-bar";
-import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import type { FC, ReactNode } from "react";
 import "./globals.css";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const inter = Inter({ subsets: ["latin"] });
-
-export const metadata: Metadata = {
-  title: "Food Inventory Manager",
-  description: "Food Inventory Manager",
-};
 
 interface LayoutProps {
   children: ReactNode;
 }
+const queryClient = new QueryClient();
 
 const RootLayout: FC<LayoutProps> = ({ children }) => {
   return (
-    <html lang="en" data-theme="night" suppressHydrationWarning>
-      <body
-        className={`${inter.className} text-color-3 min-h-screen gradiant-radial`}
-      >
+    <html lang="en">
+      <body className={`${inter.className} text-color-3 min-h-screen`}>
         <NavBar />
         <main className="flex flex-col items-center min-h-screen">
-          {children}
+          <QueryClientProvider client={queryClient}>
+            {children}
+          </QueryClientProvider>
         </main>
       </body>
     </html>
