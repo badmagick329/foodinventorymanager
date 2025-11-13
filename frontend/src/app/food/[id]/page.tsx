@@ -4,6 +4,7 @@ import ModifyFoodForm from "@/app/food/[id]/_components/modify-food-form";
 import { Food } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import { API_FOODS_URL } from "@/lib/urls";
+import ErrorBlock from "@/app/_components/error-block";
 
 export default function EditPage({ params }: { params: { id: string } }) {
   const {
@@ -23,8 +24,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
     return <p>Loading...</p>;
   }
   if (error) {
-    console.error(error);
-    return <span className="text-4xl">Could not fetch data 😥</span>;
+    return <ErrorBlock error={error} />;
   }
 
   return (

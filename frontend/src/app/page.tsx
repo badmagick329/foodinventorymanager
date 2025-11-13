@@ -4,6 +4,7 @@ import LoadingCat from "@/components/loading-cat";
 import { Food } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import { API_FOODS_URL } from "@/lib/urls";
+import ErrorBlock from "@/app/_components/error-block";
 
 export const dynamic = "force-dynamic";
 
@@ -27,8 +28,7 @@ export default function Home() {
   }
 
   if (!isPending && error) {
-    console.error(error);
-    return <span className="text-4xl">Could not fetch data 😥</span>;
+    return <ErrorBlock error={error} />;
   }
 
   return <Main foods={foods} />;

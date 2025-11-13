@@ -15,9 +15,9 @@ const queryClient = new QueryClient();
 const RootLayout: FC<LayoutProps> = ({ children }) => {
   return (
     <html lang="en">
-      <body className={`${inter.className} text-color-3 min-h-screen`}>
+      <body className={`${inter.className} min-h-screen text-foreground`}>
         <NavBar />
-        <main className="flex flex-col items-center min-h-screen">
+        <main className="flex min-h-screen flex-col items-center">
           <QueryClientProvider client={queryClient}>
             {children}
           </QueryClientProvider>

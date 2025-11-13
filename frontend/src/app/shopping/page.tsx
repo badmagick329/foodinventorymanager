@@ -16,8 +16,6 @@ export default function Shopping() {
     queryFn: async () => {
       const res = await fetch(API_SHOPPING_URL, { method: "GET" });
       const json = await res.json();
-      console.log("got shopping items:");
-      console.log(json);
       return json as ShoppingItem[];
     },
   });

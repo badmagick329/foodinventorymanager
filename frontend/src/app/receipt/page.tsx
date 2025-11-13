@@ -12,7 +12,7 @@ export default function Receipt() {
   return (
     <div className="flex flex-col items-center gap-4 py-4">
       <div
-        className={`flex flex-col p-2 ${borderColor} border-2 rounded-md gap-2`}
+        className={`flex flex-col p-2 ${borderColor} gap-2 rounded-md border-2`}
       >
         <label className="font-semibold">{labelText}</label>
         <input

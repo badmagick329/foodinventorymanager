@@ -6,14 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_SHOPPING_URL } from "@/lib/urls";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import ShoppingItemDisplay from "@/app/shopping/_components/shopping-item-display";
 
 export default function ShoppingList({
@@ -53,16 +46,8 @@ export default function ShoppingList({
     <div className="flex w-full flex-col items-start gap-8 sm:max-w-xl lg:max-w-4xl xl:max-w-6xl">
       <h1 className="w-full text-center text-3xl font-bold">Shopping List</h1>
       <Table className="md:text-md bg-secondary text-xs sm:text-sm lg:text-lg">
-        {/* <TableHeader className="bg-black">
-          <TableRow>
-            <TableHead>Item</TableHead>
-            <TableHead className="min-w-[100px] max-w-[240px] text-right">
-              Action
-            </TableHead>
-          </TableRow>
-        </TableHeader> */}
         <TableBody>
-          {shoppingItems.map((item, idx) => (
+          {shoppingItems.map((item) => (
             <TableRow
               className="border-foreground [&:not(:first-child)]:border-t"
               key={item.id}

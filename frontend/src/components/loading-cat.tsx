@@ -3,7 +3,7 @@ import CatRunning from "../../public/images/cat-running.gif";
 
 export default function LoadingCat() {
   return (
-    <div className="flex flex-col h-full justify-center py-48">
+    <div className="flex h-full flex-col justify-center py-48">
       <Image
         src={CatRunning}
         alt="Cat running"
