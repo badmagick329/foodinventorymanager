@@ -150,7 +150,7 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
           control={control}
           render={({ field }) => (
             <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <SelectTrigger className="bg-black">
+              <SelectTrigger className="bg-black capitalize">
                 <SelectValue placeholder="Storage" />
               </SelectTrigger>
               <SelectContent>

@@ -45,7 +45,7 @@ export default function ShoppingList({
   return (
     <div className="flex w-full flex-col items-start gap-8 sm:max-w-xl lg:max-w-4xl xl:max-w-6xl">
       <h1 className="w-full text-center text-3xl font-bold">Shopping List</h1>
-      <Table className="md:text-md bg-secondary text-xs sm:text-sm lg:text-lg">
+      <Table className="md:text-md text-xs sm:text-sm lg:text-lg">
         <TableBody>
           {shoppingItems.map((item) => (
             <TableRow
