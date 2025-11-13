@@ -83,3 +83,27 @@ export function getNewExpiryValFromUserInput(expiry: string): {
   val = expiryDate.toISOString().slice(0, 10);
   return { val, isError: false };
 }
+
+export function daysUntil(dateString: string) {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+
+  const date = new Date(dateString);
+  date.setHours(0, 0, 0, 0);
+
+  const diffTime = date.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
+}
+
+export function daysUntilExpiryToBorderColor(daysUntil: number): string {
+  if (daysUntil < 0) {
+    return "border-red-500";
+  }
+
+  if (daysUntil <= 3) {
+    return "border-orange-400";
+  }
+
+  return "border-green-500";
+}

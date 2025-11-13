@@ -8,14 +8,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getHoverColorByStorage, getColorByStorage } from "@/lib/utils";
+import {
+  getHoverColorByStorage,
+  getColorByStorage,
+  daysUntilExpiryToBorderColor,
+  daysUntil,
+} from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { FOOD_FORM_URL } from "@/lib/urls";
 
 export default function FoodTable({ foods }: { foods: Food[] }) {
   const router = useRouter();
   return (
-    <Table className="md:text-md bg-foreground/5 text-xs sm:text-sm lg:text-lg">
+    <Table className="md:text-md bg-foreground/5 text-xs sm:text-sm lg:text-lg [&_tr:last-child]:border-l-4 [&_tr:last-child]:border-r-4">
       <TableHeader className="bg-black">
         <TableRow>
           <TableHead className="max-w-2/3 min-w-[80px]">Name</TableHead>
@@ -27,12 +32,16 @@ export default function FoodTable({ foods }: { foods: Food[] }) {
       </TableHeader>
       <TableBody>
         {foods.map((f) => {
+          const borderColor =
+            f.expiry !== null
+              ? daysUntilExpiryToBorderColor(daysUntil(f.expiry))
+              : "";
           return (
             <TableRow
               key={f.id}
               className={`select-none ${getColorByStorage(
                 f.storage
-              )} ${getHoverColorByStorage(f.storage)}`}
+              )} ${getHoverColorByStorage(f.storage)} border-l-4 border-r-4 ${borderColor}`}
               onDoubleClick={() => {
                 router.push(`${FOOD_FORM_URL}${f.id}/`);
               }}
@@ -40,7 +49,7 @@ export default function FoodTable({ foods }: { foods: Food[] }) {
               <TableCell>{f.name}</TableCell>
               <TableCell>{f.amount}</TableCell>
               <TableCell>{f.unit}</TableCell>
-              <TableCell>{f.expiry}</TableCell>
+              <TableCell className="">{f.expiry}</TableCell>
               <TableCell className="text-right capitalize">
                 {f.storage}
               </TableCell>
