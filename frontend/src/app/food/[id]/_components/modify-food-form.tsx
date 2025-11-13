@@ -1,6 +1,6 @@
 "use client";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
-import { Food, MeasurementUnit } from "@prisma/client";
+import { Food, MeasurementUnit, StorageType } from "@prisma/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ import { ModifyFoodFormInput } from "@/lib/types";
 import useModifyFoodForm from "@/hooks/useModifyFoodForm";
 import { V2_HOME } from "@/lib/urls";
 
-export default function ModifyFoodForm({ food }: { food: Food }) {
+export default function ModifyFoodForm({ food }: { food?: Food }) {
   const {
     register,
     handleSubmit,
@@ -34,20 +34,20 @@ export default function ModifyFoodForm({ food }: { food: Food }) {
     formState: { errors },
   } = useForm<ModifyFoodFormInput>({
     defaultValues: {
-      name: food.name,
-      amount: food.amount,
-      unit: food.unit,
-      expiry: food.expiry ?? "",
-      storage: food.storage,
+      name: food?.name ?? "",
+      amount: food?.amount ?? 1,
+      unit: food?.unit ?? MeasurementUnit.unit,
+      expiry: food?.expiry ?? "",
+      storage: food?.storage ?? StorageType.fridge,
     },
   });
   const router = useRouter();
-  const { editMutation, deleteMutation } = useModifyFoodForm(food);
+  const { saveMutation, deleteMutation } = useModifyFoodForm(food);
 
   const onSubmit: SubmitHandler<ModifyFoodFormInput> = (data) => {
-    editMutation.mutate(data);
+    saveMutation.mutate(data);
   };
-  const disableButtons = editMutation.isPending || deleteMutation.isPending;
+  const disableButtons = saveMutation.isPending || deleteMutation.isPending;
 
   if (deleteMutation.isPending) {
     return <p>Deleting...</p>;
@@ -168,7 +168,7 @@ export default function ModifyFoodForm({ food }: { food: Food }) {
       </div>
       <div className="mt-4 flex justify-between">
         <Button type="submit" disabled={disableButtons}>
-          {editMutation.isPending ? "Saving..." : "Save Changes"}
+          {saveMutation.isPending ? "Saving..." : "Save Changes"}
         </Button>
         <Button
           disabled={disableButtons}
@@ -186,14 +186,14 @@ export default function ModifyFoodForm({ food }: { food: Food }) {
           Back
         </Button>
       </div>
-      {editMutation.isError && (
+      {saveMutation.isError && (
         <span className="text-center text-sm text-red-500">
-          {editMutation.error.message}
+          {saveMutation.error.message}
         </span>
       )}
-      {editMutation.isSuccess && (
+      {saveMutation.isSuccess && (
         <span className="text-center text-sm text-green-500">
-          Food updated successfully!
+          Food saved successfully!
         </span>
       )}
     </form>

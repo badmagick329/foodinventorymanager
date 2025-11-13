@@ -5,15 +5,15 @@ import { Food } from "@prisma/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
-export default function useModifyFoodForm(food: Food) {
+export default function useModifyFoodForm(food?: Food) {
   const queryClient = useQueryClient();
   const router = useRouter();
-  const targetUrl = `${API_FOODS_URL}${food.id}/`;
+  const targetUrl = food ? `${API_FOODS_URL}${food.id}/` : API_FOODS_URL;
 
-  const editMutation = useMutation({
+  const saveMutation = useMutation({
     mutationFn: async (data: ModifyFoodFormInput) => {
       const response = await fetch(targetUrl, {
-        method: "PATCH",
+        method: food ? "PATCH" : "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -29,10 +29,14 @@ export default function useModifyFoodForm(food: Food) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["foods"] });
-      queryClient.invalidateQueries({ queryKey: ["food", food.id.toString()] });
+      food &&
+        queryClient.invalidateQueries({
+          queryKey: ["food", food.id.toString()],
+        });
+      food || router.push(V2_HOME);
     },
     onError: (error: Error) => {
-      console.error("Failed to update food:", error.message);
+      console.error("Failed to save food:", error.message);
     },
   });
   const deleteMutation = useMutation({
@@ -47,7 +51,10 @@ export default function useModifyFoodForm(food: Food) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["foods"] });
-      queryClient.invalidateQueries({ queryKey: ["food", food.id.toString()] });
+      food &&
+        queryClient.invalidateQueries({
+          queryKey: ["food", food.id.toString()],
+        });
       router.push(V2_HOME);
     },
     onError: (error: Error) => {
@@ -56,7 +63,7 @@ export default function useModifyFoodForm(food: Food) {
   });
 
   return {
-    editMutation,
+    saveMutation,
     deleteMutation,
   };
 }
