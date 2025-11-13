@@ -7,39 +7,38 @@ import StorageInput from "./storage-input";
 import UnitInput from "./unit-input";
 
 export default function ReceiptItemForm({
+  food,
   idx,
-  foods,
 }: {
+  food: FoodFromReceipt;
   idx: number;
-  foods: FoodFromReceipt[];
 }) {
   const [show, setShow] = useState(true);
-  const inputStyle = "input input-bordered text-sm min-w-[320px]";
   if (!show) {
     return null;
   }
 
   function removeItem() {
-    foods[idx].name = "";
+    food.name = "";
     setShow(false);
   }
 
   return (
-    <div className="flex flex-col items-center gap-2 bg-slate-800 rounded-md p-2">
-      <div className="flex justify-between w-full">
+    <div className="flex flex-col items-center gap-2 rounded-md bg-secondary p-2">
+      <div className="flex w-full justify-between">
         <span className="text-xl">Item {idx + 1}</span>
         <button
-          className="hover:bg-slate-400 rounded-md py-1 px-2"
+          className="rounded-md px-2 py-1 hover:bg-slate-400"
           onClick={removeItem}
         >
           ❌
         </button>
       </div>
-      <NameInput style={inputStyle} foods={foods} idx={idx} />
-      <ExpiryInput style={inputStyle} foods={foods} idx={idx} />
-      <StorageInput style={inputStyle} foods={foods} idx={idx} />
-      <AmountInput style={inputStyle} foods={foods} idx={idx} />
-      <UnitInput style={inputStyle} foods={foods} idx={idx} />
+      <NameInput food={food} />
+      <ExpiryInput food={food} />
+      <StorageInput food={food} />
+      <AmountInput food={food} />
+      <UnitInput food={food} />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 import { isArrayOfFoodFromReceipt } from "@/lib/predicates";
+import { API_RECEIPT, API_RECEIPT_JSON } from "@/lib/urls";
 import { foodFromReceiptSchema } from "@/lib/validators";
 import { FoodFromReceipt } from "@/receipt-reader/parser/types";
 import { useState } from "react";
@@ -37,7 +38,7 @@ export default function useFoodsFromReceipt() {
     }
 
     try {
-      const res = await fetch(`/api/receipt/json`, {
+      const res = await fetch(API_RECEIPT_JSON, {
         method: "POST",
         body: JSON.stringify(nonEmptyFoods),
       });
@@ -82,7 +83,7 @@ async function postReceipt(file: File) {
   try {
     const data = new FormData();
     data.append("file", file);
-    const res = await fetch("/api/receipt", {
+    const res = await fetch(API_RECEIPT, {
       method: "POST",
       body: data,
     });
@@ -95,7 +96,6 @@ async function postReceipt(file: File) {
     }
     return resp;
   } catch (e: any) {
-    // TODO: Better error handling
     console.error(e.message);
   }
 }

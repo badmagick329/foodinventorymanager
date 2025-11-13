@@ -2,6 +2,7 @@ import { FoodFromReceipt } from "@/receipt-reader/parser/types";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ReceiptItemForm from "./receipt-item-form";
+import { Button } from "@/components/ui/button";
 
 export default function ReceiptItems({
   foods,
@@ -47,13 +48,15 @@ export default function ReceiptItems({
 
   return (
     <form className="flex flex-col items-center gap-4" onSubmit={handleSubmit}>
-      {errors && <span className="text-red-500 font-bold">{errors}</span>}
-      <button className="btn btn-primary btn-outline" type="submit">
-        Submit
-      </button>
-      <div className="flex justify-center flex-wrap gap-4">
-        {foods.map((_, idx) => (
-          <ReceiptItemForm key={idx} idx={idx} foods={foods} />
+      {errors && <span className="font-bold text-red-500">{errors}</span>}
+      <Button type="submit">Submit</Button>
+      <div className="flex flex-wrap justify-center gap-4">
+        {foods.map((f, idx) => (
+          <ReceiptItemForm
+            key={`${f.name}-${f.amount}-${f.unit}-${f.expiry}-${f.storage}`}
+            food={f}
+            idx={idx}
+          />
         ))}
       </div>
     </form>

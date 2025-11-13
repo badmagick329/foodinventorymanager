@@ -156,9 +156,11 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
               <SelectContent>
                 <SelectGroup>
                   <SelectLabel>Storage</SelectLabel>
-                  <SelectItem value="fridge">Fridge</SelectItem>
-                  <SelectItem value="freezer">Freezer</SelectItem>
-                  <SelectItem value="pantry">Pantry</SelectItem>
+                  {Object.values(StorageType).map((v) => (
+                    <SelectItem className="capitalize" key={v} value={v}>
+                      {v}
+                    </SelectItem>
+                  ))}
                 </SelectGroup>
               </SelectContent>
             </Select>

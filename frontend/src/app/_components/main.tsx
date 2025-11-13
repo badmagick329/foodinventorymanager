@@ -14,6 +14,15 @@ export default function Main({ foods }: { foods: Food[] }) {
     [filter, foods]
   );
 
+  if (foods.length === 0) {
+    return (
+      <div className="mt-8 flex flex-col gap-4">
+        <h1 className="text-center text-3xl">No food items entered yet.</h1>
+        <p>Try importing a receipt or adding food items manually.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex w-full max-w-6xl flex-col items-center px-2">
       <h1 className="w-full text-center text-3xl font-semibold">
