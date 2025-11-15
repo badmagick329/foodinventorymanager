@@ -2,33 +2,85 @@ import {
   receiptStorageValues,
   unitValues,
 } from "@/receipt-reader/parser/types";
+import { MeasurementUnit, StorageType } from "@prisma/client";
 import { z } from "zod";
+
+const expiryValidator = z
+  .string()
+  .nullable()
+  .transform((val) => {
+    if (val === null || val === "") {
+      return null;
+    }
+    return String(val).trim();
+  })
+  .refine(
+    (val) => {
+      if (val === null) return true;
+      return /^\d{4}-\d{2}-\d{2}$/.test(val);
+    },
+    { message: "Expiry must be in YYYY-MM-DD format or empty" }
+  )
+  .refine(
+    (val) => {
+      if (val === null) return true;
+      const date = new Date(val);
+      return !isNaN(date.getTime());
+    },
+    { message: "Expiry must be a valid date or null" }
+  )
+  .transform((val) => {
+    if (val === null) return null;
+    const date = new Date(val);
+    return date.toISOString().slice(0, 10);
+  });
 
 export const foodSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  unit: z.enum(["l", "ml", "g", "kg", "unit"], {
+  unit: z.nativeEnum(MeasurementUnit, {
     errorMap: (issue, ctx) => ({
-      message: "Unit must be one of: l, ml, g, kg, unit",
+      message: `Unit must be one of: ${Object.values(MeasurementUnit).join(", ")}`,
     }),
   }),
   amount: z
     .string()
     .transform(Number)
     .refine((value) => value > 0, { message: "Amount must be greater than 0" }),
-  expiry: z
-    .string()
-    .nullable()
-    .refine((value) => value === null || !isNaN(Date.parse(value)), {
-      message: "Expiry must be a valid date",
-    }),
-  storage: z.enum(["fridge", "freezer", "pantry", "spices"], {
+  expiry: expiryValidator,
+  storage: z.nativeEnum(StorageType, {
     errorMap: (issue, ctx) => ({
-      message: "Storage must be one of: fridge, freezer, pantry, spices",
+      message: `Storage must be one of: ${Object.values(StorageType).join(", ")}`,
     }),
   }),
 });
 
 const partialFoodSchema = foodSchema.partial();
+
+export const patchFoodSchema = z.object({
+  name: z.string().min(1, "Name is required").optional(),
+  unit: z
+    .nativeEnum(MeasurementUnit, {
+      errorMap: (issue, ctx) => ({
+        message: `Unit must be one of: ${Object.values(MeasurementUnit).join(", ")}`,
+      }),
+    })
+    .optional(),
+  amount: z
+    .string()
+    .transform(Number)
+    .refine((value) => value >= 0, {
+      message: "Amount must be greater than or equal to 0",
+    })
+    .optional(),
+  expiry: expiryValidator.optional(),
+  storage: z
+    .nativeEnum(StorageType, {
+      errorMap: (issue, ctx) => ({
+        message: `Storage must be one of: ${Object.values(StorageType).join(", ")}`,
+      }),
+    })
+    .optional(),
+});
 
 export function validateFood(
   data: Record<string, string | null>

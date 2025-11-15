@@ -1,8 +1,7 @@
-import { MeasurementUnit, StorageType } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../../prisma/client";
-import { getNewExpiryValFromUserInput } from "@/lib/utils";
+import { patchFoodSchema } from "@/lib/validators";
 
 // GET /api/foods/:id
 export async function GET(
@@ -50,76 +49,15 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { name, amount, unit, expiry, storage } = body;
 
-    const updateData: any = {};
+    const validation = patchFoodSchema.safeParse(body);
 
-    if (name !== undefined) {
-      if (typeof name !== "string" || name.trim() === "") {
-        return NextResponse.json(
-          { error: "Name must be a non-empty string" },
-          { status: 400 }
-        );
-      }
-      updateData.name = name.trim();
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
+      return NextResponse.json({ error: firstError.message }, { status: 400 });
     }
 
-    if (amount !== undefined) {
-      const amountNum = Number(amount);
-      if (isNaN(amountNum)) {
-        return NextResponse.json(
-          { error: "Amount must be a number" },
-          { status: 400 }
-        );
-      }
-      if (amountNum < 0) {
-        return NextResponse.json(
-          { error: "Amount must be greater than or equal to 0" },
-          { status: 400 }
-        );
-      }
-      updateData.amount = amountNum;
-    }
-
-    if (unit !== undefined) {
-      const unitLower = String(unit).toLowerCase();
-      if (
-        !Object.values(MeasurementUnit).includes(unitLower as MeasurementUnit)
-      ) {
-        return NextResponse.json(
-          {
-            error:
-              "Unit must be one of: " +
-              Object.values(MeasurementUnit).join(", "),
-          },
-          { status: 400 }
-        );
-      }
-      updateData.unit = unitLower as MeasurementUnit;
-    }
-
-    if (expiry !== undefined) {
-      const result = getNewExpiryValFromUserInput(expiry);
-      if (result.isError) {
-        return NextResponse.json({ error: result.val }, { status: 400 });
-      }
-      updateData.expiry = result.val;
-    }
-
-    if (storage !== undefined) {
-      const storageTrimmed = String(storage).trim();
-      if (!Object.values(StorageType).includes(storageTrimmed as StorageType)) {
-        return NextResponse.json(
-          {
-            error:
-              "Storage must be one of: " +
-              Object.values(StorageType).join(", "),
-          },
-          { status: 400 }
-        );
-      }
-      updateData.storage = storageTrimmed as StorageType;
-    }
+    const updateData = validation.data;
 
     const existingFood = await prisma.food.findUnique({
       where: { id },
