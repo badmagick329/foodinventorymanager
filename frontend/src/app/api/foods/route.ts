@@ -7,7 +7,7 @@ import prisma from "../../../../prisma/client";
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const name = body.name.trim() as string;
-  const amount = body.amount.trim() as string;
+  const amount = body.amount.toString();
   let unit = body.unit.toLowerCase().trim() as string;
   let expiry = body.expiry.trim() === "" ? null : body.expiry.trim();
   const storage = body.storage.trim() as string;
