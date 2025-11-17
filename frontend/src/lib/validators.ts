@@ -43,7 +43,7 @@ export const foodSchema = z.object({
     }),
   }),
   amount: z
-    .string()
+    .union([z.string(), z.number()])
     .transform(Number)
     .refine((value) => value > 0, { message: "Amount must be greater than 0" }),
   expiry: expiryValidator,
@@ -66,7 +66,7 @@ export const patchFoodSchema = z.object({
     })
     .optional(),
   amount: z
-    .string()
+    .union([z.string(), z.number()])
     .transform(Number)
     .refine((value) => value >= 0, {
       message: "Amount must be greater than or equal to 0",
