@@ -1,4 +1,4 @@
-import { FoodFromReceipt, unitValues } from "@/receipt-reader/parser/types";
+import { FoodFromReceipt } from "@/receipt-reader/parser/types";
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import {

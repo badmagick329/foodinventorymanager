@@ -1,7 +1,6 @@
-import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../../prisma/client";
-import { patchFoodSchema } from "@/lib/validators";
+import { foodSchema, formatZodError } from "@/lib/validators";
 
 // GET /api/foods/:id
 export async function GET(
@@ -50,11 +49,13 @@ export async function PATCH(
 
     const body = await request.json();
 
-    const validation = patchFoodSchema.safeParse(body);
+    const validation = foodSchema.partial().safeParse(body);
 
     if (!validation.success) {
-      const firstError = validation.error.errors[0];
-      return NextResponse.json({ error: firstError.message }, { status: 400 });
+      return NextResponse.json(
+        { error: formatZodError(validation.error) },
+        { status: 400 }
+      );
     }
 
     const updateData = validation.data;
@@ -75,7 +76,6 @@ export async function PATCH(
       data: updateData,
     });
 
-    revalidateTag("foods");
     return NextResponse.json(updatedFood, { status: 200 });
   } catch (error) {
     console.error(error);
@@ -113,7 +113,6 @@ export async function DELETE(
       where: { id },
     });
 
-    revalidateTag("foods");
     return NextResponse.json(
       { message: "Food item deleted successfully", id },
       { status: 200 }

@@ -1,5 +1,5 @@
 "use client";
-import { API_FOODS_URL, V2_HOME } from "@/lib/urls";
+import { API_FOODS_URL, HOME } from "@/lib/urls";
 import { ModifyFoodFormInput } from "@/lib/types";
 import { Food } from "@prisma/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -21,8 +21,9 @@ export default function useModifyFoodForm(food?: Food) {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to update food");
+        const { error } = await response.json();
+
+        throw new Error(error || "Failed to update food");
       }
 
       return response.json();
@@ -33,7 +34,7 @@ export default function useModifyFoodForm(food?: Food) {
         queryClient.invalidateQueries({
           queryKey: ["food", food.id.toString()],
         });
-      food || router.push(V2_HOME);
+      food || router.push(HOME);
     },
     onError: (error: Error) => {
       console.error("Failed to save food:", error.message);
@@ -55,7 +56,7 @@ export default function useModifyFoodForm(food?: Food) {
         queryClient.invalidateQueries({
           queryKey: ["food", food.id.toString()],
         });
-      router.push(V2_HOME);
+      router.push(HOME);
     },
     onError: (error: Error) => {
       console.error("Failed to delete food:", error.message);

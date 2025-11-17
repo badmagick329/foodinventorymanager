@@ -1,31 +1,19 @@
-import { validateFood } from "@/lib/validators";
-import { MeasurementUnit, StorageType } from "@prisma/client";
-import { revalidateTag } from "next/cache";
+import { foodSchema, formatZodError } from "@/lib/validators";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../prisma/client";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const name = body.name.trim() as string;
-  const amount = body.amount.toString();
-  let unit = body.unit.toLowerCase().trim() as string;
-  let expiry = body.expiry.trim() === "" ? null : body.expiry.trim();
-  const storage = body.storage.trim() as string;
-  const validationError = validateFood({ name, unit, amount, expiry, storage });
-  if (validationError) {
-    console.error(`Validation failed: ${validationError}`);
-    return NextResponse.json({ error: validationError }, { status: 400 });
+  let { name, amount, unit, expiry, storage } = body;
+  const result = foodSchema.safeParse({ name, unit, amount, expiry, storage });
+  if (result.error) {
+    return NextResponse.json(
+      { error: formatZodError(result.error) },
+      { status: 400 }
+    );
   }
-  unit = unit as MeasurementUnit;
-  const food = await prisma.food.create({
-    data: {
-      name,
-      amount: Number(amount),
-      unit: unit as MeasurementUnit,
-      expiry,
-      storage: storage as StorageType,
-    },
-  });
+
+  const food = await prisma.food.create({ data: result.data });
   return NextResponse.json(food, { status: 201 });
 }
 
@@ -47,7 +35,6 @@ export async function GET(request: NextRequest) {
         },
       ],
     });
-    revalidateTag("foods");
     return NextResponse.json(foods, { status: 200 });
   } catch (error) {
     console.error(error);

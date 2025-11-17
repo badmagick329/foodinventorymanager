@@ -24,7 +24,7 @@ import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { ModifyFoodFormInput } from "@/lib/types";
 import useModifyFoodForm from "@/hooks/useModifyFoodForm";
-import { V2_HOME } from "@/lib/urls";
+import { HOME } from "@/lib/urls";
 
 export default function ModifyFoodForm({ food }: { food?: Food }) {
   const {
@@ -181,7 +181,7 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
         </Button>
         <Button
           disabled={disableButtons}
-          onClick={() => router.push(V2_HOME)}
+          onClick={() => router.push(HOME)}
           variant={"outline"}
           className="bg-black"
         >

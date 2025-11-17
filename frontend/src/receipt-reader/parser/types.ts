@@ -1,13 +1,4 @@
-export const receiptStorageValues = [
-  'fridge',
-  'pantry',
-  'freezer',
-  'spices',
-] as const;
-export const unitValues = ['g', 'kg', 'ml', 'l', 'unit', 'cl'] as const;
-
-export type ReceiptStorageType = (typeof receiptStorageValues)[number];
-export type Unit = (typeof unitValues)[number];
+import { StorageType } from "@prisma/client";
 
 export type LinesPerStorage = {
   fridge: string[];
@@ -18,13 +9,13 @@ export type LinesPerStorage = {
 export type ItemWithExpiry = {
   name: string;
   expiry: string | null;
-  storage: ReceiptStorageType;
+  storage: StorageType;
 };
 
 export type FoodFromReceipt = {
   name: string;
   expiry: string | null;
-  storage: ReceiptStorageType;
+  storage: StorageType;
   amount: number;
   unit: string;
 };
