@@ -2,6 +2,7 @@
 import FoodTable from "@/app/_components/food-table";
 import SearchBar from "@/app/_components/search-bar";
 import StorageFilter from "@/app/_components/storage-filter";
+import useScrollY from "@/hooks/useScrollY";
 import { SearchFilter } from "@/lib/types";
 import { Food } from "@prisma/client";
 import { useEffect, useState } from "react";
@@ -10,6 +11,7 @@ export default function Main({ foods }: { foods: Food[] }) {
   const [filteredFoods, setFilteredFoods] = useState(foods);
   const [filter, setFilter] = useState<SearchFilter>({});
   const [headerMessage, setHeaderMessage] = useState("");
+  const { getY: foodListY } = useScrollY("foodListY");
 
   useEffect(
     () => setFilteredFoods(getNewFilteredFoods(foods, filter)),
@@ -18,6 +20,12 @@ export default function Main({ foods }: { foods: Food[] }) {
   useEffect(() => {
     setHeaderMessage(createHeaderMessage(foods.length, filteredFoods.length));
   }, [filteredFoods.length, foods.length]);
+  useEffect(() => {
+    const y = foodListY();
+    if (!isNaN(y) && y > 0) {
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+  }, [foodListY]);
 
   if (foods.length === 0) {
     return (
