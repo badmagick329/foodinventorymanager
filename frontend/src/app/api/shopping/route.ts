@@ -59,3 +59,18 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    await prisma.shoppingItem.deleteMany({});
+    return NextResponse.json(
+      { message: "All shopping items deleted" },
+      { status: 200 }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Something went wrong" },
+      { status: 500 }
+    );
+  }
+}

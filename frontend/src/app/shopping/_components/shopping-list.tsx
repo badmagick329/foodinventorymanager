@@ -16,9 +16,10 @@ export default function ShoppingList({
 }) {
   const [formItem, setFormItem] = useState("");
   const [formError, setFormError] = useState("");
+  const [isConfirmClearList, setIsConfirmClearList] = useState(false);
   const queryClient = useQueryClient();
 
-  const mutation = useMutation({
+  const addMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch(API_SHOPPING_URL, {
         method: "POST",
@@ -42,8 +43,29 @@ export default function ShoppingList({
     },
   });
 
+  const clearMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(API_SHOPPING_URL, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (!res.ok) {
+        throw new Error("Failed to clear shopping list");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shopping"] });
+    },
+    onError: (error: Error) => {
+      console.error(error.message);
+      setFormError(error.message);
+    },
+  });
+
   return (
-    <div className="flex w-full flex-col items-start gap-8 sm:max-w-xl lg:max-w-4xl xl:max-w-6xl">
+    <div className="flex w-full flex-col items-start gap-8 px-2 sm:max-w-xl lg:max-w-4xl xl:max-w-6xl">
       <h1 className="w-full text-center text-3xl font-bold">Shopping List</h1>
       <Table className="md:text-md text-xs sm:text-sm lg:text-lg">
         <TableBody>
@@ -69,19 +91,43 @@ export default function ShoppingList({
         className="flex w-full space-x-2"
         onSubmit={(e) => {
           e.preventDefault();
-          mutation.mutate();
+          addMutation.mutate();
         }}
       >
         <Input
           className="bg-black"
           value={formItem}
-          onChange={(e) => setFormItem(e.target.value)}
+          onChange={(e) => {
+            setFormError("");
+            setFormItem(e.target.value);
+          }}
           autoComplete="off"
+          disabled={addMutation.isPending || clearMutation.isPending}
         />
-        <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? "Adding..." : "Add"}
+        <Button type="submit" disabled={addMutation.isPending}>
+          {addMutation.isPending ? "Adding..." : "Add"}
         </Button>
       </form>
+      <div className="flex w-full justify-end">
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setIsConfirmClearList((prev) => !prev)}
+            variant={isConfirmClearList ? "outline" : "warning"}
+            className="w-24"
+            disabled={addMutation.isPending || clearMutation.isPending}
+          >
+            {isConfirmClearList ? "Cancel" : "Clear List"}
+          </Button>
+          <Button
+            className={`${isConfirmClearList ? "block" : "hidden"} w-24`}
+            variant={"destructive"}
+            disabled={addMutation.isPending || clearMutation.isPending}
+            onClick={() => clearMutation.mutate()}
+          >
+            Yep
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
