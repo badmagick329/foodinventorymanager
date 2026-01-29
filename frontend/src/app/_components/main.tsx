@@ -41,7 +41,7 @@ export default function Main({ foods }: { foods: Food[] }) {
       <h1 className="w-full text-center text-3xl font-semibold">
         {headerMessage}
       </h1>
-      <div className="sticky top-0 z-10 flex w-full flex-col gap-2 bg-background py-4">
+      <div className="sticky top-20 z-10 flex w-full flex-col gap-2 bg-background py-4">
         <StorageFilter setFilter={setFilter} />
         <SearchBar setFilter={setFilter} />
       </div>

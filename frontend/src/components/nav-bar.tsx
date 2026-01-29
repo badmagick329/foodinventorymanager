@@ -11,7 +11,7 @@ import { PiNoteFill } from "react-icons/pi";
 
 export default function NavBar() {
   return (
-    <nav className="mb-5 flex h-20 items-center space-x-2 border-b bg-black px-2 text-foreground">
+    <nav className="sticky top-0 z-20 mb-5 flex h-20 items-center space-x-2 border-b bg-black px-2 text-foreground">
       <Link className="text-4xl hover:text-primary md:text-6xl" href="/">
         <GiFoodTruck />
       </Link>
