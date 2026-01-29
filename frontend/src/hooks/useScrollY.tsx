@@ -1,3 +1,4 @@
+import { debounce } from "@/lib/utils";
 import { useEffect, useMemo } from "react";
 
 export default function useScrollY(localStorageKey: string) {
@@ -29,13 +30,3 @@ export default function useScrollY(localStorageKey: string) {
         : 0,
   };
 }
-
-const debounce = (func: () => void, wait: number) => {
-  let timeout: NodeJS.Timeout;
-  return () => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      func();
-    }, wait);
-  };
-};
