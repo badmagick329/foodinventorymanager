@@ -108,12 +108,15 @@ export function daysUntilExpiryToBorderColor(daysUntil: number): string {
   return "border-green-500";
 }
 
-export function debounce(func: () => void, wait: number) {
+export function debounce<T extends (...args: any[]) => void>(
+  func: T,
+  wait: number
+): T {
   let timeout: NodeJS.Timeout;
-  return () => {
+  return ((...args: Parameters<T>) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => {
-      func();
+      func(...args);
     }, wait);
-  };
+  }) as T;
 }
