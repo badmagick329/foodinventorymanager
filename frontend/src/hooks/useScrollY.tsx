@@ -6,7 +6,7 @@ export default function useScrollY(localStorageKey: string) {
     () =>
       debounce(() => {
         localStorage.setItem(localStorageKey, window.scrollY.toString());
-      }, 150),
+      }, 50),
     [localStorageKey]
   );
 
