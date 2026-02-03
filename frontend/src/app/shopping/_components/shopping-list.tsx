@@ -1,7 +1,7 @@
 "use client";
 import RemoveButton from "@/app/shopping/_components/remove-button";
 import { ShoppingItem } from "@prisma/client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_SHOPPING_URL } from "@/lib/urls";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ export default function ShoppingList({
   const [formItem, setFormItem] = useState("");
   const [formError, setFormError] = useState("");
   const [isConfirmClearList, setIsConfirmClearList] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
   const addMutation = useMutation({
@@ -34,8 +35,10 @@ export default function ShoppingList({
       }
     },
     onSuccess: () => {
-      setFormItem("");
       queryClient.invalidateQueries({ queryKey: ["shopping"] });
+      setFormItem("");
+      setIsConfirmClearList(false);
+      inputRef.current?.focus();
     },
     onError: (error: Error) => {
       console.error("Failed to add shopping item:", error.message);
@@ -57,6 +60,8 @@ export default function ShoppingList({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["shopping"] });
+      inputRef.current?.focus();
+      setIsConfirmClearList(false);
     },
     onError: (error: Error) => {
       console.error(error.message);
@@ -95,6 +100,7 @@ export default function ShoppingList({
         }}
       >
         <Input
+          ref={inputRef}
           className="bg-black"
           value={formItem}
           onChange={(e) => {
@@ -102,7 +108,6 @@ export default function ShoppingList({
             setFormItem(e.target.value);
           }}
           autoComplete="off"
-          disabled={addMutation.isPending || clearMutation.isPending}
         />
         <Button type="submit" disabled={addMutation.isPending}>
           {addMutation.isPending ? "Adding..." : "Add"}
