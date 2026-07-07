@@ -173,6 +173,7 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
           {saveMutation.isPending ? "Saving..." : "Save Changes"}
         </Button>
         <Button
+          type="button"
           disabled={disableButtons}
           variant={"destructive"}
           onClick={() => deleteMutation.mutate()}
@@ -180,6 +181,7 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
           {deleteMutation.isPending ? "Deleting..." : "Delete"}
         </Button>
         <Button
+          type="button"
           disabled={disableButtons}
           onClick={() => router.push(HOME)}
           variant={"outline"}
