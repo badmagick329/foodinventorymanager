@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useRef } from "react";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { Food, MeasurementUnit, StorageType } from "@prisma/client";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,8 @@ import { ModifyFoodFormInput } from "@/lib/types";
 import useModifyFoodForm from "@/hooks/useModifyFoodForm";
 import { HOME } from "@/lib/urls";
 
+const DOUBLE_ESCAPE_MS = 400;
+
 export default function ModifyFoodForm({ food }: { food?: Food }) {
   const {
     register,
@@ -43,11 +46,34 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
   });
   const router = useRouter();
   const { saveMutation, deleteMutation } = useModifyFoodForm(food);
+  const lastEscapePressRef = useRef(0);
 
   const onSubmit: SubmitHandler<ModifyFoodFormInput> = (data) => {
     saveMutation.mutate(data);
   };
   const disableButtons = saveMutation.isPending || deleteMutation.isPending;
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || disableButtons) {
+        return;
+      }
+
+      const now = Date.now();
+
+      if (now - lastEscapePressRef.current <= DOUBLE_ESCAPE_MS) {
+        e.preventDefault();
+        router.push(HOME);
+        return;
+      }
+
+      lastEscapePressRef.current = now;
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [disableButtons, router]);
 
   if (deleteMutation.isPending) {
     return <p>Deleting...</p>;
@@ -186,8 +212,9 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
           onClick={() => router.push(HOME)}
           variant={"outline"}
           className="bg-black"
+          title="Go back to the home page (press Escape twice)"
         >
-          Back
+          Back (Esc twice)
         </Button>
       </div>
       {saveMutation.isError && (
