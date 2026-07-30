@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import type { FC, ReactNode } from "react";
 import "./globals.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import AssistantChat from "@/components/assistant-chat";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +23,7 @@ const RootLayout: FC<LayoutProps> = ({ children }) => {
         <main className="flex min-h-screen flex-col items-center">
           <QueryClientProvider client={queryClient}>
             {children}
+            <AssistantChat />
           </QueryClientProvider>
         </main>
       </body>

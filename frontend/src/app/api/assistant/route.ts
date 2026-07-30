@@ -1,0 +1,183 @@
+import { NextRequest, NextResponse } from "next/server";
+import type { ChatMessage, Food } from "@prisma/client";
+import prisma from "../../../../prisma/client";
+import { describeAction, isAssistantAction, type AssistantAction } from "@/lib/assistant";
+
+export const runtime = "nodejs";
+
+const actionSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["kind", "foodId", "foodIds", "primaryFoodId", "changes"],
+  properties: {
+    kind: { type: "string", enum: ["update", "delete", "consolidate"] },
+    foodId: { type: ["integer", "null"] },
+    foodIds: { type: "array", items: { type: "integer" } },
+    primaryFoodId: { type: ["integer", "null"] },
+    changes: {
+      type: "object",
+      additionalProperties: false,
+      required: ["name", "amount", "unit", "expiry", "storage"],
+      properties: {
+        name: { type: ["string", "null"] },
+        amount: { type: ["number", "null"] },
+        unit: { type: ["string", "null"] },
+        expiry: { type: ["string", "null"] },
+        storage: { type: ["string", "null"] },
+      },
+    },
+  },
+} as const;
+
+type ResponsesEvent = {
+  type?: string;
+  delta?: string;
+  response?: { output?: Array<{ type?: string; name?: string; arguments?: string }> };
+  error?: { message?: string };
+};
+
+function normalizeAction(action: Record<string, unknown>) {
+  if (action.kind === "delete") return { kind: "delete", foodIds: action.foodIds };
+  if (action.kind === "consolidate") return { kind: "consolidate", foodIds: action.foodIds, primaryFoodId: action.primaryFoodId };
+  const changes = Object.fromEntries(
+    Object.entries((action.changes ?? {}) as Record<string, unknown>).filter(([, value]) => value !== null)
+  );
+  return { kind: "update", foodId: action.foodId, changes };
+}
+
+function sse(controller: ReadableStreamDefaultController, encoder: TextEncoder, event: string, data: unknown) {
+  controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
+}
+
+export async function GET(request: NextRequest) {
+  const conversationId = request.nextUrl.searchParams.get("conversationId");
+  if (!conversationId) return NextResponse.json({ messages: [] });
+  const conversation = await prisma.conversation.findUnique({
+    where: { id: conversationId },
+    include: { messages: { orderBy: { createdAt: "asc" } } },
+  });
+  if (!conversation) return NextResponse.json({ messages: [] }, { status: 404 });
+  return NextResponse.json({
+    conversationId: conversation.id,
+    messages: conversation.messages.map((message) => ({
+      id: message.id,
+      role: message.role,
+      text: message.content,
+      action: message.action,
+    })),
+  });
+}
+
+export async function POST(request: NextRequest) {
+  const { message, conversationId } = await request.json();
+  if (typeof message !== "string" || message.trim() === "") {
+    return NextResponse.json({ error: "A message is required." }, { status: 400 });
+  }
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return NextResponse.json({ error: "OPENAI_API_KEY is not configured." }, { status: 503 });
+
+  let conversation: { id: string } | null;
+  let foods: Food[];
+  let savedMessages: ChatMessage[];
+  try {
+    conversation = conversationId
+      ? await prisma.conversation.findUnique({ where: { id: conversationId } })
+      : await prisma.conversation.create({ data: {} });
+    if (!conversation) return NextResponse.json({ error: "That chat no longer exists. Start a new chat." }, { status: 404 });
+
+    await prisma.chatMessage.create({ data: { conversationId: conversation.id, role: "user", content: message.trim() } });
+    [foods, savedMessages] = await Promise.all([
+      prisma.food.findMany({ orderBy: [{ expiry: "asc" }, { name: "asc" }] }),
+      prisma.chatMessage.findMany({ where: { conversationId: conversation.id }, orderBy: { createdAt: "desc" }, take: 20 }),
+    ]);
+  } catch (error) {
+    console.error("Could not prepare assistant conversation", error);
+    return NextResponse.json({ error: "The assistant chat could not be prepared. Restart the app and try again." }, { status: 500 });
+  }
+  if (!conversation) return NextResponse.json({ error: "That chat no longer exists. Start a new chat." }, { status: 404 });
+  const activeConversationId = conversation.id;
+  const history = savedMessages.reverse().slice(0, -1).map((item) => `${item.role}: ${item.content}`).join("\n");
+  const systemPrompt = [
+    "You are the Food Inventory Assistant for one household.",
+    "Use the prior conversation to resolve references such as 'that item'. Answer questions about the provided inventory.",
+    "Never claim an update, deletion, or consolidation has happened. For any requested write, call propose_inventory_action using real food IDs, then explain the proposed change and say it needs confirmation.",
+    "Choose the best match only when it is clear. If it is ambiguous, ask a concise question without calling the tool.",
+    "Use update for quantity, expiry, name, unit, or storage changes. Use delete for removals. Use consolidate only for same-name items with the same unit and storage. Do not consolidate entries with different expiry dates unless explicitly asked; the app will retain the earliest expiry.",
+    "For expiry reports and recipe suggestions, answer normally without calling a tool. Keep responses concise and kitchen-friendly.",
+    `Today is ${new Date().toISOString().slice(0, 10)}. Inventory: ${JSON.stringify(foods)}.`,
+    `Conversation:\n${history}`,
+  ].join("\n\n");
+
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      sse(controller, encoder, "conversation", { conversationId: activeConversationId });
+      try {
+        const openaiResponse = await fetch("https://api.openai.com/v1/responses", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+          body: JSON.stringify({
+            model: process.env.OPENAI_MODEL ?? "gpt-5.6-terra",
+            reasoning: { effort: "low" },
+            stream: true,
+            tools: [{ type: "function", name: "propose_inventory_action", description: "Propose one inventory change that the user must confirm before it is applied.", strict: true, parameters: actionSchema }],
+            input: [
+              { role: "system", content: [{ type: "input_text", text: systemPrompt }] },
+              { role: "user", content: [{ type: "input_text", text: message.trim() }] },
+            ],
+          }),
+        });
+        if (!openaiResponse.ok || !openaiResponse.body) {
+          console.error("OpenAI response failed", openaiResponse.status, await openaiResponse.text());
+          sse(controller, encoder, "error", { error: "The assistant is temporarily unavailable." });
+          return;
+        }
+
+        const reader = openaiResponse.body.getReader();
+        const decoder = new TextDecoder();
+        let pending = "";
+        let reply = "";
+        let completedResponse: ResponsesEvent["response"];
+        const processEvent = (block: string) => {
+          const data = block.split("\n").find((line) => line.startsWith("data: "))?.slice(6);
+          if (!data || data === "[DONE]") return;
+          const event = JSON.parse(data) as ResponsesEvent;
+          if (event.type === "response.output_text.delta" && event.delta) {
+            reply += event.delta;
+            sse(controller, encoder, "delta", { delta: event.delta });
+          }
+          if (event.type === "response.completed") completedResponse = event.response;
+          if (event.type === "error") throw new Error(event.error?.message ?? "OpenAI streaming error");
+        };
+        while (true) {
+          const { value, done } = await reader.read();
+          pending += decoder.decode(value ?? new Uint8Array(), { stream: !done });
+          const events = pending.split("\n\n");
+          pending = events.pop() ?? "";
+          events.forEach(processEvent);
+          if (done) break;
+        }
+        if (pending.trim()) processEvent(pending);
+
+        const call = completedResponse?.output?.find((item) => item.type === "function_call" && item.name === "propose_inventory_action");
+        let action: AssistantAction = { kind: "none" };
+        if (call?.arguments) {
+          const proposed = normalizeAction(JSON.parse(call.arguments) as Record<string, unknown>);
+          if (!isAssistantAction(proposed)) throw new Error("The assistant proposed an invalid action");
+          action = proposed;
+        }
+        const finalReply = reply.trim() || (action.kind === "none"
+          ? "I couldn't produce a response. Please try again."
+          : `${describeAction(action, foods)} Confirm this change to apply it.`);
+        const saved = await prisma.chatMessage.create({ data: { conversationId: activeConversationId, role: "assistant", content: finalReply, action } });
+        sse(controller, encoder, "complete", { id: saved.id, reply: saved.content, action });
+      } catch (error) {
+        console.error("Assistant stream failed", error);
+        sse(controller, encoder, "error", { error: "The assistant response could not be completed. Please try again." });
+      } finally {
+        controller.close();
+      }
+    },
+  });
+  return new Response(stream, { headers: { "Cache-Control": "no-cache", Connection: "keep-alive", "Content-Type": "text/event-stream" } });
+}
