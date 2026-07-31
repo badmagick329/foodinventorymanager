@@ -20,6 +20,8 @@ services:
       - ./frontend/.env
   app:
     image: nextjs
+    env_file:
+      - ./frontend/.env
     build:
       context: ./frontend
       dockerfile: ./Docker/Dockerfile

@@ -5,6 +5,14 @@ import { describeAction, isAssistantAction, type AssistantAction } from "@/lib/a
 
 export const runtime = "nodejs";
 
+const reasoningEfforts = ["none", "low", "medium", "high", "xhigh", "max"] as const;
+type ReasoningEffort = (typeof reasoningEfforts)[number];
+
+function getReasoningEffort(): ReasoningEffort | null {
+  const effort = process.env.OPENAI_REASONING_EFFORT ?? "low";
+  return reasoningEfforts.includes(effort as ReasoningEffort) ? (effort as ReasoningEffort) : null;
+}
+
 const actionSchema = {
   type: "object",
   additionalProperties: false,
@@ -75,6 +83,13 @@ export async function POST(request: NextRequest) {
   }
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return NextResponse.json({ error: "OPENAI_API_KEY is not configured." }, { status: 503 });
+  const reasoningEffort = getReasoningEffort();
+  if (!reasoningEffort) {
+    return NextResponse.json(
+      { error: `OPENAI_REASONING_EFFORT must be one of: ${reasoningEfforts.join(", ")}.` },
+      { status: 500 }
+    );
+  }
 
   let conversation: { id: string } | null;
   let foods: Food[];
@@ -118,7 +133,7 @@ export async function POST(request: NextRequest) {
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
           body: JSON.stringify({
             model: process.env.OPENAI_MODEL ?? "gpt-5.6-terra",
-            reasoning: { effort: "low" },
+            reasoning: { effort: reasoningEffort },
             stream: true,
             tools: [{ type: "function", name: "propose_inventory_action", description: "Propose one inventory change that the user must confirm before it is applied.", strict: true, parameters: actionSchema }],
             input: [
