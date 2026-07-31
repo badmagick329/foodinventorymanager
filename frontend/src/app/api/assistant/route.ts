@@ -13,6 +13,13 @@ function getReasoningEffort(): ReasoningEffort | null {
   return reasoningEfforts.includes(effort as ReasoningEffort) ? (effort as ReasoningEffort) : null;
 }
 
+function assistantConfiguration() {
+  return {
+    model: process.env.OPENAI_MODEL ?? "gpt-5.6-terra",
+    reasoningEffort: process.env.OPENAI_REASONING_EFFORT ?? "low",
+  };
+}
+
 const actionSchema = {
   type: "object",
   additionalProperties: false,
@@ -59,14 +66,15 @@ function sse(controller: ReadableStreamDefaultController, encoder: TextEncoder, 
 
 export async function GET(request: NextRequest) {
   const conversationId = request.nextUrl.searchParams.get("conversationId");
-  if (!conversationId) return NextResponse.json({ messages: [] });
+  if (!conversationId) return NextResponse.json({ messages: [], ...assistantConfiguration() });
   const conversation = await prisma.conversation.findUnique({
     where: { id: conversationId },
     include: { messages: { orderBy: { createdAt: "asc" } } },
   });
-  if (!conversation) return NextResponse.json({ messages: [] }, { status: 404 });
+  if (!conversation) return NextResponse.json({ messages: [], ...assistantConfiguration() }, { status: 404 });
   return NextResponse.json({
     conversationId: conversation.id,
+    ...assistantConfiguration(),
     messages: conversation.messages.map((message) => ({
       id: message.id,
       role: message.role,

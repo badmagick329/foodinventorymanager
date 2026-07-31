@@ -10,14 +10,7 @@ import type { AssistantAction } from "@/lib/assistant";
 
 type Message = { id: string; role: "user" | "assistant"; text: string; action?: AssistantAction };
 const conversationStorageKey = "foodinventory-assistant-conversation";
-const examplePrompts = [
-  "What's expiring soon?",
-  "Set the Oatly expiry date to 12 Dec",
-  "Delete the old milk",
-  "Consolidate my duplicate milk entries",
-  "What should I use this week?",
-  "What can I cook with what I have?",
-];
+type AssistantConfiguration = { model: string; reasoningEffort: string };
 
 function readSseBlock(block: string) {
   const event = block.split("\n").find((line) => line.startsWith("event: "))?.slice(7);
@@ -40,12 +33,24 @@ export default function AssistantChat() {
   const [busy, setBusy] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [error, setError] = useState("");
+  const [configuration, setConfiguration] = useState<AssistantConfiguration | null>(null);
   const queryClient = useQueryClient();
 
   function rememberConversation(id: string) {
     setConversationId(id);
     window.localStorage.setItem(conversationStorageKey, id);
   }
+
+  useEffect(() => {
+    fetch("/api/assistant")
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => {
+        if (typeof data?.model === "string" && typeof data?.reasoningEffort === "string") {
+          setConfiguration({ model: data.model, reasoningEffort: data.reasoningEffort });
+        }
+      })
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     const savedId = window.localStorage.getItem(conversationStorageKey);
@@ -146,10 +151,9 @@ export default function AssistantChat() {
   return <>
     <Button className="fixed bottom-5 right-5 z-30 h-12 rounded-full px-5 shadow-lg" onClick={() => setOpen(true)}><MessageCircle /> Ask inventory</Button>
     {open && <section className="fixed bottom-4 right-4 z-40 flex h-[min(680px,calc(100vh-2rem))] w-[min(420px,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border bg-background shadow-2xl">
-      <header className="flex items-center justify-between border-b bg-black px-4 py-3"><div className="flex items-center gap-2 font-semibold"><Bot className="text-primary" /> Inventory assistant</div><div className="flex gap-1"><Popover><PopoverTrigger asChild><Button variant="ghost" size="icon" aria-label="What can the assistant do?" title="What can I do?"><CircleHelp /></Button></PopoverTrigger><PopoverContent align="end"><h2 className="font-semibold">What can I do?</h2><p className="mt-1 text-sm text-muted-foreground">Ask about your inventory or request a change. I’ll always ask for confirmation before changing it.</p><ul className="mt-3 space-y-1 text-sm"><li>• Check what is expiring soon</li><li>• Update quantities or expiry dates</li><li>• Delete items</li><li>• Consolidate duplicate entries</li><li>• Suggest recipes from your food</li></ul></PopoverContent></Popover><Button variant="ghost" size="sm" disabled={busy} onClick={newChat}><Plus /> New chat</Button><Button variant="ghost" size="icon" aria-label="Close assistant" onClick={() => setOpen(false)}><X /></Button></div></header>
+      <header className="flex items-center justify-between border-b bg-black px-4 py-3"><div className="flex items-center gap-2 font-semibold"><Bot className="text-primary" /> Inventory assistant</div><div className="flex gap-1"><Popover><PopoverTrigger asChild><Button variant="ghost" size="icon" aria-label="What can the assistant do?" title="What can I do?"><CircleHelp /></Button></PopoverTrigger><PopoverContent align="end"><h2 className="font-semibold">What can I do?</h2><p className="mt-1 text-sm text-muted-foreground">Ask about your inventory or request a change. I’ll always ask for confirmation before changing it.</p><ul className="mt-3 space-y-1 text-sm"><li>• Check what is expiring soon</li><li>• Update quantities or expiry dates</li><li>• Delete items</li><li>• Consolidate duplicate entries</li><li>• Suggest recipes from your food</li></ul>{configuration && <p className="mt-3 border-t pt-3 text-xs text-muted-foreground">Using <span className="font-medium text-foreground">{configuration.model}</span> with <span className="font-medium text-foreground">{configuration.reasoningEffort}</span> reasoning.</p>}</PopoverContent></Popover><Button variant="ghost" size="sm" disabled={busy} onClick={newChat}><Plus /> New chat</Button><Button variant="ghost" size="icon" aria-label="Close assistant" onClick={() => setOpen(false)}><X /></Button></div></header>
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {loadingHistory && <p className="text-sm text-muted-foreground">Loading chat…</p>}
-        {!loadingHistory && messages.length === 0 && <div className="rounded-lg bg-secondary p-3"><p className="text-sm text-muted-foreground">I can answer questions about your food and propose updates, deletions, or consolidations. Every change needs your confirmation.</p><p className="mt-4 text-sm font-medium">Try asking</p><div className="mt-2 flex flex-wrap gap-2">{examplePrompts.map((prompt) => <Button key={prompt} type="button" variant="outline" size="sm" className="h-auto whitespace-normal text-left" onClick={() => setMessage(prompt)}>{prompt}</Button>)}</div></div>}
         {messages.map((item) => <div key={item.id} className={item.role === "user" ? "ml-8 rounded-lg bg-primary p-3 text-primary-foreground" : "mr-3 rounded-lg bg-secondary p-3"}>{item.role === "assistant" ? <ReactMarkdown components={{ h2: ({ children }) => <h2 className="mb-2 mt-4 text-base font-semibold first:mt-0">{children}</h2>, p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>, ul: ({ children }) => <ul className="mb-3 list-disc space-y-1 pl-5 last:mb-0">{children}</ul>, ol: ({ children }) => <ol className="mb-3 list-decimal space-y-1 pl-5 last:mb-0">{children}</ol>, li: ({ children }) => <li>{children}</li>, strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>, a: ({ children, href }) => <a className="text-primary underline underline-offset-2" href={href}>{children}</a> }}>{item.text || (busy ? "Thinking…" : "")}</ReactMarkdown> : <p className="whitespace-pre-wrap text-sm">{item.text}</p>}{item.action && item.action.kind !== "none" && <div className="mt-3 flex gap-2"><Button size="sm" disabled={busy} onClick={() => confirm(item.action!)}>Confirm change</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => setMessages((items) => items.map((message) => message.id === item.id ? { ...message, action: { kind: "none" } } : message))}>Cancel</Button></div>}</div>)}
         {error && <p className="text-sm text-destructive">{error}</p>}
       </div>
