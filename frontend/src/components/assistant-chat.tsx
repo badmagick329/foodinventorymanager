@@ -23,6 +23,13 @@ function readSseBlock(block: string) {
   return event && data ? { event, data: JSON.parse(data) as Record<string, unknown> } : null;
 }
 
+function createMessageId() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `local-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 export default function AssistantChat() {
   const [open, setOpen] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -67,8 +74,8 @@ export default function AssistantChat() {
     const text = message.trim();
     if (!text || busy) return;
     setMessage(""); setError(""); setBusy(true);
-    const userMessage: Message = { id: crypto.randomUUID(), role: "user", text };
-    const assistantMessageId = crypto.randomUUID();
+    const userMessage: Message = { id: createMessageId(), role: "user", text };
+    const assistantMessageId = createMessageId();
     setMessages((items) => [...items, userMessage, { id: assistantMessageId, role: "assistant", text: "" }]);
     try {
       const response = await fetch("/api/assistant", {
@@ -129,7 +136,7 @@ export default function AssistantChat() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       await queryClient.invalidateQueries({ queryKey: ["foods"] });
-      setMessages((items) => [...items.map((item) => item.action === action ? { ...item, action: { kind: "none" } as AssistantAction } : item), { id: crypto.randomUUID(), role: "assistant", text: data.message }]);
+      setMessages((items) => [...items.map((item) => item.action === action ? { ...item, action: { kind: "none" } as AssistantAction } : item), { id: createMessageId(), role: "assistant", text: data.message }]);
     } catch (err) { setError(err instanceof Error ? err.message : "Could not apply that change."); }
     finally { setBusy(false); }
   }
