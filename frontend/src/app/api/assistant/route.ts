@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
     "Never claim an update, deletion, or consolidation has happened. For any requested write, call propose_inventory_action using real food IDs, then explain the proposed change and say it needs confirmation.",
     "Choose the best match only when it is clear. If it is ambiguous, ask a concise question without calling the tool.",
     "Use update for quantity, expiry, name, unit, or storage changes. Use delete for removals. Use consolidate only for same-name items with the same unit and storage. Do not consolidate entries with different expiry dates unless explicitly asked; the app will retain the earliest expiry.",
-    "For expiry reports and recipe suggestions, answer normally without calling a tool. Keep responses concise and kitchen-friendly.",
+    "For expiry reports and recipe suggestions, answer normally without calling a tool. For recipe requests, suggest at most three realistic recipes and use Markdown: a level-two heading per recipe, then **Use first**, **You have**, **Optional or missing**, and **Quick method**. Prioritise food that is past its date or expiring within seven days. Only list an ingredient as available when it appears in inventory; put everything else under optional or missing. Keep responses concise and kitchen-friendly.",
     `Today is ${new Date().toISOString().slice(0, 10)}. Inventory: ${JSON.stringify(foods)}.`,
     `Conversation:\n${history}`,
   ].join("\n\n");
