@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../../prisma/client";
 import { actionFoodIds, describeAction, isAssistantAction } from "@/lib/assistant";
+import { foodSchema } from "@/lib/validators";
 
 class ConfirmationConflictError extends Error {}
 
@@ -13,7 +14,9 @@ export async function POST(request: NextRequest) {
   const foods = await prisma.food.findMany({ where: { id: { in: ids } } });
   if (foods.length !== new Set(ids).size) return NextResponse.json({ error: "One or more food items no longer exist." }, { status: 409 });
 
-  if (action.kind === "batch") {
+  if (action.kind === "create") {
+    await prisma.food.create({ data: foodSchema.parse(action.food) });
+  } else if (action.kind === "batch") {
     try {
       await prisma.$transaction(async (tx) => {
         const selectedFoods = await tx.food.findMany({ where: { id: { in: ids } } });

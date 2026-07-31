@@ -1,4 +1,5 @@
 import { MeasurementUnit, StorageType, type Food } from "@prisma/client";
+import { foodSchema } from "./validators";
 
 type UpdateAction = {
   kind: "update";
@@ -6,12 +7,14 @@ type UpdateAction = {
   changes: Partial<Pick<Food, "name" | "amount" | "unit" | "expiry" | "storage">>;
 };
 type DeleteAction = { kind: "delete"; foodIds: number[] };
+type CreateAction = { kind: "create"; food: Pick<Food, "name" | "amount" | "unit" | "expiry" | "storage"> };
 type BatchItem = (UpdateAction | { kind: "delete"; foodId: number }) & { foodName?: string };
 
 export type AssistantAction =
   | { kind: "none" }
   | UpdateAction
   | DeleteAction
+  | CreateAction
   | { kind: "consolidate"; foodIds: number[]; primaryFoodId: number }
   | { kind: "batch"; actions: BatchItem[] };
 
@@ -40,11 +43,18 @@ function isBatchItem(value: unknown): value is BatchItem {
   return Boolean(value && typeof value === "object" && (value as Record<string, unknown>).kind === "delete" && Number.isInteger((value as Record<string, unknown>).foodId));
 }
 
+function isCreateAction(value: unknown): value is CreateAction {
+  if (!value || typeof value !== "object") return false;
+  const action = value as Record<string, unknown>;
+  return action.kind === "create" && foodSchema.safeParse(action.food).success;
+}
+
 export function isAssistantAction(value: unknown): value is AssistantAction {
   if (!value || typeof value !== "object" || !("kind" in value)) return false;
   const action = value as Record<string, unknown>;
 
   if (action.kind === "none") return true;
+  if (action.kind === "create") return isCreateAction(action);
   if (action.kind === "delete") return Array.isArray(action.foodIds) && action.foodIds.length > 0 && action.foodIds.every(Number.isInteger);
   if (action.kind === "consolidate") {
     return Array.isArray(action.foodIds) && action.foodIds.length > 1 && action.foodIds.every(Number.isInteger) && Number.isInteger(action.primaryFoodId);
@@ -57,6 +67,7 @@ export function isAssistantAction(value: unknown): value is AssistantAction {
 }
 
 export function actionFoodIds(action: Exclude<AssistantAction, { kind: "none" }>) {
+  if (action.kind === "create") return [];
   if (action.kind === "update") return [action.foodId];
   if (action.kind === "batch") return action.actions.map((item) => item.foodId);
   return action.foodIds;
@@ -80,6 +91,7 @@ function describeUpdate(action: UpdateAction, foods: Food[]) {
 
 export function describeAction(action: AssistantAction, foods: Food[]): string {
   if (action.kind === "none") return "";
+  if (action.kind === "create") return `Add ${action.food.amount} ${action.food.unit} of ${action.food.name} to the ${action.food.storage}.`;
   if (action.kind === "batch") return `Apply ${action.actions.length} changes: ${action.actions.map((item) => item.kind === "delete" ? `delete ${foods.find((food) => food.id === item.foodId)?.name ?? "the selected item"}` : describeUpdate(item, foods).replace(/\.$/, "")).join("; ")}.`;
   if (action.kind === "delete") return `Delete ${foods.filter((food) => action.foodIds.includes(food.id)).map((food) => food.name).join(", ")}.`;
   if (action.kind === "consolidate") {

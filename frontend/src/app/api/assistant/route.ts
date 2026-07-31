@@ -23,9 +23,9 @@ function assistantConfiguration() {
 const actionSchema = {
   type: "object",
   additionalProperties: false,
-  required: ["kind", "foodId", "foodIds", "primaryFoodId", "changes", "batchActions"],
+  required: ["kind", "foodId", "foodIds", "primaryFoodId", "changes", "batchActions", "newFood"],
   properties: {
-    kind: { type: "string", enum: ["update", "delete", "consolidate", "batch"] },
+    kind: { type: "string", enum: ["update", "delete", "consolidate", "batch", "create"] },
     foodId: { type: ["integer", "null"] },
     foodIds: { type: "array", items: { type: "integer" } },
     primaryFoodId: { type: ["integer", "null"] },
@@ -51,6 +51,18 @@ const actionSchema = {
             },
           },
         },
+      },
+    },
+    newFood: {
+      type: ["object", "null"],
+      additionalProperties: false,
+      required: ["name", "amount", "unit", "expiry", "storage"],
+      properties: {
+        name: { type: "string" },
+        amount: { type: "number" },
+        unit: { type: "string" },
+        expiry: { type: ["string", "null"] },
+        storage: { type: "string" },
       },
     },
     changes: {
@@ -82,6 +94,7 @@ function normalizedChanges(value: unknown) {
 }
 
 function normalizeAction(action: Record<string, unknown>) {
+  if (action.kind === "create") return { kind: "create", food: action.newFood };
   if (action.kind === "delete") return { kind: "delete", foodIds: action.foodIds };
   if (action.kind === "consolidate") return { kind: "consolidate", foodIds: action.foodIds, primaryFoodId: action.primaryFoodId };
   if (action.kind === "batch") {
@@ -158,9 +171,10 @@ export async function POST(request: NextRequest) {
   const systemPrompt = [
     "You are the Food Inventory Assistant for one household.",
     "Use the prior conversation to resolve references such as 'that item'. Answer questions about the provided inventory.",
-    "Never claim an update, deletion, or consolidation has happened. For any requested write, call propose_inventory_action using real food IDs, then explain the proposed change and say it needs confirmation.",
+    "Never claim an update, deletion, consolidation, or addition has happened. For any requested write, call propose_inventory_action, then explain the proposed change and say it needs confirmation.",
     "Choose the best match only when it is clear. If an item is ambiguous or missing, ask a concise question and never silently ignore it. When a request contains both clear and unclear items, use a batch action for the clear updates or deletes and explicitly ask about the unresolved items in your reply.",
     "Use update for quantity, expiry, name, unit, or storage changes. Use delete for removals. Use consolidate only for same-name items with the same unit and storage. Do not consolidate entries with different expiry dates unless explicitly asked; the app will retain the earliest expiry.",
+    "Use create to add a new food item only after you know its name, amount, unit, and storage. Expiry may be null. If any required detail is missing or unclear, ask a concise question instead of guessing.",
     "Use batch when the user requests two or more updates or deletes. Batch actions may contain only update or delete entries, must use each food ID at most once, and each entry is reviewed individually before one confirmation.",
     "For expiry reports and recipe suggestions, answer normally without calling a tool. For recipe requests, suggest at most three realistic recipes and use Markdown: a level-two heading per recipe, then **Use first**, **You have**, **Optional or missing**, and **Quick method**. Prioritise food that is past its date or expiring within seven days. Only list an ingredient as available when it appears in inventory; put everything else under optional or missing. Keep responses concise and kitchen-friendly.",
     `Today is ${new Date().toISOString().slice(0, 10)}. Inventory: ${JSON.stringify(foods)}.`,
@@ -179,7 +193,7 @@ export async function POST(request: NextRequest) {
             model: process.env.OPENAI_MODEL ?? "gpt-5.6-terra",
             reasoning: { effort: reasoningEffort },
             stream: true,
-            tools: [{ type: "function", name: "propose_inventory_action", description: "Propose an inventory change or a batch of changes that the user must confirm before it is applied. For batch, put update/delete entries in batchActions and leave the other top-level action fields empty.", strict: true, parameters: actionSchema }],
+            tools: [{ type: "function", name: "propose_inventory_action", description: "Propose an inventory change or a batch of changes that the user must confirm before it is applied. For batch, put update/delete entries in batchActions. For create, put the complete new item in newFood. Leave unused top-level fields empty.", strict: true, parameters: actionSchema }],
             input: [
               { role: "system", content: [{ type: "input_text", text: systemPrompt }] },
               { role: "user", content: [{ type: "input_text", text: message.trim() }] },

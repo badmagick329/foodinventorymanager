@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { Bot, CircleHelp, MessageCircle, Plus, Send, X } from "lucide-react";
+import { Bot, CircleHelp, Maximize2, MessageCircle, Minimize2, Plus, Send, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
@@ -56,6 +56,7 @@ function BatchReview({ action, busy, onConfirm, onCancel }: { action: BatchActio
 
 export default function AssistantChat() {
   const [open, setOpen] = useState(false);
+  const [compact, setCompact] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -141,12 +142,14 @@ export default function AssistantChat() {
           setMessages((items) => items.map((item) => item.id === assistantMessageId ? { ...item, text: item.text + parsed.data.delta } : item));
         }
         if (parsed.event === "complete") {
+          const action = parsed.data.action as AssistantAction;
           setMessages((items) => items.map((item) => item.id === assistantMessageId ? {
             ...item,
             id: typeof parsed.data.id === "string" ? parsed.data.id : item.id,
             text: typeof parsed.data.reply === "string" ? parsed.data.reply : item.text,
-            action: parsed.data.action as AssistantAction,
+            action,
           } : item));
+          if (action && action.kind !== "none") setCompact(false);
         }
         if (parsed.event === "error") throw new Error(typeof parsed.data.error === "string" ? parsed.data.error : "The assistant is unavailable.");
       };
@@ -178,9 +181,14 @@ export default function AssistantChat() {
   }
 
   return <>
-    <Button className="fixed bottom-5 right-5 z-30 h-12 rounded-full px-5 shadow-lg" onClick={() => setOpen(true)}><MessageCircle /> Ask inventory</Button>
-    {open && <section className="fixed bottom-4 right-4 z-40 flex h-[min(680px,calc(100vh-2rem))] w-[min(420px,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border bg-background shadow-2xl">
-      <header className="flex items-center justify-between border-b bg-black px-4 py-3"><div className="flex items-center gap-2 font-semibold"><Bot className="text-primary" /> Inventory assistant</div><div className="flex gap-1"><Popover><PopoverTrigger asChild><Button variant="ghost" size="icon" aria-label="What can the assistant do?" title="What can I do?"><CircleHelp /></Button></PopoverTrigger><PopoverContent align="end"><h2 className="font-semibold">What can I do?</h2><p className="mt-1 text-sm text-muted-foreground">Ask about your inventory or request a change. I’ll always ask for confirmation before changing it.</p><ul className="mt-3 space-y-1 text-sm"><li>• Check what is expiring soon</li><li>• Update quantities or expiry dates</li><li>• Delete items</li><li>• Review bulk updates or deletes</li><li>• Consolidate duplicate entries</li><li>• Suggest recipes from your food</li></ul>{configuration && <p className="mt-3 border-t pt-3 text-xs text-muted-foreground">Using <span className="font-medium text-foreground">{configuration.model}</span> with <span className="font-medium text-foreground">{configuration.reasoningEffort}</span> reasoning.</p>}</PopoverContent></Popover><Button variant="ghost" size="sm" disabled={busy} onClick={newChat}><Plus /> New chat</Button><Button variant="ghost" size="icon" aria-label="Close assistant" onClick={() => setOpen(false)}><X /></Button></div></header>
+    {!open && <Button className="fixed bottom-5 right-5 z-30 h-12 rounded-full px-5 shadow-lg" onClick={() => { setCompact(false); setOpen(true); }}><MessageCircle /> Ask inventory</Button>}
+    {open && compact && <form className="fixed bottom-4 left-3 right-3 z-40 flex gap-2 rounded-xl border bg-background p-2 shadow-2xl sm:hidden" onSubmit={send}>
+      <Button type="button" size="icon" variant="ghost" aria-label="Expand assistant" onClick={() => setCompact(false)}><Maximize2 /></Button>
+      <input autoFocus className="h-9 min-w-0 flex-1 rounded-md border bg-background px-3 text-sm" value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Ask about your food…" />
+      <Button size="icon" disabled={busy || !message.trim()} aria-label="Send message"><Send /></Button>
+    </form>}
+    {open && !compact && <section className="fixed bottom-4 right-4 z-40 flex h-[min(680px,calc(100vh-2rem))] w-[min(420px,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border bg-background shadow-2xl max-sm:bottom-4 max-sm:left-3 max-sm:right-3 max-sm:h-[min(680px,calc(100vh-2rem))] max-sm:w-auto">
+      <header className="flex items-center justify-between border-b bg-black px-3 py-3 sm:px-4"><div className="flex min-w-0 items-center gap-2 font-semibold"><Bot className="shrink-0 text-primary" /> <span className="truncate">Inventory assistant</span></div><div className="flex shrink-0 gap-1"><Popover><PopoverTrigger asChild><Button variant="ghost" size="icon" aria-label="What can the assistant do?" title="What can I do?"><CircleHelp /></Button></PopoverTrigger><PopoverContent align="end"><h2 className="font-semibold">What can I do?</h2><p className="mt-1 text-sm text-muted-foreground">Ask about your inventory or request a change. I’ll always ask for confirmation before changing it.</p><ul className="mt-3 space-y-1 text-sm"><li>• Check what is expiring soon</li><li>• Add items</li><li>• Update quantities or expiry dates</li><li>• Delete items</li><li>• Review bulk updates or deletes</li><li>• Consolidate duplicate entries</li><li>• Suggest recipes from your food</li></ul>{configuration && <p className="mt-3 border-t pt-3 text-xs text-muted-foreground">Using <span className="font-medium text-foreground">{configuration.model}</span> with <span className="font-medium text-foreground">{configuration.reasoningEffort}</span> reasoning.</p>}</PopoverContent></Popover><Button className="sm:hidden" variant="ghost" size="icon" aria-label="Minimize assistant" onClick={() => setCompact(true)}><Minimize2 /></Button><Button variant="ghost" size="sm" className="max-sm:hidden" disabled={busy} onClick={newChat}><Plus /> New chat</Button><Button variant="ghost" size="icon" aria-label="Close assistant" onClick={() => setOpen(false)}><X /></Button></div></header>
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {loadingHistory && <p className="text-sm text-muted-foreground">Loading chat…</p>}
         {messages.map((item) => <div key={item.id} className={item.role === "user" ? "ml-8 rounded-lg bg-primary p-3 text-primary-foreground" : "mr-3 rounded-lg bg-secondary p-3"}>{item.role === "assistant" ? <ReactMarkdown components={{ h2: ({ children }) => <h2 className="mb-2 mt-4 text-base font-semibold first:mt-0">{children}</h2>, p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>, ul: ({ children }) => <ul className="mb-3 list-disc space-y-1 pl-5 last:mb-0">{children}</ul>, ol: ({ children }) => <ol className="mb-3 list-decimal space-y-1 pl-5 last:mb-0">{children}</ol>, li: ({ children }) => <li>{children}</li>, strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>, a: ({ children, href }) => <a className="text-primary underline underline-offset-2" href={href}>{children}</a> }}>{item.text || (busy ? "Thinking…" : "")}</ReactMarkdown> : <p className="whitespace-pre-wrap text-sm">{item.text}</p>}{item.action && item.action.kind === "batch" && <BatchReview action={item.action} busy={busy} onConfirm={(action) => confirm(item.id, action)} onCancel={() => setMessages((items) => items.map((message) => message.id === item.id ? { ...message, action: { kind: "none" } } : message))} />}{item.action && item.action.kind !== "none" && item.action.kind !== "batch" && <div className="mt-3 flex gap-2"><Button size="sm" disabled={busy} onClick={() => confirm(item.id, item.action!)}>Confirm change</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => setMessages((items) => items.map((message) => message.id === item.id ? { ...message, action: { kind: "none" } } : message))}>Cancel</Button></div>}</div>)}

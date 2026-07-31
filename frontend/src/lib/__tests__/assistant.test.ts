@@ -7,6 +7,17 @@ const foods = [
 ] as unknown as Food[];
 
 describe("assistant batch actions", () => {
+  it("accepts a fully specified food creation", () => {
+    expect(isAssistantAction({
+      kind: "create",
+      food: { name: "Tinned tomatoes", amount: 2, unit: "unit", expiry: null, storage: "pantry" },
+    })).toBe(true);
+    expect(isAssistantAction({
+      kind: "create",
+      food: { name: "Tinned tomatoes", amount: 2, unit: "unit", expiry: null },
+    })).toBe(false);
+  });
+
   it("accepts a mixed batch with unique food IDs", () => {
     expect(isAssistantAction({
       kind: "batch",
