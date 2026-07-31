@@ -1,17 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../../prisma/client";
-import { describeAction, isAssistantAction } from "@/lib/assistant";
+import { actionFoodIds, describeAction, isAssistantAction } from "@/lib/assistant";
+
+class ConfirmationConflictError extends Error {}
 
 export async function POST(request: NextRequest) {
   const { action, conversationId } = await request.json();
   if (!isAssistantAction(action) || action.kind === "none") {
     return NextResponse.json({ error: "Invalid action." }, { status: 400 });
   }
-  const ids = action.kind === "update" ? [action.foodId] : action.foodIds;
+  const ids = actionFoodIds(action);
   const foods = await prisma.food.findMany({ where: { id: { in: ids } } });
   if (foods.length !== new Set(ids).size) return NextResponse.json({ error: "One or more food items no longer exist." }, { status: 409 });
 
-  if (action.kind === "update") {
+  if (action.kind === "batch") {
+    try {
+      await prisma.$transaction(async (tx) => {
+        const selectedFoods = await tx.food.findMany({ where: { id: { in: ids } } });
+        if (selectedFoods.length !== ids.length) throw new ConfirmationConflictError("One or more food items no longer exist.");
+        await Promise.all(action.actions.map((item) => item.kind === "update"
+          ? tx.food.update({ where: { id: item.foodId }, data: item.changes })
+          : tx.food.delete({ where: { id: item.foodId } })));
+      });
+    } catch (error) {
+      if (error instanceof ConfirmationConflictError || (typeof error === "object" && error !== null && "code" in error && error.code === "P2025")) {
+        return NextResponse.json({ error: "One or more food items no longer exist." }, { status: 409 });
+      }
+      throw error;
+    }
+  } else if (action.kind === "update") {
     await prisma.food.update({ where: { id: action.foodId }, data: action.changes });
   } else if (action.kind === "delete") {
     await prisma.food.deleteMany({ where: { id: { in: action.foodIds } } });

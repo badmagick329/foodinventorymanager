@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { ChatMessage, Food } from "@prisma/client";
 import prisma from "../../../../prisma/client";
-import { describeAction, isAssistantAction, type AssistantAction } from "@/lib/assistant";
+import { addBatchFoodNames, describeAction, isAssistantAction, type AssistantAction } from "@/lib/assistant";
 
 export const runtime = "nodejs";
 
@@ -23,12 +23,36 @@ function assistantConfiguration() {
 const actionSchema = {
   type: "object",
   additionalProperties: false,
-  required: ["kind", "foodId", "foodIds", "primaryFoodId", "changes"],
+  required: ["kind", "foodId", "foodIds", "primaryFoodId", "changes", "batchActions"],
   properties: {
-    kind: { type: "string", enum: ["update", "delete", "consolidate"] },
+    kind: { type: "string", enum: ["update", "delete", "consolidate", "batch"] },
     foodId: { type: ["integer", "null"] },
     foodIds: { type: "array", items: { type: "integer" } },
     primaryFoodId: { type: ["integer", "null"] },
+    batchActions: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["kind", "foodId", "changes"],
+        properties: {
+          kind: { type: "string", enum: ["update", "delete"] },
+          foodId: { type: "integer" },
+          changes: {
+            type: "object",
+            additionalProperties: false,
+            required: ["name", "amount", "unit", "expiry", "storage"],
+            properties: {
+              name: { type: ["string", "null"] },
+              amount: { type: ["number", "null"] },
+              unit: { type: ["string", "null"] },
+              expiry: { type: ["string", "null"] },
+              storage: { type: ["string", "null"] },
+            },
+          },
+        },
+      },
+    },
     changes: {
       type: "object",
       additionalProperties: false,
@@ -51,13 +75,24 @@ type ResponsesEvent = {
   error?: { message?: string };
 };
 
+function normalizedChanges(value: unknown) {
+  return Object.fromEntries(
+    Object.entries((value ?? {}) as Record<string, unknown>).filter(([, value]) => value !== null)
+  );
+}
+
 function normalizeAction(action: Record<string, unknown>) {
   if (action.kind === "delete") return { kind: "delete", foodIds: action.foodIds };
   if (action.kind === "consolidate") return { kind: "consolidate", foodIds: action.foodIds, primaryFoodId: action.primaryFoodId };
-  const changes = Object.fromEntries(
-    Object.entries((action.changes ?? {}) as Record<string, unknown>).filter(([, value]) => value !== null)
-  );
-  return { kind: "update", foodId: action.foodId, changes };
+  if (action.kind === "batch") {
+    return {
+      kind: "batch",
+      actions: ((action.batchActions ?? []) as Array<Record<string, unknown>>).map((item) => item.kind === "delete"
+        ? { kind: "delete", foodId: item.foodId }
+        : { kind: "update", foodId: item.foodId, changes: normalizedChanges(item.changes) }),
+    };
+  }
+  return { kind: "update", foodId: action.foodId, changes: normalizedChanges(action.changes) };
 }
 
 function sse(controller: ReadableStreamDefaultController, encoder: TextEncoder, event: string, data: unknown) {
@@ -124,8 +159,9 @@ export async function POST(request: NextRequest) {
     "You are the Food Inventory Assistant for one household.",
     "Use the prior conversation to resolve references such as 'that item'. Answer questions about the provided inventory.",
     "Never claim an update, deletion, or consolidation has happened. For any requested write, call propose_inventory_action using real food IDs, then explain the proposed change and say it needs confirmation.",
-    "Choose the best match only when it is clear. If it is ambiguous, ask a concise question without calling the tool.",
+    "Choose the best match only when it is clear. If an item is ambiguous or missing, ask a concise question and never silently ignore it. When a request contains both clear and unclear items, use a batch action for the clear updates or deletes and explicitly ask about the unresolved items in your reply.",
     "Use update for quantity, expiry, name, unit, or storage changes. Use delete for removals. Use consolidate only for same-name items with the same unit and storage. Do not consolidate entries with different expiry dates unless explicitly asked; the app will retain the earliest expiry.",
+    "Use batch when the user requests two or more updates or deletes. Batch actions may contain only update or delete entries, must use each food ID at most once, and each entry is reviewed individually before one confirmation.",
     "For expiry reports and recipe suggestions, answer normally without calling a tool. For recipe requests, suggest at most three realistic recipes and use Markdown: a level-two heading per recipe, then **Use first**, **You have**, **Optional or missing**, and **Quick method**. Prioritise food that is past its date or expiring within seven days. Only list an ingredient as available when it appears in inventory; put everything else under optional or missing. Keep responses concise and kitchen-friendly.",
     `Today is ${new Date().toISOString().slice(0, 10)}. Inventory: ${JSON.stringify(foods)}.`,
     `Conversation:\n${history}`,
@@ -143,7 +179,7 @@ export async function POST(request: NextRequest) {
             model: process.env.OPENAI_MODEL ?? "gpt-5.6-terra",
             reasoning: { effort: reasoningEffort },
             stream: true,
-            tools: [{ type: "function", name: "propose_inventory_action", description: "Propose one inventory change that the user must confirm before it is applied.", strict: true, parameters: actionSchema }],
+            tools: [{ type: "function", name: "propose_inventory_action", description: "Propose an inventory change or a batch of changes that the user must confirm before it is applied. For batch, put update/delete entries in batchActions and leave the other top-level action fields empty.", strict: true, parameters: actionSchema }],
             input: [
               { role: "system", content: [{ type: "input_text", text: systemPrompt }] },
               { role: "user", content: [{ type: "input_text", text: message.trim() }] },
@@ -187,7 +223,7 @@ export async function POST(request: NextRequest) {
         if (call?.arguments) {
           const proposed = normalizeAction(JSON.parse(call.arguments) as Record<string, unknown>);
           if (!isAssistantAction(proposed)) throw new Error("The assistant proposed an invalid action");
-          action = proposed;
+          action = addBatchFoodNames(proposed, foods);
         }
         const finalReply = reply.trim() || (action.kind === "none"
           ? "I couldn't produce a response. Please try again."
