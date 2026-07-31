@@ -132,6 +132,7 @@ export async function GET(request: NextRequest) {
       role: message.role,
       text: message.content,
       action: message.action,
+      actionStatus: message.actionStatus,
       model: message.model,
       usage: message.inputTokens === null ? null : {
         inputTokens: message.inputTokens,
@@ -263,6 +264,7 @@ export async function POST(request: NextRequest) {
           role: "assistant",
           content: finalReply,
           action,
+          actionStatus: action.kind === "none" ? "confirmed" : "pending",
           model,
           ...usage,
           estimatedCostUsd,
@@ -271,6 +273,7 @@ export async function POST(request: NextRequest) {
           id: saved.id,
           reply: saved.content,
           action,
+          actionStatus: saved.actionStatus,
           model: saved.model,
           usage: usage ?? null,
           estimatedCostUsd: saved.estimatedCostUsd,

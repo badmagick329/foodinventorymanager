@@ -60,6 +60,7 @@ model ChatMessage {
   reasoningTokens Int?
   totalTokens    Int?
   estimatedCostUsd Float?
+  actionStatus   ChatActionStatus @default(pending)
   createdAt      DateTime     @default(now())
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
@@ -69,4 +70,10 @@ model ChatMessage {
 enum ChatRole {
   user
   assistant
+}
+
+enum ChatActionStatus {
+  pending
+  confirmed
+  cancelled
 }
