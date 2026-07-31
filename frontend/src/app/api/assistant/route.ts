@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { ChatMessage, Food } from "@prisma/client";
 import prisma from "../../../../prisma/client";
 import { addBatchFoodNames, describeAction, isAssistantAction, type AssistantAction } from "@/lib/assistant";
+import { estimateAssistantCost, getAssistantUsage } from "@/lib/assistant-cost";
 
 export const runtime = "nodejs";
 
@@ -83,7 +84,10 @@ const actionSchema = {
 type ResponsesEvent = {
   type?: string;
   delta?: string;
-  response?: { output?: Array<{ type?: string; name?: string; arguments?: string }> };
+  response?: {
+    output?: Array<{ type?: string; name?: string; arguments?: string }>;
+    usage?: unknown;
+  };
   error?: { message?: string };
 };
 
@@ -128,6 +132,15 @@ export async function GET(request: NextRequest) {
       role: message.role,
       text: message.content,
       action: message.action,
+      model: message.model,
+      usage: message.inputTokens === null ? null : {
+        inputTokens: message.inputTokens,
+        cachedInputTokens: message.cachedInputTokens,
+        outputTokens: message.outputTokens,
+        reasoningTokens: message.reasoningTokens,
+        totalTokens: message.totalTokens,
+      },
+      estimatedCostUsd: message.estimatedCostUsd,
     })),
   });
 }
@@ -167,6 +180,7 @@ export async function POST(request: NextRequest) {
   }
   if (!conversation) return NextResponse.json({ error: "That chat no longer exists. Start a new chat." }, { status: 404 });
   const activeConversationId = conversation.id;
+  const model = process.env.OPENAI_MODEL ?? "gpt-5.6-terra";
   const history = savedMessages.reverse().slice(0, -1).map((item) => `${item.role}: ${item.content}`).join("\n");
   const systemPrompt = [
     "You are the Food Inventory Assistant for one household.",
@@ -190,7 +204,7 @@ export async function POST(request: NextRequest) {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
           body: JSON.stringify({
-            model: process.env.OPENAI_MODEL ?? "gpt-5.6-terra",
+            model,
             reasoning: { effort: reasoningEffort },
             stream: true,
             tools: [{ type: "function", name: "propose_inventory_action", description: "Propose an inventory change or a batch of changes that the user must confirm before it is applied. For batch, put update/delete entries in batchActions. For create, put the complete new item in newFood. Leave unused top-level fields empty.", strict: true, parameters: actionSchema }],
@@ -242,8 +256,25 @@ export async function POST(request: NextRequest) {
         const finalReply = reply.trim() || (action.kind === "none"
           ? "I couldn't produce a response. Please try again."
           : `${describeAction(action, foods)} Confirm this change to apply it.`);
-        const saved = await prisma.chatMessage.create({ data: { conversationId: activeConversationId, role: "assistant", content: finalReply, action } });
-        sse(controller, encoder, "complete", { id: saved.id, reply: saved.content, action });
+        const usage = getAssistantUsage(completedResponse?.usage);
+        const estimatedCostUsd = usage ? estimateAssistantCost(usage, model) : null;
+        const saved = await prisma.chatMessage.create({ data: {
+          conversationId: activeConversationId,
+          role: "assistant",
+          content: finalReply,
+          action,
+          model,
+          ...usage,
+          estimatedCostUsd,
+        } });
+        sse(controller, encoder, "complete", {
+          id: saved.id,
+          reply: saved.content,
+          action,
+          model: saved.model,
+          usage: usage ?? null,
+          estimatedCostUsd: saved.estimatedCostUsd,
+        });
       } catch (error) {
         console.error("Assistant stream failed", error);
         sse(controller, encoder, "error", { error: "The assistant response could not be completed. Please try again." });
