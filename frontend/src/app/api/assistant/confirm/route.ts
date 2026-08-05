@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../../prisma/client";
 import { actionFoodIds, describeAction, isAssistantAction, type AssistantAction } from "@/lib/assistant";
 import { foodSchema } from "@/lib/validators";
+import { FoodRemovalSource } from "@prisma/client";
+import { recordFoodRemovals } from "@/lib/food-removals";
 
 class ConfirmationConflictError extends Error {}
 
@@ -48,12 +50,17 @@ export async function POST(request: NextRequest) {
       if (confirmedAction.kind === "create") {
         await tx.food.create({ data: foodSchema.parse(confirmedAction.food) });
       } else if (confirmedAction.kind === "batch") {
-        await Promise.all(confirmedAction.actions.map((item) => item.kind === "update"
-          ? tx.food.update({ where: { id: item.foodId }, data: item.changes })
-          : tx.food.delete({ where: { id: item.foodId } })));
+        await Promise.all(confirmedAction.actions.map(async (item) => {
+          if (item.kind === "update") return tx.food.update({ where: { id: item.foodId }, data: item.changes });
+          const food = foods.find((candidate) => candidate.id === item.foodId);
+          if (!food) throw new ConfirmationConflictError("One or more food items no longer exist.");
+          await recordFoodRemovals(tx, [food], item.removalReason, FoodRemovalSource.assistant);
+          return tx.food.delete({ where: { id: item.foodId } });
+        }));
       } else if (confirmedAction.kind === "update") {
         await tx.food.update({ where: { id: confirmedAction.foodId }, data: confirmedAction.changes });
       } else if (confirmedAction.kind === "delete") {
+        await recordFoodRemovals(tx, foods, confirmedAction.removalReason, FoodRemovalSource.assistant);
         await tx.food.deleteMany({ where: { id: { in: confirmedAction.foodIds } } });
       } else if (confirmedAction.kind === "consolidate") {
         const primary = foods.find((food) => food.id === confirmedAction.primaryFoodId);

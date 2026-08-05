@@ -30,7 +30,7 @@ function createMessageId() {
 }
 
 function batchItemSummary(item: BatchAction["actions"][number]) {
-  if (item.kind === "delete") return "Delete item";
+  if (item.kind === "delete") return `Record as ${item.removalReason.replace("_", " ")}`;
   return Object.entries(item.changes).map(([field, value]) => `${field} → ${value === null ? "no expiry date" : value}`).join(", ");
 }
 

@@ -1,7 +1,7 @@
 "use client";
 import { API_FOODS_URL, HOME } from "@/lib/urls";
 import { ModifyFoodFormInput } from "@/lib/types";
-import { Food } from "@prisma/client";
+import { Food, FoodRemovalReason } from "@prisma/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
@@ -41,9 +41,11 @@ export default function useModifyFoodForm(food?: Food) {
     },
   });
   const deleteMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (removalReason: FoodRemovalReason) => {
       const response = await fetch(targetUrl, {
         method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ removalReason }),
       });
       if (!response.ok) {
         const error = await response.json();

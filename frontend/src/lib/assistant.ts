@@ -1,4 +1,4 @@
-import { MeasurementUnit, StorageType, type Food } from "@prisma/client";
+import { FoodRemovalReason, MeasurementUnit, StorageType, type Food } from "@prisma/client";
 import { foodSchema } from "./validators";
 
 type UpdateAction = {
@@ -6,9 +6,9 @@ type UpdateAction = {
   foodId: number;
   changes: Partial<Pick<Food, "name" | "amount" | "unit" | "expiry" | "storage">>;
 };
-type DeleteAction = { kind: "delete"; foodIds: number[] };
+type DeleteAction = { kind: "delete"; foodIds: number[]; removalReason: FoodRemovalReason };
 type CreateAction = { kind: "create"; food: Pick<Food, "name" | "amount" | "unit" | "expiry" | "storage"> };
-type BatchItem = (UpdateAction | { kind: "delete"; foodId: number }) & { foodName?: string };
+type BatchItem = (UpdateAction | { kind: "delete"; foodId: number; removalReason: FoodRemovalReason }) & { foodName?: string };
 
 export type AssistantAction =
   | { kind: "none" }
@@ -25,6 +25,7 @@ export type AssistantResponse = {
 
 const units = new Set(Object.values(MeasurementUnit));
 const storageTypes = new Set(Object.values(StorageType));
+const removalReasons = new Set(Object.values(FoodRemovalReason));
 
 function isUpdateAction(value: unknown): value is UpdateAction {
   if (!value || typeof value !== "object") return false;
@@ -40,7 +41,7 @@ function isUpdateAction(value: unknown): value is UpdateAction {
 
 function isBatchItem(value: unknown): value is BatchItem {
   if (isUpdateAction(value)) return true;
-  return Boolean(value && typeof value === "object" && (value as Record<string, unknown>).kind === "delete" && Number.isInteger((value as Record<string, unknown>).foodId));
+  return Boolean(value && typeof value === "object" && (value as Record<string, unknown>).kind === "delete" && Number.isInteger((value as Record<string, unknown>).foodId) && removalReasons.has((value as Record<string, unknown>).removalReason as FoodRemovalReason));
 }
 
 function isCreateAction(value: unknown): value is CreateAction {
@@ -55,7 +56,7 @@ export function isAssistantAction(value: unknown): value is AssistantAction {
 
   if (action.kind === "none") return true;
   if (action.kind === "create") return isCreateAction(action);
-  if (action.kind === "delete") return Array.isArray(action.foodIds) && action.foodIds.length > 0 && action.foodIds.every(Number.isInteger);
+  if (action.kind === "delete") return Array.isArray(action.foodIds) && action.foodIds.length > 0 && action.foodIds.every(Number.isInteger) && removalReasons.has(action.removalReason as FoodRemovalReason);
   if (action.kind === "consolidate") {
     return Array.isArray(action.foodIds) && action.foodIds.length > 1 && action.foodIds.every(Number.isInteger) && Number.isInteger(action.primaryFoodId);
   }
@@ -92,8 +93,8 @@ function describeUpdate(action: UpdateAction, foods: Food[]) {
 export function describeAction(action: AssistantAction, foods: Food[]): string {
   if (action.kind === "none") return "";
   if (action.kind === "create") return `Add ${action.food.amount} ${action.food.unit} of ${action.food.name} to the ${action.food.storage}.`;
-  if (action.kind === "batch") return `Apply ${action.actions.length} changes: ${action.actions.map((item) => item.kind === "delete" ? `delete ${foods.find((food) => food.id === item.foodId)?.name ?? "the selected item"}` : describeUpdate(item, foods).replace(/\.$/, "")).join("; ")}.`;
-  if (action.kind === "delete") return `Delete ${foods.filter((food) => action.foodIds.includes(food.id)).map((food) => food.name).join(", ")}.`;
+  if (action.kind === "batch") return `Apply ${action.actions.length} changes: ${action.actions.map((item) => item.kind === "delete" ? `record ${foods.find((food) => food.id === item.foodId)?.name ?? "the selected item"} as ${item.removalReason.replace("_", " ")}` : describeUpdate(item, foods).replace(/\.$/, "")).join("; ")}.`;
+  if (action.kind === "delete") return `Record ${foods.filter((food) => action.foodIds.includes(food.id)).map((food) => food.name).join(", ")} as ${action.removalReason.replace("_", " ")}.`;
   if (action.kind === "consolidate") {
     const selected = foods.filter((food) => action.foodIds.includes(food.id));
     const total = selected.reduce((sum, food) => sum + food.amount, 0);

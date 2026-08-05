@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
-import { Food, MeasurementUnit, StorageType } from "@prisma/client";
+import { Food, FoodRemovalReason, MeasurementUnit, StorageType } from "@prisma/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -47,6 +47,7 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
   const router = useRouter();
   const { saveMutation, deleteMutation } = useModifyFoodForm(food);
   const lastEscapePressRef = useRef(0);
+  const [removalReason, setRemovalReason] = useState<FoodRemovalReason | "">("");
 
   const onSubmit: SubmitHandler<ModifyFoodFormInput> = (data) => {
     saveMutation.mutate(data);
@@ -198,14 +199,19 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
         <Button type="submit" disabled={disableButtons}>
           {saveMutation.isPending ? "Saving..." : "Save Changes"}
         </Button>
-        <Button
-          type="button"
-          disabled={disableButtons}
-          variant={"destructive"}
-          onClick={() => deleteMutation.mutate()}
-        >
-          {deleteMutation.isPending ? "Deleting..." : "Delete"}
-        </Button>
+        {food && <div className="flex items-center gap-2">
+          <Select value={removalReason} onValueChange={(value) => setRemovalReason(value as FoodRemovalReason)} disabled={disableButtons}>
+            <SelectTrigger className="w-48 bg-black"><SelectValue placeholder="Why remove it?" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={FoodRemovalReason.consumed}>Consumed</SelectItem>
+              <SelectItem value={FoodRemovalReason.discarded}>Thrown away</SelectItem>
+              <SelectItem value={FoodRemovalReason.accidental_entry}>Accidental entry</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button type="button" disabled={disableButtons || !removalReason} variant={"destructive"} onClick={() => deleteMutation.mutate(removalReason as FoodRemovalReason)}>
+            {deleteMutation.isPending ? "Recording..." : "Remove item"}
+          </Button>
+        </div>}
         <Button
           type="button"
           disabled={disableButtons}

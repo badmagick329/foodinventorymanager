@@ -20,6 +20,24 @@ model Food {
   storage StorageType
 }
 
+// A snapshot of an item when it leaves the live inventory. This deliberately
+// has no foreign key to Food, because the live Food row is deleted.
+model FoodRemoval {
+  id        String            @id @default(cuid())
+  foodId    Int
+  name      String
+  amount    Float
+  unit      MeasurementUnit
+  expiry    String?
+  storage   StorageType
+  reason    FoodRemovalReason
+  source    FoodRemovalSource
+  createdAt DateTime          @default(now())
+
+  @@index([name, createdAt])
+  @@index([reason, createdAt])
+}
+
 enum MeasurementUnit {
   g
   kg
@@ -69,6 +87,17 @@ model ChatMessage {
 
 enum ChatRole {
   user
+  assistant
+}
+
+enum FoodRemovalReason {
+  consumed
+  discarded
+  accidental_entry
+}
+
+enum FoodRemovalSource {
+  manual
   assistant
 }
 

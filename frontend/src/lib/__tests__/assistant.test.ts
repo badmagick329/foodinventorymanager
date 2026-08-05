@@ -23,14 +23,14 @@ describe("assistant batch actions", () => {
       kind: "batch",
       actions: [
         { kind: "update", foodId: 1, changes: { expiry: "2026-12-12" } },
-        { kind: "delete", foodId: 2 },
+        { kind: "delete", foodId: 2, removalReason: "discarded" },
       ],
     })).toBe(true);
   });
 
   it("rejects empty, duplicate, and malformed batches", () => {
     expect(isAssistantAction({ kind: "batch", actions: [] })).toBe(false);
-    expect(isAssistantAction({ kind: "batch", actions: [{ kind: "delete", foodId: 1 }, { kind: "delete", foodId: 1 }] })).toBe(false);
+    expect(isAssistantAction({ kind: "batch", actions: [{ kind: "delete", foodId: 1, removalReason: "consumed" }, { kind: "delete", foodId: 1, removalReason: "consumed" }] })).toBe(false);
     expect(isAssistantAction({ kind: "batch", actions: [{ kind: "update", foodId: 1, changes: { amount: 0 } }] })).toBe(false);
   });
 
@@ -39,12 +39,12 @@ describe("assistant batch actions", () => {
       kind: "batch",
       actions: [
         { kind: "update", foodId: 1, changes: { expiry: "2026-12-12" } },
-        { kind: "delete", foodId: 2 },
+        { kind: "delete", foodId: 2, removalReason: "discarded" },
       ],
     }, foods)).toContain("Oatly Barista");
   });
 
   it("keeps only the selected batch rows in the confirmation payload", () => {
-    expect(actionFoodIds({ kind: "batch", actions: [{ kind: "delete", foodId: 2 }] })).toEqual([2]);
+    expect(actionFoodIds({ kind: "batch", actions: [{ kind: "delete", foodId: 2, removalReason: "consumed" }] })).toEqual([2]);
   });
 });
