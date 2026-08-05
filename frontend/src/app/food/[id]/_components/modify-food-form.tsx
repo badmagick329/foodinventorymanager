@@ -194,7 +194,7 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
         />
         {errors.storage && <span>{errors.storage.message}</span>}
       </div>
-      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
         <Button type="submit" disabled={disableButtons}>
           {saveMutation.isPending ? "Saving..." : "Save Changes"}
         </Button>
