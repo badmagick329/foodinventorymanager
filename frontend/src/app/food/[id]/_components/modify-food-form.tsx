@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { Food, FoodRemovalReason, MeasurementUnit, StorageType } from "@prisma/client";
 import { Input } from "@/components/ui/input";
@@ -47,7 +47,6 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
   const router = useRouter();
   const { saveMutation, deleteMutation } = useModifyFoodForm(food);
   const lastEscapePressRef = useRef(0);
-  const [removalReason, setRemovalReason] = useState<FoodRemovalReason | "">("");
 
   const onSubmit: SubmitHandler<ModifyFoodFormInput> = (data) => {
     saveMutation.mutate(data);
@@ -77,7 +76,7 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
   }, [disableButtons, router]);
 
   if (deleteMutation.isPending) {
-    return <p>Deleting...</p>;
+    return <p>Removing item...</p>;
   }
   if (!deleteMutation.isPending && deleteMutation.isSuccess) {
     return <p>Food deleted successfully!</p>;
@@ -195,22 +194,23 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
         />
         {errors.storage && <span>{errors.storage.message}</span>}
       </div>
-      <div className="mt-4 flex justify-between">
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <Button type="submit" disabled={disableButtons}>
           {saveMutation.isPending ? "Saving..." : "Save Changes"}
         </Button>
-        {food && <div className="flex items-center gap-2">
-          <Select value={removalReason} onValueChange={(value) => setRemovalReason(value as FoodRemovalReason)} disabled={disableButtons}>
-            <SelectTrigger className="w-48 bg-black"><SelectValue placeholder="Why remove it?" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value={FoodRemovalReason.consumed}>Consumed</SelectItem>
-              <SelectItem value={FoodRemovalReason.discarded}>Thrown away</SelectItem>
-              <SelectItem value={FoodRemovalReason.accidental_entry}>Accidental entry</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button type="button" disabled={disableButtons || !removalReason} variant={"destructive"} onClick={() => deleteMutation.mutate(removalReason as FoodRemovalReason)}>
-            {deleteMutation.isPending ? "Recording..." : "Remove item"}
-          </Button>
+        {food && <div className="flex flex-col gap-2" role="group" aria-label="Remove item as">
+          <p className="text-sm font-medium text-muted-foreground">Remove item as...</p>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button type="button" disabled={disableButtons} onClick={() => deleteMutation.mutate(FoodRemovalReason.consumed)} aria-label="Remove item as used">
+              Used
+            </Button>
+            <Button type="button" disabled={disableButtons} variant="secondary" onClick={() => deleteMutation.mutate(FoodRemovalReason.discarded)} aria-label="Remove item as discarded">
+              Discarded
+            </Button>
+            <Button type="button" disabled={disableButtons} variant="secondary" onClick={() => deleteMutation.mutate(FoodRemovalReason.accidental_entry)} aria-label="Remove item as entered by mistake">
+              Mistake
+            </Button>
+          </div>
         </div>}
         <Button
           type="button"
