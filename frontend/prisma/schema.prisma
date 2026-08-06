@@ -20,8 +20,10 @@ model Food {
   storage StorageType
 }
 
-// A snapshot of an item when it leaves the live inventory. This deliberately
-// has no foreign key to Food, because the live Food row is deleted.
+// A snapshot of a quantity removed from live inventory. For a full deletion,
+// this is the item's full quantity; for partial usage, it is the reduced amount.
+// This deliberately has no foreign key to Food, because the live Food row may
+// be deleted later.
 model FoodRemoval {
   id        String            @id @default(cuid())
   foodId    Int

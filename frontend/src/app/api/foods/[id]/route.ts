@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../../prisma/client";
 import { foodSchema, formatZodError } from "@/lib/validators";
 import { FoodRemovalReason, FoodRemovalSource } from "@prisma/client";
-import { recordFoodRemovals } from "@/lib/food-removals";
+import {
+  recordFoodRemovals,
+  updateFoodAndRecordUsage,
+} from "@/lib/food-removals";
 
 // GET /api/foods/:id
 export async function GET(
@@ -60,25 +63,23 @@ export async function PATCH(
       );
     }
 
-    const updateData = validation.data;
+    const result = await prisma.$transaction((tx) =>
+      updateFoodAndRecordUsage(
+        tx,
+        id,
+        validation.data,
+        FoodRemovalSource.manual
+      )
+    );
 
-    const existingFood = await prisma.food.findUnique({
-      where: { id },
-    });
-
-    if (!existingFood) {
+    if (!result) {
       return NextResponse.json(
         { error: "Food item not found" },
         { status: 404 }
       );
     }
 
-    const updatedFood = await prisma.food.update({
-      where: { id },
-      data: updateData,
-    });
-
-    return NextResponse.json(updatedFood, { status: 200 });
+    return NextResponse.json(result.updatedFood, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json(
@@ -103,18 +104,33 @@ export async function DELETE(
     const body = await request.json();
     const removalReason = body?.removalReason;
     if (!Object.values(FoodRemovalReason).includes(removalReason)) {
-      return NextResponse.json({ error: "Choose whether the item was consumed, discarded, or an accidental entry." }, { status: 400 });
+      return NextResponse.json(
+        {
+          error:
+            "Choose whether the item was consumed, discarded, or an accidental entry.",
+        },
+        { status: 400 }
+      );
     }
 
     const existingFood = await prisma.$transaction(async (tx) => {
       const food = await tx.food.findUnique({ where: { id } });
       if (!food) return null;
-      await recordFoodRemovals(tx, [food], removalReason, FoodRemovalSource.manual);
+      await recordFoodRemovals(
+        tx,
+        [food],
+        removalReason,
+        FoodRemovalSource.manual
+      );
       await tx.food.delete({ where: { id } });
       return food;
     });
 
-    if (!existingFood) return NextResponse.json({ error: "Food item not found" }, { status: 404 });
+    if (!existingFood)
+      return NextResponse.json(
+        { error: "Food item not found" },
+        { status: 404 }
+      );
 
     return NextResponse.json(
       { message: "Food item deleted successfully", id },
