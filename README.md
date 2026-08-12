@@ -1,16 +1,17 @@
 # Food Inventory Manager & AI Assistant
 
-A smart full-stack app designed to reduce food waste and provide an accessible way to manage home inventory. It features automated receipt parsing and a conversational AI assistant accessible via Discord.
+A smart full-stack app designed to reduce food waste and provide an accessible way to manage home inventory. It features automated receipt parsing and a built-in conversational assistant.
 
 ## 🚀 Key Features
 
 - **📦 Inventory Management**: Full CRUD capabilities to manually add, edit, and delete items, with filtering by storage type.
 - **🧾 Automated Ingestion**: Parses PDF receipts (Ocado) to automatically populate the database, categorizing items by storage location (Fridge, Freezer, Pantry).
-- **💬 AI Concierge (Discord Bot)**: Interact with your inventory using natural language.
+- **💬 Built-in AI Assistant**: Interact with your inventory using natural language from within the app.
   - _"What is expiring soon?"_
   - _"Delete the milk and eggs"_
   - _"Do I have ingredients for pasta?"_
-- **🧠 Local LLM Integration**: Powered by **Ollama** (running Qwen 2.5) to process natural language queries locally without external API costs.
+- **✅ Confirmed Inventory Changes**: Review assistant-proposed additions, updates, removals, and batch changes before they are applied.
+- **📊 Usage Tracking**: Record consumed, discarded, and corrected inventory, including partial quantity usage.
 
 ## 🛠️ How to Run
 
