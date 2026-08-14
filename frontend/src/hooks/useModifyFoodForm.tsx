@@ -1,6 +1,6 @@
 "use client";
 import { API_FOODS_URL, HOME } from "@/lib/urls";
-import { ModifyFoodFormInput } from "@/lib/types";
+import { FoodTransferInput, ModifyFoodFormInput } from "@/lib/types";
 import { Food, FoodRemovalReason } from "@prisma/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -64,9 +64,36 @@ export default function useModifyFoodForm(food?: Food) {
       console.error("Failed to delete food:", error.message);
     },
   });
+  const transferMutation = useMutation({
+    mutationFn: async (data: FoodTransferInput) => {
+      if (!food) throw new Error("Only an existing item can be moved.");
+      const response = await fetch(`${targetUrl}transfer/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const { error } = await response.json();
+        throw new Error(error || "Failed to move food");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["foods"] });
+      food &&
+        queryClient.invalidateQueries({
+          queryKey: ["food", food.id.toString()],
+        });
+      router.push(HOME);
+    },
+    onError: (error: Error) => {
+      console.error("Failed to move food:", error.message);
+    },
+  });
 
   return {
     saveMutation,
     deleteMutation,
+    transferMutation,
   };
 }

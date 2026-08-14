@@ -23,3 +23,9 @@ export type ModifyFoodFormInput = {
   expiry: string;
   storage: StorageType;
 };
+
+export type FoodTransferInput = {
+  amount: number;
+  expiry: string;
+  storage: StorageType;
+};

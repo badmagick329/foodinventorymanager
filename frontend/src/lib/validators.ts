@@ -45,6 +45,12 @@ export const foodFromReceiptSchema = foodSchema.pick({
   unit: true,
 });
 
+export const foodTransferSchema = foodSchema.pick({
+  amount: true,
+  expiry: true,
+  storage: true,
+});
+
 export function formatZodError(error: ZodError) {
   const { fieldErrors } = z.flattenError(error);
   return (

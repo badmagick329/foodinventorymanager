@@ -39,6 +39,8 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
     register,
     handleSubmit,
     control,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm<ModifyFoodFormInput>({
     defaultValues: {
@@ -50,13 +52,15 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
     },
   });
   const router = useRouter();
-  const { saveMutation, deleteMutation } = useModifyFoodForm(food);
+  const { saveMutation, deleteMutation, transferMutation } =
+    useModifyFoodForm(food);
   const lastEscapePressRef = useRef(0);
   const [pendingSave, setPendingSave] = useState<ModifyFoodFormInput | null>(
     null
   );
 
   const onSubmit: SubmitHandler<ModifyFoodFormInput> = (data) => {
+    clearErrors("root");
     const nextAmount = Number(data.amount);
     const isUsageReduction = Boolean(
       food &&
@@ -72,7 +76,10 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
 
     saveMutation.mutate(data);
   };
-  const disableButtons = saveMutation.isPending || deleteMutation.isPending;
+  const disableButtons =
+    saveMutation.isPending ||
+    deleteMutation.isPending ||
+    transferMutation.isPending;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -286,6 +293,16 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
             Food saved successfully!
           </span>
         )}
+        {errors.root && (
+          <span className="text-center text-sm text-red-500">
+            {errors.root.message}
+          </span>
+        )}
+        {transferMutation.isError && (
+          <span className="text-center text-sm text-red-500">
+            {transferMutation.error.message}
+          </span>
+        )}
       </form>
       {pendingSave && food && (
         <QuantityReductionModal
@@ -293,10 +310,32 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
           previousAmount={food.amount}
           nextAmount={Number(pendingSave.amount)}
           unit={food.unit}
+          sourceStorage={food.storage}
+          sourceExpiry={food.expiry ?? ""}
           onCancel={() => setPendingSave(null)}
           onConfirm={() => {
             setPendingSave(null);
             saveMutation.mutate(pendingSave);
+          }}
+          onMove={(transfer) => {
+            const hasOtherChanges =
+              pendingSave.name !== food.name ||
+              pendingSave.unit !== food.unit ||
+              pendingSave.expiry !== (food.expiry ?? "") ||
+              pendingSave.storage !== food.storage;
+            if (hasOtherChanges) {
+              setPendingSave(null);
+              setError("root", {
+                message:
+                  "Move the portion before making changes to the rest of this item.",
+              });
+              return;
+            }
+            setPendingSave(null);
+            transferMutation.mutate({
+              amount: food.amount - Number(pendingSave.amount),
+              ...transfer,
+            });
           }}
         />
       )}
@@ -309,17 +348,33 @@ function QuantityReductionModal({
   previousAmount,
   nextAmount,
   unit,
+  sourceStorage,
+  sourceExpiry,
   onCancel,
   onConfirm,
+  onMove,
 }: {
   foodName: string;
   previousAmount: number;
   nextAmount: number;
   unit: string;
+  sourceStorage: StorageType;
+  sourceExpiry: string;
   onCancel: () => void;
   onConfirm: () => void;
+  onMove: (transfer: { storage: StorageType; expiry: string }) => void;
 }) {
   const reduction = previousAmount - nextAmount;
+  const [mode, setMode] = useState<"choice" | "move">("choice");
+  const [storage, setStorage] = useState<StorageType>(
+    Object.values(StorageType).find((value) => value !== sourceStorage) ??
+      StorageType.fridge
+  );
+  const [expiry, setExpiry] = useState(sourceExpiry);
+
+  const availableStorage = Object.values(StorageType).filter(
+    (value) => value !== sourceStorage
+  );
 
   return (
     <div
@@ -332,21 +387,92 @@ function QuantityReductionModal({
         aria-modal="true"
         aria-labelledby="quantity-reduction-title"
       >
-        <h2 id="quantity-reduction-title" className="text-xl font-semibold">
-          Mark quantity as used?
-        </h2>
-        <p className="mt-3 text-sm text-muted-foreground">
-          This changes {foodName} from {previousAmount} {unit} to {nextAmount}{" "}
-          {unit}. Mark {reduction} {unit} as used in food history?
-        </p>
-        <div className="mt-6 flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Go back
-          </Button>
-          <Button type="button" onClick={onConfirm}>
-            Confirm &amp; Save
-          </Button>
-        </div>
+        {mode === "choice" ? (
+          <>
+            <h2 id="quantity-reduction-title" className="text-xl font-semibold">
+              What happened to the reduced amount?
+            </h2>
+            <p className="mt-3 text-sm text-muted-foreground">
+              This changes {foodName} from {previousAmount} {unit} to{" "}
+              {nextAmount} {unit}. You can record {reduction} {unit} as used, or
+              move it to another storage location.
+            </p>
+            <div className="mt-6 flex flex-wrap justify-end gap-2">
+              <Button type="button" variant="outline" onClick={onCancel}>
+                Go back
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setMode("move")}
+              >
+                Move it
+              </Button>
+              <Button type="button" onClick={onConfirm}>
+                Mark as used
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <h2 id="quantity-reduction-title" className="text-xl font-semibold">
+              Move {reduction} {unit}
+            </h2>
+            <p className="mt-3 text-sm text-muted-foreground">
+              A new entry will be created for the moved portion. Set its storage
+              and, if needed, its new expiry date.
+            </p>
+            <div className="mt-5 flex flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="move-storage">Move to</Label>
+                <Select
+                  value={storage}
+                  onValueChange={(value) => setStorage(value as StorageType)}
+                >
+                  <SelectTrigger id="move-storage" className="capitalize">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableStorage.map((value) => (
+                      <SelectItem
+                        key={value}
+                        value={value}
+                        className="capitalize"
+                      >
+                        {value}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="move-expiry">Expiry for moved amount</Label>
+                <Input
+                  id="move-expiry"
+                  type="date"
+                  value={expiry}
+                  onChange={(event) => setExpiry(event.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  It starts with the current expiry. Leave blank if it has no
+                  expiry date.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setMode("choice")}
+              >
+                Back
+              </Button>
+              <Button type="button" onClick={() => onMove({ storage, expiry })}>
+                Move amount
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

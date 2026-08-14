@@ -12,6 +12,7 @@ import {
   recordFoodRemovals,
   updateFoodAndRecordUsage,
 } from "@/lib/food-removals";
+import { FoodTransferError, transferFoodAmount } from "@/lib/food-transfers";
 
 class ConfirmationConflictError extends Error {}
 
@@ -148,6 +149,16 @@ export async function POST(request: NextRequest) {
           throw new ConfirmationConflictError(
             "One or more food items no longer exist."
           );
+      } else if (confirmedAction.kind === "transfer") {
+        const result = await transferFoodAmount(tx, confirmedAction.foodId, {
+          amount: confirmedAction.amount,
+          storage: confirmedAction.targetStorage,
+          expiry: confirmedAction.targetExpiry,
+        });
+        if (!result)
+          throw new ConfirmationConflictError(
+            "One or more food items no longer exist."
+          );
       } else if (confirmedAction.kind === "delete") {
         await recordFoodRemovals(
           tx,
@@ -220,6 +231,9 @@ export async function POST(request: NextRequest) {
       error.message ===
         "Only entries with the same name, unit, and storage can be consolidated."
     ) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    if (error instanceof FoodTransferError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
     throw error;
