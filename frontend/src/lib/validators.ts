@@ -1,4 +1,8 @@
-import { MeasurementUnit, StorageType } from "@prisma/client";
+import {
+  FoodRemovalReason,
+  MeasurementUnit,
+  StorageType,
+} from "@prisma/client";
 import { z, ZodError } from "zod";
 
 export const foodSchema = z.object({
@@ -49,6 +53,10 @@ export const foodTransferSchema = foodSchema.pick({
   amount: true,
   expiry: true,
   storage: true,
+});
+
+export const foodRemovalSchema = foodSchema.extend({
+  reason: z.enum(FoodRemovalReason, { message: "Invalid removal outcome" }),
 });
 
 export function formatZodError(error: ZodError) {
