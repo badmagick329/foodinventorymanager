@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import type { FoodRemoval, FoodRemovalReason } from "@prisma/client";
 import { useMemo, useState } from "react";
+import { formatAmount } from "@/lib/utils";
 
 const visibleReasons = [
   "consumed",
@@ -86,7 +87,7 @@ export default function RemovalHistory({
               <TableRow key={removal.id}>
                 <TableCell className="font-medium">{removal.name}</TableCell>
                 <TableCell>
-                  {removal.amount} {removal.unit}
+                  {formatAmount(removal.amount)} {removal.unit}
                 </TableCell>
                 <TableCell>{labelForReason(removal.reason)}</TableCell>
                 <TableCell className="text-right text-muted-foreground">

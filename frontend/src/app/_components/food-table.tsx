@@ -13,6 +13,7 @@ import {
   getColorByStorage,
   daysUntilExpiryToBorderColor,
   daysUntil,
+  formatAmount,
 } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { FOOD_FORM_URL } from "@/lib/urls";
@@ -47,7 +48,7 @@ export default function FoodTable({ foods }: { foods: Food[] }) {
               }}
             >
               <TableCell>{f.name}</TableCell>
-              <TableCell>{f.amount}</TableCell>
+              <TableCell>{formatAmount(f.amount)}</TableCell>
               <TableCell>{f.unit}</TableCell>
               <TableCell className="">{f.expiry}</TableCell>
               <TableCell className="text-right capitalize">

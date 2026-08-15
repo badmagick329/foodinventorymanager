@@ -31,6 +31,7 @@ import { useRouter } from "next/navigation";
 import { ModifyFoodFormInput } from "@/lib/types";
 import useModifyFoodForm from "@/hooks/useModifyFoodForm";
 import { HOME } from "@/lib/urls";
+import { formatAmount } from "@/lib/utils";
 
 const DOUBLE_ESCAPE_MS = 400;
 
@@ -393,9 +394,10 @@ function QuantityReductionModal({
               What happened to the reduced amount?
             </h2>
             <p className="mt-3 text-sm text-muted-foreground">
-              This changes {foodName} from {previousAmount} {unit} to{" "}
-              {nextAmount} {unit}. You can record {reduction} {unit} as used, or
-              move it to another storage location.
+              This changes {foodName} from {formatAmount(previousAmount)} {unit}{" "}
+              to {formatAmount(nextAmount)} {unit}. You can record{" "}
+              {formatAmount(reduction)} {unit} as used, or move it to another
+              storage location.
             </p>
             <div className="mt-6 flex flex-wrap justify-end gap-2">
               <Button type="button" variant="outline" onClick={onCancel}>
@@ -416,7 +418,7 @@ function QuantityReductionModal({
         ) : (
           <>
             <h2 id="quantity-reduction-title" className="text-xl font-semibold">
-              Move {reduction} {unit}
+              Move {formatAmount(reduction)} {unit}
             </h2>
             <p className="mt-3 text-sm text-muted-foreground">
               A new entry will be created for the moved portion. Set its storage

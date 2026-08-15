@@ -5,6 +5,7 @@ import {
   type Food,
 } from "@prisma/client";
 import { foodSchema, foodTransferSchema } from "./validators";
+import { formatAmount } from "./utils";
 
 type UpdateAction = {
   kind: "update";
@@ -191,13 +192,13 @@ function describeUpdate(action: UpdateAction, foods: Food[]) {
 
 function describeTransfer(action: TransferAction, foods: Food[]) {
   const food = foods.find((item) => item.id === action.foodId);
-  return `Move ${action.amount} ${food?.unit ?? "units"} of ${food?.name ?? "the selected item"} from the ${food?.storage ?? "current storage"} to the ${action.targetStorage}${action.targetExpiry ? ` (expiry: ${action.targetExpiry})` : " (no expiry date)"}.`;
+  return `Move ${formatAmount(action.amount)} ${food?.unit ?? "units"} of ${food?.name ?? "the selected item"} from the ${food?.storage ?? "current storage"} to the ${action.targetStorage}${action.targetExpiry ? ` (expiry: ${action.targetExpiry})` : " (no expiry date)"}.`;
 }
 
 export function describeAction(action: AssistantAction, foods: Food[]): string {
   if (action.kind === "none") return "";
   if (action.kind === "create")
-    return `Add ${action.food.amount} ${action.food.unit} of ${action.food.name} to the ${action.food.storage}.`;
+    return `Add ${formatAmount(action.food.amount)} ${action.food.unit} of ${action.food.name} to the ${action.food.storage}.`;
   if (action.kind === "transfer") return describeTransfer(action, foods);
   if (action.kind === "batch")
     return `Apply ${action.actions.length} changes: ${action.actions.map((item) => (item.kind === "delete" ? `record ${foods.find((food) => food.id === item.foodId)?.name ?? "the selected item"} as ${item.removalReason.replace("_", " ")}` : describeUpdate(item, foods).replace(/\.$/, ""))).join("; ")}.`;

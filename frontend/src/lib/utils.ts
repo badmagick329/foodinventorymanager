@@ -17,6 +17,12 @@ export function uppercaseFirst(str: string | number) {
   return `${str.slice(0, 1).toUpperCase()}${str.slice(1)}`;
 }
 
+export function formatAmount(amount: number) {
+  return new Intl.NumberFormat(undefined, {
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
 export function getColorByStorage(storageType: string) {
   switch (storageType) {
     case "fridge":
