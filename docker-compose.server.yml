@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    volumes:
+      - foodinventory_db_data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    env_file:
+      - ./frontend/.env
+
+  app:
+    image: foodinventorymanager-app
+    build:
+      context: ./frontend
+      dockerfile: ./Docker/Dockerfile
+      target: deploy
+    restart: unless-stopped
+    ports:
+      - "9004:9004"
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - ./frontend/.env
+
+volumes:
+  foodinventory_db_data:
