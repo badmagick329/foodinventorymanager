@@ -22,7 +22,7 @@ services:
     image: foodinventorymanager-app
     build:
       context: ./frontend
-      dockerfile: ./Docker/Dockerfile
+      dockerfile: ./Dockerfile
       target: deploy
     restart: unless-stopped
     ports:
