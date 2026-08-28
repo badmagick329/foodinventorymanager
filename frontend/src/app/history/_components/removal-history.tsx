@@ -27,11 +27,11 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { formatAmount } from "@/lib/utils";
-
-const visibleReasons = [
-  "consumed",
-  "discarded",
-] as const satisfies readonly FoodRemovalReason[];
+import {
+  filterFoodRemovals,
+  removalAccentClass,
+  type FoodRemovalOutcomeFilter,
+} from "@/lib/food-removal-history";
 
 function labelForReason(reason: FoodRemovalReason) {
   if (reason === "consumed") return "Consumed";
@@ -57,7 +57,9 @@ export default function RemovalHistory({
   removals: FoodRemoval[];
 }) {
   const queryClient = useQueryClient();
-  const [showAccidentalEntries, setShowAccidentalEntries] = useState(false);
+  const [search, setSearch] = useState("");
+  const [outcomeFilter, setOutcomeFilter] =
+    useState<FoodRemovalOutcomeFilter>("all");
   const [editingRemoval, setEditingRemoval] = useState<FoodRemoval | null>(
     null
   );
@@ -99,16 +101,10 @@ export default function RemovalHistory({
     },
   });
   const displayedRemovals = useMemo(
-    () =>
-      removals.filter(
-        (removal) =>
-          showAccidentalEntries ||
-          visibleReasons.includes(
-            removal.reason as (typeof visibleReasons)[number]
-          )
-      ),
-    [removals, showAccidentalEntries]
+    () => filterFoodRemovals(removals, search, outcomeFilter),
+    [removals, search, outcomeFilter]
   );
+  const hasFilters = search.trim() !== "" || outcomeFilter !== "all";
 
   return (
     <section className="w-full max-w-5xl px-2 pb-8 sm:px-4">
@@ -119,19 +115,46 @@ export default function RemovalHistory({
             What you have used or thrown away.
           </p>
         </div>
-        <Button
-          type="button"
-          variant={showAccidentalEntries ? "secondary" : "outline"}
-          onClick={() => setShowAccidentalEntries((current) => !current)}
-        >
-          {showAccidentalEntries
-            ? "Hide accidental entries"
-            : "Show accidental entries"}
-        </Button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="history-search">Search</Label>
+            <Input
+              id="history-search"
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search item name"
+              className="sm:w-56"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="history-outcome-filter">Outcome</Label>
+            <Select
+              value={outcomeFilter}
+              onValueChange={(value) =>
+                setOutcomeFilter(value as FoodRemovalOutcomeFilter)
+              }
+            >
+              <SelectTrigger id="history-outcome-filter" className="sm:w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All outcomes</SelectItem>
+                {Object.values(FoodRemovalReason).map((reason) => (
+                  <SelectItem key={reason} value={reason}>
+                    {labelForReason(reason)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
       {displayedRemovals.length === 0 ? (
         <p className="rounded-md border p-6 text-center text-muted-foreground">
-          No food removals recorded yet.
+          {hasFilters
+            ? "No history entries match your filters."
+            : "No food removals recorded yet."}
         </p>
       ) : (
         <Table className="bg-foreground/5 text-sm">
@@ -146,7 +169,10 @@ export default function RemovalHistory({
           </TableHeader>
           <TableBody>
             {displayedRemovals.map((removal) => (
-              <TableRow key={removal.id}>
+              <TableRow
+                key={removal.id}
+                className={`border-l-4 ${removalAccentClass(removal.reason)}`}
+              >
                 <TableCell className="font-medium">{removal.name}</TableCell>
                 <TableCell>
                   {formatAmount(removal.amount)} {removal.unit}
