@@ -1,6 +1,7 @@
 import {
   canConsolidateFoods,
   consolidateFoods,
+  findConsolidationGroups,
   FoodConsolidationError,
 } from "../food-consolidation";
 
@@ -14,6 +15,19 @@ const food = {
 } as const;
 
 describe("food consolidation", () => {
+  it("finds matching groups without combining different expiries", () => {
+    const groups = findConsolidationGroups([
+      food,
+      { ...food, id: 2, amount: 1.5 },
+      { ...food, id: 3, expiry: null },
+      { ...food, id: 4, storage: "pantry" },
+    ] as never);
+
+    expect(groups).toHaveLength(1);
+    expect(groups[0].foods.map((item) => item.id)).toEqual([1, 2]);
+    expect(groups[0].totalAmount).toBe(3.5);
+  });
+
   it("allows equivalent entries and sums their amounts", async () => {
     const foods = [food, { ...food, id: 2, amount: 1.5 }];
     const update = jest.fn().mockResolvedValue({ ...food, amount: 3.5 });

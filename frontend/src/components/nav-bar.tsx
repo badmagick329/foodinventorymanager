@@ -1,6 +1,7 @@
 import {
   FOOD_FORM_URL,
   HISTORY_URL,
+  MANAGE_URL,
   RECEIPT_IMPORT_URL,
   SHOPPING_LIST_URL,
 } from "@/lib/urls";
@@ -10,6 +11,7 @@ import { FaCartPlus } from "react-icons/fa";
 import { GiFoodTruck } from "react-icons/gi";
 import { PiNoteFill } from "react-icons/pi";
 import { MdHistory } from "react-icons/md";
+import { MdSettings } from "react-icons/md";
 
 export default function NavBar() {
   return (
@@ -43,6 +45,13 @@ export default function NavBar() {
           <Link className="text-base md:text-xl" href={HISTORY_URL}>
             <span className="flex items-center gap-2 hover:text-primary">
               History <MdHistory />
+            </span>
+          </Link>
+        </li>
+        <li className="text-base md:text-xl">
+          <Link className="text-base md:text-xl" href={MANAGE_URL}>
+            <span className="flex items-center gap-2 hover:text-primary">
+              Manage <MdSettings />
             </span>
           </Link>
         </li>

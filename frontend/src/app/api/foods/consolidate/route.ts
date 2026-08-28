@@ -1,30 +1,44 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "../../../../../prisma/client";
 import {
   consolidateFoods,
+  findConsolidationGroups,
   FoodConsolidationError,
 } from "@/lib/food-consolidation";
 
 // POST /api/foods/consolidate
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
-    const body = await request.json();
-    const foodIds = body?.foodIds;
+    const result = await prisma.$transaction(async (tx) => {
+      const foods = await tx.food.findMany({
+        orderBy: [
+          { name: "asc" },
+          { unit: "asc" },
+          { storage: "asc" },
+          { expiry: "asc" },
+          { id: "asc" },
+        ],
+      });
+      const groups = findConsolidationGroups(foods);
+      const consolidatedGroups = [];
 
-    if (
-      !Array.isArray(foodIds) ||
-      foodIds.length < 2 ||
-      foodIds.some((id) => !Number.isInteger(id) || id <= 0)
-    ) {
-      return NextResponse.json(
-        { error: "Select at least two valid food items to consolidate." },
-        { status: 400 }
-      );
-    }
+      for (const group of groups) {
+        consolidatedGroups.push(
+          await consolidateFoods(
+            tx,
+            group.foods.map((food) => food.id)
+          )
+        );
+      }
 
-    const result = await prisma.$transaction((tx) =>
-      consolidateFoods(tx, foodIds)
-    );
+      return {
+        groupsConsolidated: consolidatedGroups.length,
+        duplicateItemsRemoved: consolidatedGroups.reduce(
+          (total, group) => total + group.removedFoodIds.length,
+          0
+        ),
+      };
+    });
 
     return NextResponse.json(result, { status: 200 });
   } catch (error) {

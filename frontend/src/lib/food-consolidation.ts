@@ -1,6 +1,11 @@
-import { Prisma, type Food } from "@prisma/client";
+import type { Food, Prisma } from "@prisma/client";
 
 export class FoodConsolidationError extends Error {}
+
+export type FoodConsolidationGroup = {
+  foods: Food[];
+  totalAmount: number;
+};
 
 function normalizedName(name: string) {
   return name.trim().toLowerCase();
@@ -17,6 +22,33 @@ export function canConsolidateFoods(foods: Food[]) {
       food.storage === first.storage &&
       food.expiry === first.expiry
   );
+}
+
+function consolidationKey(food: Food) {
+  return [
+    normalizedName(food.name),
+    food.unit,
+    food.storage,
+    food.expiry ?? "<no-expiry>",
+  ].join("\u0000");
+}
+
+export function findConsolidationGroups(foods: Food[]) {
+  const groups = new Map<string, Food[]>();
+
+  for (const food of foods) {
+    const key = consolidationKey(food);
+    const group = groups.get(key) ?? [];
+    group.push(food);
+    groups.set(key, group);
+  }
+
+  return [...groups.values()]
+    .filter((group) => group.length >= 2)
+    .map((group) => ({
+      foods: group.sort((first, second) => first.id - second.id),
+      totalAmount: group.reduce((total, food) => total + food.amount, 0),
+    }));
 }
 
 /**
