@@ -372,10 +372,20 @@ function QuantityReductionModal({
       StorageType.fridge
   );
   const [expiry, setExpiry] = useState(sourceExpiry);
+  const markUsedButtonRef = useRef<HTMLButtonElement>(null);
+  const moveAmountButtonRef = useRef<HTMLButtonElement>(null);
 
   const availableStorage = Object.values(StorageType).filter(
     (value) => value !== sourceStorage
   );
+
+  useEffect(() => {
+    const button =
+      mode === "choice"
+        ? markUsedButtonRef.current
+        : moveAmountButtonRef.current;
+    button?.focus();
+  }, [mode]);
 
   return (
     <div
@@ -410,7 +420,7 @@ function QuantityReductionModal({
               >
                 Move it
               </Button>
-              <Button type="button" onClick={onConfirm}>
+              <Button ref={markUsedButtonRef} type="button" onClick={onConfirm}>
                 Mark as used
               </Button>
             </div>
@@ -469,7 +479,11 @@ function QuantityReductionModal({
               >
                 Back
               </Button>
-              <Button type="button" onClick={() => onMove({ storage, expiry })}>
+              <Button
+                ref={moveAmountButtonRef}
+                type="button"
+                onClick={() => onMove({ storage, expiry })}
+              >
                 Move amount
               </Button>
             </div>
