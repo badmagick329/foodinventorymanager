@@ -11,6 +11,10 @@ describe("assistant cost tracking", () => {
     expect(estimateAssistantCost(usage, "gpt-5.6-terra", {})).toBeCloseTo(3.55);
   });
 
+  it("uses the documented GPT-6 Luna rates when no overrides are configured", () => {
+    expect(estimateAssistantCost(usage, "gpt-6-luna", {})).toBeCloseTo(0.132);
+  });
+
   it("uses configured rates for another model", () => {
     expect(estimateAssistantCost(usage, "custom", { OPENAI_INPUT_COST_PER_MILLION: "3", OPENAI_CACHED_INPUT_COST_PER_MILLION: "0.3", OPENAI_OUTPUT_COST_PER_MILLION: "12" })).toBeCloseTo(3.66);
   });

@@ -15,6 +15,7 @@ type CostRates = {
 const defaultRatesByModel: Record<string, CostRates> = {
   "gpt-5.6-terra": { input: 2.5, cachedInput: 0.25, output: 15 },
   "gpt-5.6-luna": { input: 1, cachedInput: 0.1, output: 6 },
+  "gpt-6-luna": { input: 0.1, cachedInput: 0.01, output: 0.5 },
 };
 
 function numberOrNull(value: unknown) {

@@ -30,7 +30,7 @@ function getReasoningEffort(): ReasoningEffort | null {
 
 function assistantConfiguration() {
   return {
-    model: process.env.OPENAI_MODEL ?? "gpt-5.6-terra",
+    model: process.env.OPENAI_MODEL ?? "gpt-6-luna",
     reasoningEffort: process.env.OPENAI_REASONING_EFFORT ?? "low",
   };
 }
@@ -309,7 +309,7 @@ export async function POST(request: NextRequest) {
       { status: 404 }
     );
   const activeConversationId = conversation.id;
-  const model = process.env.OPENAI_MODEL ?? "gpt-5.6-terra";
+  const model = process.env.OPENAI_MODEL ?? "gpt-6-luna";
   const history = savedMessages
     .reverse()
     .slice(0, -1)
