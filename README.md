@@ -58,4 +58,4 @@ mcp_servers:
       Authorization: "Bearer ${FOODINVENTORY_MCP_TOKEN}"
 ```
 
-Hermes exposes the tools as `mcp_foodinventory_<tool>`, e.g. `mcp_foodinventory_list_foods`. To keep an agent read-only, add `tools: { exclude: ["add_*", "update_*", "use_*", "remove_*", "move_*", "consolidate_*", "delete_*", "clear_*"] }`.
+Hermes exposes the tools as `mcp__foodinventory__<tool>`, e.g. `mcp__foodinventory__list_foods`. To have Hermes ask before every write, add `trust: untrusted`; the read-only tools carry `readOnlyHint` and still run freely. To keep an agent read-only, add `tools: { exclude: ["add_*", "update_*", "use_*", "remove_*", "move_*", "consolidate_*", "delete_*", "clear_*"] }`.
