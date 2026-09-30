@@ -102,3 +102,10 @@ export function consolidateAllMatchingFoods() {
     return { groupsConsolidated: groups.length, duplicateItemsRemoved };
   });
 }
+
+export function consolidateSelectedFoods(
+  foodIds: number[],
+  options: { primaryFoodId?: number; allowDifferentExpiry?: boolean }
+) {
+  return prisma.$transaction((tx) => consolidateFoods(tx, foodIds, options));
+}

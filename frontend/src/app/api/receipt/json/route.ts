@@ -4,7 +4,7 @@ import { createFoods } from "@/server/inventory/foods";
 
 export const POST = apiRoute(async (request) =>
   NextResponse.json(
-    { created: await createFoods(await readJson(request)) },
+    { created: (await createFoods(await readJson(request))).length },
     { status: 201 }
   )
 );

@@ -12,6 +12,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@modelcontextprotocol/server": "^2.2.0",
     "@prisma/client": "^5.4.2",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-popover": "^1.1.15",

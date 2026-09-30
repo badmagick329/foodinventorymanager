@@ -101,6 +101,7 @@ enum FoodRemovalReason {
 enum FoodRemovalSource {
   manual
   assistant
+  mcp
 }
 
 enum ChatActionStatus {
