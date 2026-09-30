@@ -5,9 +5,6 @@ import { Parser } from "@/receipt-reader/parser";
 export default async function processPdf(
   buffer: Buffer
 ): Promise<FoodFromReceipt[]> {
-  const data = await pdf(buffer);
-  const lines = data.text.split("\n").filter((line) => line !== "");
-  const parser = Parser.create(data.text);
-  const parsed = parser.parse();
-  return parsed;
+  const { text } = await pdf(buffer);
+  return Parser.create(text).parse();
 }

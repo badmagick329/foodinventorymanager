@@ -1,18 +1,16 @@
+import { NextResponse } from "next/server";
+import { InvalidInputError } from "@/server/errors";
+import { apiRoute } from "@/server/http";
 import processPdf from "@/receipt-reader/reader";
-import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
-  const data = await request.formData();
-  const file: File | null = data.get("file") as unknown as File;
-  if (!file) {
-    return NextResponse.json({ error: "No file found" }, { status: 400 });
-  }
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
+export const POST = apiRoute(async (request) => {
+  const file = (await request.formData()).get("file");
+  if (!(file instanceof File)) throw new InvalidInputError("No file found.");
   try {
-    const foodItems = await processPdf(buffer);
-    return NextResponse.json({ data: foodItems }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ error: "Error parsing pdf" }, { status: 400 });
+    const data = await processPdf(Buffer.from(await file.arrayBuffer()));
+    return NextResponse.json({ data });
+  } catch (error) {
+    console.error(error);
+    throw new InvalidInputError("Could not read that receipt PDF.");
   }
-}
+});

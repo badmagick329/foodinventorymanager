@@ -1,61 +1,63 @@
-import { FoodFromReceipt } from "@/receipt-reader/parser/types";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import ReceiptItemForm from "./receipt-item-form";
 import { Button } from "@/components/ui/button";
+import type { ReceiptDraft } from "@/hooks/useFoodsFromReceipt";
+import { HOME } from "@/lib/urls";
 
 export default function ReceiptItems({
-  foods,
-  sendData,
+  drafts,
+  onChange,
+  onRemove,
+  onSubmit,
 }: {
-  foods: FoodFromReceipt[] | null;
-  sendData: () => Promise<string | undefined>;
+  drafts: ReceiptDraft[];
+  onChange: (key: string, changes: Partial<ReceiptDraft>) => void;
+  onRemove: (key: string) => void;
+  onSubmit: () => Promise<string | undefined>;
 }) {
   const router = useRouter();
-  const [errors, setErrors] = useState("");
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        return;
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  const queryClient = useQueryClient();
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!foods) {
+    setSubmitting(true);
+    const submitError = await onSubmit();
+    setSubmitting(false);
+    if (submitError) {
+      setError(submitError);
       return;
     }
-
-    const err = await sendData();
-    if (err) {
-      setErrors(err);
-      return;
-    } else {
-      router.push("/");
-      router.refresh();
-    }
-  }
-
-  if (!foods) {
-    return null;
+    await queryClient.invalidateQueries();
+    router.push(HOME);
   }
 
   return (
-    <form className="flex flex-col items-center gap-4" onSubmit={handleSubmit}>
-      {errors && <span className="font-bold text-red-500">{errors}</span>}
-      <Button type="submit">Submit</Button>
+    <form
+      className="flex flex-col items-center gap-4"
+      onSubmit={handleSubmit}
+      onKeyDown={(e) => {
+        // Enter in a single-line field would import the whole receipt.
+        if (e.key === "Enter" && e.target instanceof HTMLInputElement) {
+          e.preventDefault();
+        }
+      }}
+    >
+      {error && <span className="font-bold text-red-500">{error}</span>}
+      <Button type="submit" disabled={submitting || drafts.length === 0}>
+        {submitting ? "Importing..." : `Import ${drafts.length} items`}
+      </Button>
       <div className="flex flex-wrap justify-center gap-4">
-        {foods.map((f, idx) => (
+        {drafts.map((draft, index) => (
           <ReceiptItemForm
-            key={`${f.name}-${f.amount}-${f.unit}-${f.expiry}-${f.storage}`}
-            food={f}
-            idx={idx}
+            key={draft.key}
+            draft={draft}
+            position={index + 1}
+            onChange={(changes) => onChange(draft.key, changes)}
+            onRemove={() => onRemove(draft.key)}
           />
         ))}
       </div>

@@ -4,6 +4,7 @@ import { ShoppingItem } from "@prisma/client";
 import { useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_SHOPPING_URL } from "@/lib/urls";
+import { apiFetch, queryKeys } from "@/lib/api-client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
@@ -21,52 +22,25 @@ export default function ShoppingList({
   const queryClient = useQueryClient();
 
   const addMutation = useMutation({
-    mutationFn: async () => {
-      const res = await fetch(API_SHOPPING_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name: formItem }),
-      });
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to add shopping item");
-      }
-    },
+    mutationFn: () =>
+      apiFetch(API_SHOPPING_URL, { method: "POST", json: { name: formItem } }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["shopping"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.shopping });
       setFormItem("");
       setIsConfirmClearList(false);
       inputRef.current?.focus();
     },
-    onError: (error: Error) => {
-      console.error("Failed to add shopping item:", error.message);
-      setFormError(error.message);
-    },
+    onError: (error: Error) => setFormError(error.message),
   });
 
   const clearMutation = useMutation({
-    mutationFn: async () => {
-      const res = await fetch(API_SHOPPING_URL, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (!res.ok) {
-        throw new Error("Failed to clear shopping list");
-      }
-    },
+    mutationFn: () => apiFetch(API_SHOPPING_URL, { method: "DELETE" }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["shopping"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.shopping });
       inputRef.current?.focus();
       setIsConfirmClearList(false);
     },
-    onError: (error: Error) => {
-      console.error(error.message);
-      setFormError(error.message);
-    },
+    onError: (error: Error) => setFormError(error.message),
   });
 
   return (

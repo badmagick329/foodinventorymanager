@@ -4,6 +4,7 @@ import {
   Prisma,
   type Food,
 } from "@prisma/client";
+import { NotFoundError } from "@/server/errors";
 
 export type FoodUpdateData = Partial<
   Pick<Food, "name" | "amount" | "unit" | "expiry" | "storage">
@@ -51,16 +52,13 @@ export async function updateFoodAndRecordUsage(
   source: FoodRemovalSource
 ) {
   const existingFood = await db.food.findUnique({ where: { id: foodId } });
-  if (!existingFood) return null;
-
-  const nextAmount = data.amount ?? existingFood.amount;
-  const nextUnit = data.unit ?? existingFood.unit;
+  if (!existingFood) throw new NotFoundError("Food item not found.");
 
   const consumedAmount = getConsumedAmount(
     existingFood.amount,
-    nextAmount,
+    data.amount ?? existingFood.amount,
     existingFood.unit,
-    nextUnit
+    data.unit ?? existingFood.unit
   );
 
   if (consumedAmount !== null) {
@@ -78,4 +76,24 @@ export async function updateFoodAndRecordUsage(
   });
 
   return { existingFood, updatedFood };
+}
+
+/**
+ * Delete food rows, keeping a history snapshot of each. Fails if any row is
+ * already gone so a stale request cannot silently remove only part of a set.
+ */
+export async function removeFoodsAndRecord(
+  db: Prisma.TransactionClient,
+  foodIds: number[],
+  reason: FoodRemovalReason,
+  source: FoodRemovalSource
+) {
+  const uniqueIds = [...new Set(foodIds)];
+  const foods = await db.food.findMany({ where: { id: { in: uniqueIds } } });
+  if (foods.length !== uniqueIds.length) {
+    throw new NotFoundError("One or more food items no longer exist.");
+  }
+  await recordFoodRemovals(db, foods, reason, source);
+  await db.food.deleteMany({ where: { id: { in: uniqueIds } } });
+  return foods;
 }

@@ -4,14 +4,16 @@ import { Inter } from "next/font/google";
 import type { FC, ReactNode } from "react";
 import "./globals.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import AssistantChat from "@/components/assistant-chat";
+import AssistantChat from "@/components/assistant/assistant-chat";
 
 const inter = Inter({ subsets: ["latin"] });
 
 interface LayoutProps {
   children: ReactNode;
 }
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
 
 const RootLayout: FC<LayoutProps> = ({ children }) => {
   return (

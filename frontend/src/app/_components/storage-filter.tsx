@@ -1,11 +1,19 @@
-import "react";
 import { SearchFilter } from "@/lib/types";
-import { StorageType } from "@prisma/client";
+import type { StorageType } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { StorageFiltersState } from "@/lib/types";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { useEffect } from "react";
 import { getHoverColorByStorage, getColorByStorage } from "@/lib/utils";
+
+// A runtime Prisma enum import would pull Prisma's browser bundle into the
+// home page, so the storage types are listed here and checked against it.
+const STORAGE_TYPES = [
+  "fridge",
+  "freezer",
+  "pantry",
+  "spices",
+] as const satisfies readonly StorageType[];
 
 export default function StorageFilter({
   setFilter,
@@ -30,31 +38,16 @@ export default function StorageFilter({
   }, [storageFilters, setFilter]);
 
   return (
-    <div className="flex gap-2 w-full justify-center">
-      <StorageButton
-        storageType="fridge"
-        storageFilters={storageFilters}
-        setStorageFilters={setStorageFilters}
-        isActive={storageFilters["fridge"] === true}
-      />
-      <StorageButton
-        storageType="freezer"
-        storageFilters={storageFilters}
-        setStorageFilters={setStorageFilters}
-        isActive={storageFilters["freezer"] === true}
-      />
-      <StorageButton
-        storageType="pantry"
-        storageFilters={storageFilters}
-        setStorageFilters={setStorageFilters}
-        isActive={storageFilters["pantry"] === true}
-      />
-      <StorageButton
-        storageType="spices"
-        storageFilters={storageFilters}
-        setStorageFilters={setStorageFilters}
-        isActive={storageFilters["spices"] === true}
-      />
+    <div className="flex w-full justify-center gap-2">
+      {STORAGE_TYPES.map((storageType) => (
+        <StorageButton
+          key={storageType}
+          storageType={storageType}
+          storageFilters={storageFilters}
+          setStorageFilters={setStorageFilters}
+          isActive={storageFilters[storageType] === true}
+        />
+      ))}
     </div>
   );
 }

@@ -5,15 +5,13 @@ import RemovalHistory from "@/app/history/_components/removal-history";
 import LoadingCat from "@/components/loading-cat";
 import { useQuery } from "@tanstack/react-query";
 import type { FoodRemoval } from "@prisma/client";
+import { apiFetch, queryKeys } from "@/lib/api-client";
+import { API_FOOD_REMOVALS_URL } from "@/lib/urls";
 
 export default function HistoryPage() {
   const { data, error, isPending } = useQuery({
-    queryKey: ["food-removals"],
-    queryFn: async () => {
-      const response = await fetch("/api/food-removals");
-      if (!response.ok) throw new Error("Could not load removal history.");
-      return response.json() as Promise<FoodRemoval[]>;
-    },
+    queryKey: queryKeys.foodRemovals,
+    queryFn: () => apiFetch<FoodRemoval[]>(API_FOOD_REMOVALS_URL),
   });
 
   if (isPending) return <LoadingCat />;

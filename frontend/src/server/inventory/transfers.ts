@@ -1,12 +1,11 @@
 import { Prisma, StorageType } from "@prisma/client";
+import { InvalidInputError, NotFoundError } from "@/server/errors";
 
 export type FoodTransferData = {
   amount: number;
   storage: StorageType;
   expiry: string | null;
 };
-
-export class FoodTransferError extends Error {}
 
 /**
  * Move part of a food row to another storage location.
@@ -19,15 +18,15 @@ export async function transferFoodAmount(
   transfer: FoodTransferData
 ) {
   const sourceFood = await db.food.findUnique({ where: { id: foodId } });
-  if (!sourceFood) return null;
+  if (!sourceFood) throw new NotFoundError("Food item not found.");
 
   if (transfer.storage === sourceFood.storage) {
-    throw new FoodTransferError(
+    throw new InvalidInputError(
       "Choose a different storage location for the moved amount."
     );
   }
   if (transfer.amount >= sourceFood.amount) {
-    throw new FoodTransferError(
+    throw new InvalidInputError(
       "Move less than the current amount. Move the whole item by changing its storage instead."
     );
   }

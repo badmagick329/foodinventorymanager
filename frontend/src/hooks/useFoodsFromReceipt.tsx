@@ -1,101 +1,92 @@
 "use client";
-import { isArrayOfFoodFromReceipt } from "@/lib/predicates";
+import { apiFetch } from "@/lib/api-client";
 import { API_RECEIPT, API_RECEIPT_JSON } from "@/lib/urls";
-import { foodFromReceiptSchema } from "@/lib/validators";
+import { foodSchema, formatZodError } from "@/lib/validators";
 import { FoodFromReceipt } from "@/receipt-reader/parser/types";
+import { StorageType } from "@prisma/client";
 import { useState } from "react";
 
+/** Form-editable copy of a parsed receipt line; fields stay raw until submit. */
+export type ReceiptDraft = {
+  key: string;
+  name: string;
+  amount: string;
+  unit: string;
+  expiry: string;
+  storage: StorageType;
+};
+
 export default function useFoodsFromReceipt() {
-  const [foodsFromReceipt, setFoodsFromReceipt] = useState<
-    FoodFromReceipt[] | null
-  >(null);
+  const [drafts, setDrafts] = useState<ReceiptDraft[] | null>(null);
+  const [readError, setReadError] = useState("");
 
-  async function readFile(file: File): Promise<void> {
+  async function readFile(file: File) {
+    setReadError("");
+    const body = new FormData();
+    body.append("file", file);
     try {
-      const foods = await postReceipt(file);
-      if (!foods) {
-        return;
-      }
-      setFoodsFromReceipt(foods);
+      const { data } = await apiFetch<{ data: FoodFromReceipt[] }>(
+        API_RECEIPT,
+        { method: "POST", body }
+      );
+      setDrafts(data.map(toDraft));
     } catch (error) {
-      console.error(error);
+      setDrafts(null);
+      setReadError(error instanceof Error ? error.message : String(error));
     }
   }
 
-  async function sendData() {
-    if (!foodsFromReceipt) {
-      return;
-    }
-    const nonEmptyFoods = foodsFromReceipt.filter(
-      (food) => food.name.trim() !== ""
+  function updateDraft(key: string, changes: Partial<ReceiptDraft>) {
+    setDrafts(
+      (current) =>
+        current?.map((draft) =>
+          draft.key === key ? { ...draft, ...changes } : draft
+        ) ?? null
     );
-    if (nonEmptyFoods.length === 0) {
-      return;
-    }
-    const errorMessage = validateData(nonEmptyFoods);
-    if (errorMessage) {
-      return errorMessage;
+  }
+
+  function removeDraft(key: string) {
+    setDrafts(
+      (current) => current?.filter((draft) => draft.key !== key) ?? null
+    );
+  }
+
+  /** Returns an error message, or nothing once every item was imported. */
+  async function submit(): Promise<string | undefined> {
+    if (!drafts || drafts.length === 0) return "There are no items to import.";
+
+    const foods = [];
+    for (const [index, draft] of drafts.entries()) {
+      const result = foodSchema.safeParse({
+        name: draft.name,
+        amount: draft.amount,
+        unit: draft.unit,
+        expiry: draft.expiry,
+        storage: draft.storage,
+      });
+      if (!result.success) {
+        return `${draft.name.trim() || `Item ${index + 1}`}: ${formatZodError(result.error)}`;
+      }
+      foods.push(result.data);
     }
 
     try {
-      const res = await fetch(API_RECEIPT_JSON, {
-        method: "POST",
-        body: JSON.stringify(nonEmptyFoods),
-      });
-      if (!res.ok) {
-        const resp = await res.json();
-        const errors = JSON.parse(resp.error);
-        if (errors) {
-          return errors[0].message;
-        }
-        return "Error parsing data. Are all the dates correct?";
-      }
-      const response = await res.json();
-      if (response.status === 201) {
-        return;
-      } else {
-        return response.error.message;
-      }
-    } catch (e: any) {
-      console.error(e.message);
-      return e.message;
+      await apiFetch(API_RECEIPT_JSON, { method: "POST", json: foods });
+    } catch (error) {
+      return error instanceof Error ? error.message : String(error);
     }
   }
 
-  function validateData(foods: FoodFromReceipt[]) {
-    for (const food of foods) {
-      const result = foodFromReceiptSchema.safeParse(food);
-      if (!result.success) {
-        const parsedErrors = JSON.parse(result.error.message);
-        if (parsedErrors.length > 0) {
-          return parsedErrors[0].message;
-        } else {
-          return "Error parsing data";
-        }
-      }
-    }
-  }
-
-  return { foodsFromReceipt, readFile, sendData };
+  return { drafts, readError, readFile, updateDraft, removeDraft, submit };
 }
 
-async function postReceipt(file: File) {
-  try {
-    const data = new FormData();
-    data.append("file", file);
-    const res = await fetch(API_RECEIPT, {
-      method: "POST",
-      body: data,
-    });
-    if (!res.ok) {
-      console.error(await res.text());
-    }
-    const resp = (await res.json()).data;
-    if (!isArrayOfFoodFromReceipt(resp)) {
-      throw new Error("Invalid response");
-    }
-    return resp;
-  } catch (e: any) {
-    console.error(e.message);
-  }
+function toDraft(food: FoodFromReceipt, index: number): ReceiptDraft {
+  return {
+    key: `${index}-${food.name}`,
+    name: food.name,
+    amount: String(food.amount),
+    unit: food.unit,
+    expiry: food.expiry ?? "",
+    storage: food.storage,
+  };
 }

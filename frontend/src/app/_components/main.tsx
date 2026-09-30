@@ -5,27 +5,27 @@ import StorageFilter from "@/app/_components/storage-filter";
 import useScrollY from "@/hooks/useScrollY";
 import { SearchFilter } from "@/lib/types";
 import { Food } from "@prisma/client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function Main({ foods }: { foods: Food[] }) {
-  const [filteredFoods, setFilteredFoods] = useState(foods);
   const [filter, setFilter] = useState<SearchFilter>({});
-  const [headerMessage, setHeaderMessage] = useState("");
   const { getY: foodListY } = useScrollY("foodListY");
-
-  useEffect(
-    () => setFilteredFoods(getNewFilteredFoods(foods, filter)),
+  const filteredFoods = useMemo(
+    () => getNewFilteredFoods(foods, filter),
     [filter, foods]
   );
-  useEffect(() => {
-    setHeaderMessage(createHeaderMessage(foods.length, filteredFoods.length));
-  }, [filteredFoods.length, foods.length]);
+  const headerMessage = useMemo(
+    () => createHeaderMessage(foods.length, filteredFoods.length),
+    [filteredFoods.length, foods.length]
+  );
   useEffect(() => {
     const y = foodListY();
     if (!isNaN(y) && y > 0) {
       window.scrollTo({ top: y, behavior: "smooth" });
     }
-  }, [foodListY]);
+    // Restore only on mount; getY is recreated every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (foods.length === 0) {
     return (

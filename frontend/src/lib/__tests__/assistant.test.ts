@@ -118,3 +118,25 @@ describe("assistant batch actions", () => {
     ).toEqual([2]);
   });
 });
+
+describe("assistant update validation", () => {
+  it("rejects an update whose expiry is not an ISO date", () => {
+    expect(
+      isAssistantAction({
+        kind: "update",
+        foodId: 1,
+        changes: { expiry: "next tuesday" },
+      })
+    ).toBe(false);
+  });
+
+  it("accepts an update with a valid expiry", () => {
+    expect(
+      isAssistantAction({
+        kind: "update",
+        foodId: 1,
+        changes: { expiry: "2026-10-01", amount: 1 },
+      })
+    ).toBe(true);
+  });
+});

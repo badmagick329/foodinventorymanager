@@ -1,4 +1,5 @@
-import { FoodTransferError, transferFoodAmount } from "../food-transfers";
+import { InvalidInputError } from "@/server/errors";
+import { transferFoodAmount } from "../transfers";
 
 const food = {
   id: 1,
@@ -64,9 +65,9 @@ describe("partial food transfers", () => {
         storage: "pantry",
         expiry: null,
       })
-    ).rejects.toBeInstanceOf(FoodTransferError);
+    ).rejects.toBeInstanceOf(InvalidInputError);
     await expect(
       transferFoodAmount(db, 1, { amount: 3, storage: "fridge", expiry: null })
-    ).rejects.toBeInstanceOf(FoodTransferError);
+    ).rejects.toBeInstanceOf(InvalidInputError);
   });
 });

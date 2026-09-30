@@ -27,6 +27,8 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { formatAmount } from "@/lib/utils";
+import { apiFetch, queryKeys } from "@/lib/api-client";
+import { API_FOOD_REMOVALS_URL } from "@/lib/urls";
 import {
   filterFoodRemovals,
   removalAccentClass,
@@ -63,40 +65,21 @@ export default function RemovalHistory({
     null
   );
   const editMutation = useMutation({
-    mutationFn: async ({
-      id,
-      changes,
-    }: {
-      id: string;
-      changes: FoodRemovalEdit;
-    }) => {
-      const response = await fetch(`/api/food-removals/${id}`, {
+    mutationFn: ({ id, changes }: { id: string; changes: FoodRemovalEdit }) =>
+      apiFetch(`${API_FOOD_REMOVALS_URL}${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(changes),
-      });
-      if (!response.ok) {
-        const { error } = await response.json();
-        throw new Error(error || "Could not update history entry.");
-      }
-    },
+        json: changes,
+      }),
     onSuccess: () => {
       setEditingRemoval(null);
-      queryClient.invalidateQueries({ queryKey: ["food-removals"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.foodRemovals });
     },
   });
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await fetch(`/api/food-removals/${id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) {
-        const { error } = await response.json();
-        throw new Error(error || "Could not delete history entry.");
-      }
-    },
+    mutationFn: (id: string) =>
+      apiFetch(`${API_FOOD_REMOVALS_URL}${id}`, { method: "DELETE" }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["food-removals"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.foodRemovals });
     },
   });
   const displayedRemovals = useMemo(

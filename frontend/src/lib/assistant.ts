@@ -1,9 +1,4 @@
-import {
-  FoodRemovalReason,
-  MeasurementUnit,
-  StorageType,
-  type Food,
-} from "@prisma/client";
+import { FoodRemovalReason, StorageType, type Food } from "@prisma/client";
 import { foodSchema, foodTransferSchema } from "./validators";
 import { formatAmount } from "./utils";
 
@@ -44,13 +39,6 @@ export type AssistantAction =
   | { kind: "consolidate"; foodIds: number[]; primaryFoodId: number }
   | { kind: "batch"; actions: BatchItem[] };
 
-export type AssistantResponse = {
-  reply: string;
-  action: AssistantAction;
-};
-
-const units = new Set(Object.values(MeasurementUnit));
-const storageTypes = new Set(Object.values(StorageType));
 const removalReasons = new Set(Object.values(FoodRemovalReason));
 
 function isUpdateAction(value: unknown): value is UpdateAction {
@@ -64,29 +52,10 @@ function isUpdateAction(value: unknown): value is UpdateAction {
   )
     return false;
   const changes = action.changes as Record<string, unknown>;
-  if (
-    changes.amount !== undefined &&
-    (typeof changes.amount !== "number" || changes.amount <= 0)
-  )
-    return false;
-  if (
-    changes.name !== undefined &&
-    (typeof changes.name !== "string" || changes.name.trim() === "")
-  )
-    return false;
-  if (
-    changes.unit !== undefined &&
-    (typeof changes.unit !== "string" ||
-      !units.has(changes.unit as MeasurementUnit))
-  )
-    return false;
-  if (
-    changes.storage !== undefined &&
-    (typeof changes.storage !== "string" ||
-      !storageTypes.has(changes.storage as StorageType))
-  )
-    return false;
-  return Object.keys(changes).length > 0;
+  return (
+    Object.keys(changes).length > 0 &&
+    foodSchema.partial().strict().safeParse(changes).success
+  );
 }
 
 function isBatchItem(value: unknown): value is BatchItem {

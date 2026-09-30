@@ -19,8 +19,12 @@ export const foodSchema = z.object({
   amount: z.coerce
     .number("Amount must be a number")
     .gt(0, { message: "Amount must be greater than 0" }),
+  // A missing or blank expiry means the item has none.
   expiry: z.preprocess(
-    (val) => (typeof val === "string" && val.trim() === "" ? null : val),
+    (val) =>
+      val === undefined || (typeof val === "string" && val.trim() === "")
+        ? null
+        : val,
     z.iso.date().nullable()
   ),
   storage: z
@@ -28,25 +32,6 @@ export const foodSchema = z.object({
     .trim()
     .toLowerCase()
     .pipe(z.enum(StorageType, { message: "Invalid storage type" })),
-});
-
-export function validateFood(
-  data: Record<string, string | null>
-): string | null {
-  const result = foodSchema.safeParse(data);
-
-  if (result.success) {
-    return null;
-  } else {
-    return result.error.message;
-  }
-}
-
-export const foodFromReceiptSchema = foodSchema.pick({
-  name: true,
-  expiry: true,
-  storage: true,
-  unit: true,
 });
 
 export const foodTransferSchema = foodSchema.pick({
@@ -60,11 +45,11 @@ export const foodRemovalSchema = foodSchema.extend({
 });
 
 export function formatZodError(error: ZodError) {
-  const { fieldErrors } = z.flattenError(error);
-  return (
-    Object.entries(fieldErrors)
-      //@ts-ignore
-      .map(([field, messages]) => `${field}: ${messages.join(", ")}`)
-      .join("; ")
-  );
+  return error.issues
+    .map((issue) =>
+      issue.path.length > 0
+        ? `${issue.path.join(".")}: ${issue.message}`
+        : issue.message
+    )
+    .join("; ");
 }

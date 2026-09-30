@@ -1,5 +1,10 @@
 import { FoodRemovalSource } from "@prisma/client";
-import { getConsumedAmount, updateFoodAndRecordUsage } from "../food-removals";
+import { NotFoundError } from "@/server/errors";
+import {
+  getConsumedAmount,
+  removeFoodsAndRecord,
+  updateFoodAndRecordUsage,
+} from "../usage";
 
 describe("partial food usage", () => {
   it("calculates a same-unit reduction", () => {
@@ -88,5 +93,25 @@ describe("partial food usage", () => {
     );
 
     expect(createMany).not.toHaveBeenCalled();
+  });
+});
+
+describe("removeFoodsAndRecord", () => {
+  it("removes nothing when any requested item is already gone", async () => {
+    const createMany = jest.fn();
+    const deleteMany = jest.fn();
+    const db = {
+      food: {
+        findMany: jest.fn().mockResolvedValue([{ id: 1 }]),
+        deleteMany,
+      },
+      foodRemoval: { createMany },
+    } as never;
+
+    await expect(
+      removeFoodsAndRecord(db, [1, 2], "consumed", "manual")
+    ).rejects.toBeInstanceOf(NotFoundError);
+    expect(createMany).not.toHaveBeenCalled();
+    expect(deleteMany).not.toHaveBeenCalled();
   });
 });

@@ -4,38 +4,40 @@ import { useState } from "react";
 import ReceiptItems from "./_components/receipt-items";
 
 export default function Receipt() {
-  const { foodsFromReceipt, readFile, sendData } = useFoodsFromReceipt();
-  const [file, setFile] = useState<File | null>(null);
-  const labelText = file ? "File Chosen ✅" : "Choose Ocado Receipt PDF";
-  const borderColor = file ? "border-green-500" : "border-gray-500";
+  const receipt = useFoodsFromReceipt();
+  const [fileChosen, setFileChosen] = useState(false);
 
   return (
     <div className="flex flex-col items-center gap-4 py-4">
       <div
-        className={`flex flex-col p-2 ${borderColor} gap-2 rounded-md border-2`}
+        className={`flex flex-col gap-2 rounded-md border-2 p-2 ${fileChosen ? "border-green-500" : "border-gray-500"}`}
       >
-        <label className="font-semibold">{labelText}</label>
+        <label className="font-semibold" htmlFor="receipt-file">
+          {fileChosen ? "File Chosen ✅" : "Choose Ocado Receipt PDF"}
+        </label>
         <input
+          id="receipt-file"
           type="file"
           accept="application/pdf"
-          name="file"
-          onChange={(e) => handleChange(e, readFile, setFile)}
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            await receipt.readFile(file);
+            setFileChosen(true);
+          }}
         />
       </div>
-      <ReceiptItems foods={foodsFromReceipt} sendData={sendData} />
+      {receipt.readError && (
+        <span className="font-bold text-red-500">{receipt.readError}</span>
+      )}
+      {receipt.drafts && (
+        <ReceiptItems
+          drafts={receipt.drafts}
+          onChange={receipt.updateDraft}
+          onRemove={receipt.removeDraft}
+          onSubmit={receipt.submit}
+        />
+      )}
     </div>
   );
-}
-
-async function handleChange(
-  e: React.ChangeEvent<HTMLInputElement>,
-  readFile: (file: File) => Promise<void>,
-  setFile: (file: File | null) => void
-) {
-  const file = e.target.files?.[0];
-  if (!file) {
-    return;
-  }
-  await readFile(file);
-  setFile(file);
 }

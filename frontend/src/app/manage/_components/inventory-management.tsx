@@ -8,6 +8,11 @@ import type { FoodConsolidationGroup } from "@/lib/food-consolidation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { formatAmount } from "@/lib/utils";
+import { apiFetch, queryKeys } from "@/lib/api-client";
+import {
+  API_CONSOLIDATE_URL,
+  API_CONSOLIDATION_CANDIDATES_URL,
+} from "@/lib/urls";
 
 type CandidateResponse = { groups: FoodConsolidationGroup[] };
 
@@ -15,37 +20,19 @@ export default function InventoryManagement() {
   const queryClient = useQueryClient();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const candidatesQuery = useQuery({
-    queryKey: ["food-consolidation-candidates"],
-    queryFn: async () => {
-      const response = await fetch("/api/foods/consolidation-candidates");
-      if (!response.ok) {
-        throw new Error("Could not load consolidation candidates.");
-      }
-      return response.json() as Promise<CandidateResponse>;
-    },
+    queryKey: queryKeys.consolidationCandidates,
+    queryFn: () =>
+      apiFetch<CandidateResponse>(API_CONSOLIDATION_CANDIDATES_URL),
   });
   const consolidateMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch("/api/foods/consolidate", {
-        method: "POST",
-      });
-      const body = await response.json();
-      if (!response.ok) {
-        throw new Error(body.error || "Could not consolidate food items.");
-      }
-      return body as {
-        groupsConsolidated: number;
-        duplicateItemsRemoved: number;
-      };
-    },
+    mutationFn: () =>
+      apiFetch<{ groupsConsolidated: number; duplicateItemsRemoved: number }>(
+        API_CONSOLIDATE_URL,
+        { method: "POST" }
+      ),
     onSuccess: async () => {
       setIsConfirmOpen(false);
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: ["food-consolidation-candidates"],
-        }),
-        queryClient.invalidateQueries({ queryKey: ["foods"] }),
-      ]);
+      await queryClient.invalidateQueries();
     },
   });
 

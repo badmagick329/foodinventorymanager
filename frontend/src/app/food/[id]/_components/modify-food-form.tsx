@@ -122,20 +122,38 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
           <Input
             id="food-name"
             className="bg-black"
-            {...register("name", { required: true, minLength: 2 })}
+            {...register("name", {
+              required: "Name is required",
+              minLength: {
+                value: 2,
+                message: "Name must be at least 2 characters",
+              },
+            })}
             autoComplete="off"
           />
-          {errors.name && <span>{errors.name.message}</span>}
+          {errors.name && (
+            <span className="text-sm text-red-500">{errors.name.message}</span>
+          )}
         </div>
         <div className="flex flex-col gap-1">
           <Label htmlFor="food-amount">Amount</Label>
           <Input
             id="food-amount"
             className="bg-black"
-            {...register("amount", { required: true, min: 0.01 })}
+            inputMode="decimal"
+            {...register("amount", {
+              required: "Amount is required",
+              min: { value: 0.01, message: "Amount must be greater than 0" },
+              validate: (value) =>
+                Number.isFinite(Number(value)) || "Amount must be a number",
+            })}
             autoComplete="off"
           />
-          {errors.amount && <span>{errors.amount.message}</span>}
+          {errors.amount && (
+            <span className="text-sm text-red-500">
+              {errors.amount.message}
+            </span>
+          )}
         </div>
         <div className="flex flex-col gap-1">
           <Label htmlFor="food-unit">Measurement Unit</Label>

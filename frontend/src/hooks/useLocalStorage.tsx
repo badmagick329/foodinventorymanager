@@ -19,8 +19,6 @@ export default function useLocalStorage<T>(
       const valueToStore =
         newValue instanceof Function ? newValue(value) : newValue;
       setValue(valueToStore);
-      console.log("updating", valueToStore, " with", key);
-
       localStorage.setItem(key, JSON.stringify(valueToStore));
     } catch (error) {
       console.error("Error on update local storage");
