@@ -4,6 +4,6 @@ import { transferFood } from "@/server/inventory/foods";
 
 export const POST = apiRoute(async (request, { params }: IdParams) =>
   NextResponse.json(
-    await transferFood(parseId(params.id), await readJson(request))
+    await transferFood(parseId((await params).id), await readJson(request))
   )
 );

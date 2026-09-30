@@ -5,9 +5,7 @@ for (let i = 1; i < 256; i++) {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ["pdf-parse"],
-  },
+  serverExternalPackages: ["pdf-parse"],
   allowedDevOrigins,
 };
 

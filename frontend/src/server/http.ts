@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AppError, InvalidInputError, isRecordNotFound } from "./errors";
 
-export type IdParams = { params: { id: string } };
+export type IdParams = { params: Promise<{ id: string }> };
 
 /**
  * Wraps a route handler so services can signal expected failures by throwing

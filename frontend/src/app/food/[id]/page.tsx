@@ -2,15 +2,21 @@
 
 import ModifyFoodForm from "@/app/food/[id]/_components/modify-food-form";
 import { Food } from "@prisma/client";
+import { use } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { API_FOODS_URL } from "@/lib/urls";
 import ErrorBlock from "@/app/_components/error-block";
 import { apiFetch, queryKeys } from "@/lib/api-client";
 
-export default function EditPage({ params }: { params: { id: string } }) {
+export default function EditPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
   const { data, error, isPending } = useQuery({
-    queryKey: queryKeys.food(params.id),
-    queryFn: () => apiFetch<Food>(`${API_FOODS_URL}${params.id}/`),
+    queryKey: queryKeys.food(id),
+    queryFn: () => apiFetch<Food>(`${API_FOODS_URL}${id}/`),
   });
 
   if (isPending) return <p>Loading...</p>;
