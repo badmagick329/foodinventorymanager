@@ -42,6 +42,6 @@ docker-compose.yml
 **/Docker/*
 !Dockerfile.sample
 /db
-notes/*
+.ignore/
 
 **/scripts/data/*
