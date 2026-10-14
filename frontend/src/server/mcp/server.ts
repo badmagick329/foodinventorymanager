@@ -10,12 +10,12 @@ import { presentFood } from "./results";
 
 const INSTRUCTIONS = `Household food inventory for one home.
 
-- Items have a name, amount, unit (g, kg, ml, l, or unit = a count of packs), storage (fridge, freezer, pantry, spices) and an optional expiry date (YYYY-MM-DD).
-- The same food can have several entries, e.g. with different expiry dates or storage. Look items up with list_foods (search filter) before changing them, and use their ids.
-- When the user used part of something, call use_food. When something is finished, thrown away or was entered by mistake, call remove_foods with the matching reason; ask if the reason is unclear. History keeps a record of both.
+- Foods have a name, amount, unit (g, kg, ml, l, or unit = a count of packs), storage (fridge, freezer, pantry, spices) and an optional expiry date (YYYY-MM-DD).
+- Several foods can share a name, e.g. with different expiry dates or storage. Look foods up with list_foods (search filter) before changing them, and use their ids.
+- When the user used part of something, call use_food. When something is finished (used), thrown away (discarded) or was entered by mistake (a mistake), call remove_foods with the matching reason; ask if the reason is unclear. History keeps a record of both.
 - To freeze or relocate food use move_food (it can split off a portion).
-- Changes apply immediately. Ask the user before destructive or bulk changes (removing several items, merging entries, clearing the shopping list).
-- Amounts in different units are never converted; keep the item's unit.`;
+- Changes apply immediately. Ask the user before destructive or bulk changes (removing several foods, consolidating duplicates, clearing the shopping list).
+- Amounts in different units are never converted; keep the food's unit.`;
 
 export function createInventoryMcpServer() {
   const server = new McpServer(
@@ -33,7 +33,7 @@ export function createInventoryMcpServer() {
     "foodinventory://inventory",
     {
       title: "Current inventory",
-      description: "Every item in stock with its expiry status.",
+      description: "Every food in stock with its expiry status.",
       mimeType: "application/json",
     },
     async (uri) => {

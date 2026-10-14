@@ -92,7 +92,7 @@ export const PROPOSE_ACTION_TOOL = {
   type: "function",
   name: "propose_inventory_action",
   description:
-    "Propose inventory changes that the user reviews and confirms before they apply. message is shown to the user: say briefly what is proposed, any storage location or unit you inferred, any item added to an existing one, and ask one concise question per item you left out. For kind changes, put every requested change in items: create uses newFood; update uses foodId and changes (null for fields that stay the same), and clearExpiry true to remove the item's expiry date (false otherwise); delete uses foodId and removalReason; transfer uses foodId, amount, targetStorage and targetExpiry. For kind consolidate, use foodIds and primaryFoodId and leave items empty. Leave unused fields null.",
+    "Propose inventory changes that the user reviews and confirms before they apply. message is shown to the user: say briefly what is proposed, any storage location or unit you inferred, any food added to an existing one, and ask one concise question per food you left out. For kind changes, put every requested change in items: create uses newFood; update uses foodId and changes (null for fields that stay the same), and clearExpiry true to remove the food's expiry date (false otherwise); delete uses foodId and removalReason; transfer uses foodId, amount, targetStorage and targetExpiry. For kind consolidate, use foodIds and primaryFoodId and leave items empty. Leave unused fields null.",
   strict: true,
   parameters: actionSchema,
 } as const;
@@ -138,7 +138,7 @@ function normalizeChange(change: Record<string, unknown>) {
 function changeLabel(change: Record<string, unknown>, foods: Food[]) {
   const newFood = change.newFood as { name?: unknown } | null;
   if (typeof newFood?.name === "string") return newFood.name;
-  return foods.find((food) => food.id === change.foodId)?.name ?? "one item";
+  return foods.find((food) => food.id === change.foodId)?.name ?? "one food";
 }
 
 /**

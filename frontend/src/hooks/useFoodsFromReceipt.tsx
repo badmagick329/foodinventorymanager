@@ -51,9 +51,9 @@ export default function useFoodsFromReceipt() {
     );
   }
 
-  /** Returns an error message, or nothing once every item was imported. */
+  /** Returns an error message, or nothing once every food was imported. */
   async function submit(): Promise<string | undefined> {
-    if (!drafts || drafts.length === 0) return "There are no items to import.";
+    if (!drafts || drafts.length === 0) return "There is no food to import.";
 
     const foods = [];
     for (const [index, draft] of drafts.entries()) {
@@ -65,7 +65,7 @@ export default function useFoodsFromReceipt() {
         storage: draft.storage,
       });
       if (!result.success) {
-        return `${draft.name.trim() || `Item ${index + 1}`}: ${formatZodError(result.error)}`;
+        return `${draft.name.trim() || `Food ${index + 1}`}: ${formatZodError(result.error)}`;
       }
       foods.push(result.data);
     }

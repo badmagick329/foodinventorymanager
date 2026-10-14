@@ -30,8 +30,8 @@ export default function Main({ foods }: { foods: Food[] }) {
   if (foods.length === 0) {
     return (
       <div className="mt-8 flex flex-col gap-4">
-        <h1 className="text-center text-3xl">No food items entered yet.</h1>
-        <p>Try importing a receipt or adding food items manually.</p>
+        <h1 className="text-center text-3xl">No food entered yet.</h1>
+        <p>Try importing a receipt or adding food manually.</p>
       </div>
     );
   }
@@ -86,21 +86,21 @@ function randomNoItemsMessage(): string {
   const messages = [
     "Nothing here. Did the snacks go on strike? 🍪✊",
     "Zero results. The pantry must be on vacation. 🏖️",
-    "No items found. Maybe the food ran away with the spoon. 🥄💨",
+    "No food found. Maybe it ran away with the spoon. 🥄💨",
     "Nothing matches. Time to embrace the art of imaginary cooking. 🎨🍳",
-    "No items found. The shelves are as empty as your Monday motivation. 😴",
+    "No food found. The shelves are as empty as your Monday motivation. 😴",
     "Zero results. The snacks are playing hide and seek. 🍫🤫",
-    "No items found. The grocery list is crying in the corner. 📝😭",
+    "No food found. The grocery list is crying in the corner. 📝😭",
     "Nothing matches. Maybe it's time to order pizza. 🍕📞",
-    "No items found. The fridge is practicing social distancing. 🧊↔️",
+    "No food found. The fridge is practicing social distancing. 🧊↔️",
     "Nothing here. The food must have joined a secret club. 🤐",
-    "No items found. The snacks have left the chat. 💬🚪",
-    "No items found. The shelves are fasting. 🛐",
-    "No items found. The pantry is writing a memoir: 'Life Without Snacks'. 📖",
-    "No items found. The snacks are on a world tour. 🌍",
+    "No food found. The snacks have left the chat. 💬🚪",
+    "No food found. The shelves are fasting. 🛐",
+    "No food found. The pantry is writing a memoir: 'Life Without Snacks'. 📖",
+    "No food found. The snacks are on a world tour. 🌍",
     "Nothing here. The pantry is dreaming of better days. 💭",
     "Zero results. The fridge is meditating on emptiness. 🧘",
-    "No items found. The shelves are enjoying their minimalist aesthetic. 🖼️",
+    "No food found. The shelves are enjoying their minimalist aesthetic. 🖼️",
     "Nothing matches. The food is undercover. 🕵️",
   ];
   return messages[Math.floor(Math.random() * messages.length)];
@@ -108,18 +108,18 @@ function randomNoItemsMessage(): string {
 
 function createHeaderMessage(totalFoods: number, filteredFoods: number) {
   if (totalFoods === 0) {
-    return "No food items entered yet.";
+    return "No food entered yet.";
   }
   if (filteredFoods === 0) {
     return randomNoItemsMessage();
   }
 
   if (totalFoods === filteredFoods) {
-    return `${filteredFoods} Item${filteredFoods !== 1 ? "s" : ""} in stock ${randomFoodEmoji()}`;
+    return `${filteredFoods} Food${filteredFoods !== 1 ? "s" : ""} in stock ${randomFoodEmoji()}`;
   }
 
   if (totalFoods > filteredFoods) {
-    return `Displaying ${filteredFoods} of ${totalFoods} Item${totalFoods !== 1 ? "s" : ""} in stock ${randomFoodEmoji()}`;
+    return `Displaying ${filteredFoods} of ${totalFoods} Food${totalFoods !== 1 ? "s" : ""} in stock ${randomFoodEmoji()}`;
   }
 
   return "";

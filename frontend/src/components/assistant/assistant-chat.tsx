@@ -227,11 +227,11 @@ function HelpPopover({
         </p>
         <ul className="mt-3 space-y-1 text-sm">
           <li>• Check what is expiring soon</li>
-          <li>• Add items</li>
+          <li>• Add food</li>
           <li>• Update quantities or expiry dates</li>
-          <li>• Delete items</li>
-          <li>• Review bulk updates or deletes</li>
-          <li>• Consolidate duplicate entries</li>
+          <li>• Remove food as used, discarded or a mistake</li>
+          <li>• Review bulk updates or removals</li>
+          <li>• Consolidate duplicate foods</li>
           <li>• Suggest recipes from your food</li>
         </ul>
         {configuration && (

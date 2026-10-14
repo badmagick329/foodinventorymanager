@@ -29,11 +29,11 @@ export default function ReceiptItemForm({
   return (
     <div className="flex w-full max-w-xs flex-col items-center gap-2 rounded-md bg-secondary p-2">
       <div className="flex w-full justify-between">
-        <span className="text-xl">Item {position}</span>
+        <span className="text-xl">Food {position}</span>
         <button
           type="button"
           className="rounded-md px-2 py-1 hover:bg-slate-400"
-          aria-label={`Remove item ${position}`}
+          aria-label={`Remove food ${position}`}
           onClick={onRemove}
         >
           ❌

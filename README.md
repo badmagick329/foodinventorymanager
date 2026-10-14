@@ -4,14 +4,14 @@ A smart full-stack app designed to reduce food waste and provide an accessible w
 
 ## 🚀 Key Features
 
-- **📦 Inventory Management**: Full CRUD capabilities to manually add, edit, and delete items, with filtering by storage type.
-- **🧾 Automated Ingestion**: Parses PDF receipts (Ocado) to automatically populate the database, categorizing items by storage location (Fridge, Freezer, Pantry).
+- **📦 Inventory Management**: Full CRUD capabilities to manually add, edit, and remove foods, with filtering by storage type.
+- **🧾 Automated Ingestion**: Parses PDF receipts (Ocado) to automatically populate the database, categorizing foods by storage location (Fridge, Freezer, Pantry).
 - **💬 Built-in AI Assistant**: Interact with your inventory using natural language from within the app.
   - _"What is expiring soon?"_
   - _"Delete the milk and eggs"_
   - _"Do I have ingredients for pasta?"_
-- **✅ Confirmed Inventory Changes**: Dictate several items in one message; review the assistant's proposed additions, updates, removals and moves, untick any you don't want, then confirm.
-- **📊 Usage Tracking**: Record consumed, discarded, and corrected inventory, including partial quantity usage.
+- **✅ Confirmed Inventory Changes**: Dictate several foods in one message; review the assistant's proposed additions, updates, removals and moves, untick any you don't want, then confirm.
+- **📊 Usage Tracking**: Record food as used, discarded, or a mistake, including partial quantity usage.
 - **🔌 MCP Server**: Let external agents (e.g. Hermes Agent) read and manage the inventory, history, and shopping list.
 
 ## 🛠️ How to Run
@@ -34,7 +34,7 @@ It exposes:
 - **Duplicates**: `list_consolidation_candidates`, `consolidate_foods`, `consolidate_all_matching`
 - **History**: `list_history`, `history_summary`, `update_history_entry`, `delete_history_entry`
 - **Shopping list**: `list_shopping`, `add_shopping_items`, `remove_shopping_item`, `clear_shopping_list`
-- **Receipts**: `parse_receipt` (base64 Ocado PDF → items; nothing is saved until `add_foods`)
+- **Receipts**: `parse_receipt` (base64 Ocado PDF → foods; nothing is saved until `add_foods`)
 - **Resources**: `foodinventory://inventory`, `foodinventory://shopping-list`
 - **Prompts**: `use_it_up`, `waste_review`
 

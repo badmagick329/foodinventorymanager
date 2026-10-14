@@ -48,7 +48,7 @@ export default function ReceiptItems({
     >
       {error && <span className="font-bold text-red-500">{error}</span>}
       <Button type="submit" disabled={submitting || drafts.length === 0}>
-        {submitting ? "Importing..." : `Import ${drafts.length} items`}
+        {submitting ? "Importing..." : `Import ${drafts.length} food${drafts.length === 1 ? "" : "s"}`}
       </Button>
       <div className="flex flex-wrap justify-center gap-4">
         {drafts.map((draft, index) => (

@@ -13,7 +13,7 @@ export const FOOD_ORDER = [
   { id: "desc" },
 ] satisfies Prisma.FoodOrderByWithRelationInput[];
 
-const foodListSchema = z.array(foodSchema).min(1, "No items to import");
+const foodListSchema = z.array(foodSchema).min(1, "There is no food to import.");
 const amountSchema = foodSchema.pick({ amount: true });
 const moveSchema = z.object({
   storage: foodSchema.shape.storage,
@@ -22,7 +22,7 @@ const moveSchema = z.object({
 });
 const removalReasonSchema = z.enum(FoodRemovalReason, {
   message:
-    "Choose whether the item was consumed, discarded, or an accidental entry.",
+    "Choose whether the food was used, discarded, or a mistake.",
 });
 
 export function listFoods() {
@@ -31,7 +31,7 @@ export function listFoods() {
 
 export async function getFood(id: number) {
   const food = await prisma.food.findUnique({ where: { id } });
-  if (!food) throw new NotFoundError("Food item not found.");
+  if (!food) throw new NotFoundError("Food not found.");
   return food;
 }
 
@@ -82,7 +82,7 @@ export async function useFoodAmount(
   const { amount } = parseInput(amountSchema, input);
   return prisma.$transaction(async (tx) => {
     const food = await tx.food.findUnique({ where: { id } });
-    if (!food) throw new NotFoundError("Food item not found.");
+    if (!food) throw new NotFoundError("Food not found.");
     if (amount >= food.amount) {
       await removeFoodsAndRecord(tx, [id], FoodRemovalReason.consumed, source);
       return { usedAmount: food.amount, remainingFood: null };
@@ -117,7 +117,7 @@ export async function moveFood(
     return { sourceFood: updatedFood, movedFood };
   }
   if (move.storage === food.storage) {
-    throw new InvalidInputError(`This item is already in the ${food.storage}.`);
+    throw new InvalidInputError(`This food is already in the ${food.storage}.`);
   }
   const movedFood = await updateFood(
     id,

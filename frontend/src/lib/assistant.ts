@@ -1,5 +1,6 @@
 import { FoodRemovalReason, StorageType, type Food } from "@prisma/client";
 import { foodSchema, foodTransferSchema } from "./validators";
+import { outcomePhrase } from "./food-removal-history";
 import { formatAmount } from "./utils";
 
 type FoodFields = Pick<Food, "name" | "amount" | "unit" | "expiry" | "storage">;
@@ -116,7 +117,7 @@ export function addFoodContext(
     items: action.items.map((item) => {
       if (item.kind === "create") return item;
       const food = foods.find((candidate) => candidate.id === item.foodId);
-      const foodName = food?.name ?? "Selected item";
+      const foodName = food?.name ?? "Selected food";
       if (item.kind !== "update" || !food) return { ...item, foodName };
       const previous = Object.fromEntries(
         Object.keys(item.changes).map((key) => [
@@ -155,9 +156,9 @@ function describeChange(item: ProposedChange, foods: Food[]) {
     return `add ${formatAmount(food.amount)} ${food.unit} of ${food.name} to the ${food.storage}${food.expiry ? ` (expiry: ${food.expiry})` : ""}`;
   }
   const food = foods.find((candidate) => candidate.id === item.foodId);
-  const name = food?.name ?? item.foodName ?? "the selected item";
+  const name = food?.name ?? item.foodName ?? "the selected food";
   if (item.kind === "delete") {
-    return `record ${name} as ${item.removalReason.replace("_", " ")}`;
+    return `record ${name} as ${outcomePhrase(item.removalReason)}`;
   }
   if (item.kind === "transfer") {
     return `move ${formatAmount(item.amount)} ${food?.unit ?? "units"} of ${name} from the ${food?.storage ?? "current storage"} to the ${item.targetStorage}${item.targetExpiry ? ` (expiry: ${item.targetExpiry})` : " (no expiry date)"}`;
@@ -175,7 +176,7 @@ export function describeAction(action: AssistantAction, foods: Food[]): string {
     const selected = foods.filter((food) => action.foodIds.includes(food.id));
     const total = selected.reduce((sum, food) => sum + food.amount, 0);
     const primary = foods.find((food) => food.id === action.primaryFoodId);
-    return `Consolidate ${selected.length} entries into ${primary?.name ?? "the selected item"} (${total} ${primary?.unit ?? "units"}).`;
+    return `Consolidate ${selected.length} foods into ${primary?.name ?? "the selected food"} (${total} ${primary?.unit ?? "units"}).`;
   }
   const lines = action.items.map((item) => describeChange(item, foods));
   return lines.length === 1

@@ -27,15 +27,15 @@ export async function consolidateFoods(
 
   if (foods.length !== uniqueFoodIds.length) {
     throw new NotFoundError(
-      "One or more selected food items could not be found. Refresh and try again."
+      "One or more selected foods could not be found. Refresh and try again."
     );
   }
 
   if (!canConsolidateFoods(foods, { allowDifferentExpiry })) {
     throw new InvalidInputError(
       allowDifferentExpiry
-        ? "Only items with the same name, unit, and storage can be consolidated."
-        : "Only items with the same name, unit, storage, and expiry can be consolidated."
+        ? "Only foods with the same name, unit, and storage can be consolidated."
+        : "Only foods with the same name, unit, storage, and expiry can be consolidated."
     );
   }
 

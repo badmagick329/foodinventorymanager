@@ -72,7 +72,7 @@ export function registerReceiptTools(server: McpServer) {
     {
       title: "Read an Ocado receipt",
       description:
-        "Extract food items (name, amount, unit, storage, expiry) from an Ocado receipt PDF. Nothing is saved: review the items with the user, then call add_foods.",
+        "Extract foods (name, amount, unit, storage, expiry) from an Ocado receipt PDF. Nothing is saved: review the foods with the user, then call add_foods.",
       inputSchema: z.object({
         pdf_base64: z
           .string()

@@ -56,22 +56,22 @@ export default function InventoryManagement() {
       </div>
 
       <div className="rounded-lg border p-5">
-        <h2 className="text-xl font-semibold">Consolidate duplicate items</h2>
+        <h2 className="text-xl font-semibold">Consolidate duplicate foods</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Matching entries are found automatically when they have the same name,
+          Matching foods are found automatically when they have the same name,
           unit, storage, and expiry date.
         </p>
 
         {groups.length === 0 ? (
           <p className="mt-6 rounded-md border p-5 text-center text-muted-foreground">
-            No items can currently be consolidated.
+            No foods can currently be consolidated.
           </p>
         ) : (
           <>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm">
                 {groups.length} matching group{groups.length === 1 ? "" : "s"}{" "}
-                found ({itemCount} entries).
+                found ({itemCount} foods).
               </p>
               <Button
                 type="button"
@@ -80,7 +80,7 @@ export default function InventoryManagement() {
                   setIsConfirmOpen(true);
                 }}
               >
-                Consolidate all matching items
+                Consolidate all matching foods
               </Button>
             </div>
 
@@ -146,7 +146,7 @@ function ConsolidationGroupPreview({
       <div className="mt-3 grid gap-1 text-sm text-muted-foreground">
         {group.foods.map((food) => (
           <div key={food.id} className="flex justify-between gap-4">
-            <span>Entry {food.id}</span>
+            <span>Food {food.id}</span>
             <span>
               {formatAmount(food.amount)} {food.unit}
             </span>
@@ -190,13 +190,13 @@ function ConfirmationModal({
         aria-labelledby="consolidate-all-title"
       >
         <h2 id="consolidate-all-title" className="text-xl font-semibold">
-          Consolidate all matching items?
+          Consolidate all matching foods?
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          This will merge {groupCount} group{groupCount === 1 ? "" : "s"} and
-          remove {duplicateItemCount} duplicate entr
-          {duplicateItemCount === 1 ? "y" : "ies"}. No history events will be
-          created.
+          This will consolidate {groupCount} group
+          {groupCount === 1 ? "" : "s"} and remove {duplicateItemCount}{" "}
+          duplicate food{duplicateItemCount === 1 ? "" : "s"}. No history
+          entries will be created.
         </p>
         {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
         <div className="mt-6 flex justify-end gap-2">

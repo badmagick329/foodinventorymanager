@@ -9,6 +9,7 @@ import {
   type ProposedChange,
 } from "@/lib/assistant";
 import { formatAssistantCost } from "@/lib/assistant-cost";
+import { outcomePhrase } from "@/lib/food-removal-history";
 import { formatAmount } from "@/lib/utils";
 import type { ChatMessage } from "./use-assistant-chat";
 
@@ -110,7 +111,7 @@ export default function ChatMessageBubble({
 function changeTitle(item: ProposedChange) {
   return item.kind === "create"
     ? item.food.name
-    : (item.foodName ?? "Selected item");
+    : (item.foodName ?? "Selected food");
 }
 
 function changeSummary(item: ProposedChange) {
@@ -120,7 +121,7 @@ function changeSummary(item: ProposedChange) {
       return `Add ${formatAmount(food.amount)} ${food.unit} to the ${food.storage}${food.expiry ? `, expires ${food.expiry}` : ""}`;
     }
     case "delete":
-      return `Record as ${item.removalReason.replace("_", " ")}`;
+      return `Record as ${outcomePhrase(item.removalReason)}`;
     case "transfer":
       return `Move ${formatAmount(item.amount)} to the ${item.targetStorage}${item.targetExpiry ? `, expires ${item.targetExpiry}` : ""}`;
     case "update":

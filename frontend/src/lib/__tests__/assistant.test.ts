@@ -163,4 +163,21 @@ describe("assistant change proposals", () => {
     expect(description).toContain("add 1 unit of Carrot and parsnip soup");
     expect(description).toContain("record Old milk as discarded");
   });
+
+  // FDI-1: the review speaks the glossary's outcome names, not the enum's.
+  it("names outcomes as used, discarded and a mistake", () => {
+    const description = describeAction(
+      {
+        kind: "changes",
+        items: [
+          { kind: "delete", foodId: 1, removalReason: "consumed" },
+          { kind: "delete", foodId: 2, removalReason: "accidental_entry" },
+        ],
+      } as AssistantAction,
+      foods
+    );
+
+    expect(description).toContain("record Oatly Barista as used");
+    expect(description).toContain("record Old milk as a mistake");
+  });
 });

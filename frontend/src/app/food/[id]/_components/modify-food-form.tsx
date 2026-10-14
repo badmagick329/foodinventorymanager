@@ -110,10 +110,10 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
   }, [disableButtons, router]);
 
   if (deleteMutation.isPending) {
-    return <p>Removing item...</p>;
+    return <p>Removing food...</p>;
   }
   if (!deleteMutation.isPending && deleteMutation.isSuccess) {
-    return <p>Food deleted successfully!</p>;
+    return <p>Food removed successfully!</p>;
   }
 
   return (
@@ -255,10 +255,10 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
             <div
               className="flex flex-col gap-2"
               role="group"
-              aria-label="Remove item as"
+              aria-label="Remove food as"
             >
               <p className="text-sm font-medium text-muted-foreground">
-                Remove item as...
+                Remove food as...
               </p>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Button
@@ -267,7 +267,7 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
                   onClick={() =>
                     deleteMutation.mutate(FoodRemovalReason.consumed)
                   }
-                  aria-label="Remove item as used"
+                  aria-label="Remove food as used"
                 >
                   Used
                 </Button>
@@ -278,7 +278,7 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
                   onClick={() =>
                     deleteMutation.mutate(FoodRemovalReason.discarded)
                   }
-                  aria-label="Remove item as discarded"
+                  aria-label="Remove food as discarded"
                 >
                   Discarded
                 </Button>
@@ -289,7 +289,7 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
                   onClick={() =>
                     deleteMutation.mutate(FoodRemovalReason.accidental_entry)
                   }
-                  aria-label="Remove item as entered by mistake"
+                  aria-label="Remove food as a mistake"
                 >
                   Mistake
                 </Button>
@@ -350,7 +350,7 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
               setPendingSave(null);
               setError("root", {
                 message:
-                  "Move the portion before making changes to the rest of this item.",
+                  "Move the portion before making changes to the rest of this food.",
               });
               return;
             }

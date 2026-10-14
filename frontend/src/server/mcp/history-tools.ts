@@ -57,13 +57,13 @@ export function registerHistoryTools(server: McpServer) {
     {
       title: "List usage and waste history",
       description:
-        "List food that left the inventory, newest first: what was consumed, discarded, or removed as an accidental entry. Partial usage appears as its own entry with the used amount.",
+        "List food that left the inventory, newest first: what was used (consumed), discarded, or removed as a mistake (accidental_entry). Partial usage appears as its own entry with the used amount.",
       inputSchema: z.object({
         reason: removalReason.optional(),
         search: z
           .string()
           .optional()
-          .describe("Case-insensitive text the item name must contain."),
+          .describe("Case-insensitive text the food name must contain."),
         ...dateRange,
         limit: z.number().int().min(1).max(500).default(50),
       }),
@@ -85,7 +85,7 @@ export function registerHistoryTools(server: McpServer) {
     {
       title: "Summarise usage and waste",
       description:
-        "Totals of consumed, discarded and accidental entries per unit, e.g. to review food waste over a period.",
+        "Totals of used (consumed), discarded and mistake (accidental_entry) amounts per unit, e.g. to review food waste over a period.",
       inputSchema: z.object(dateRange),
       annotations: { readOnlyHint: true },
     },
@@ -100,7 +100,7 @@ export function registerHistoryTools(server: McpServer) {
     {
       title: "Correct a history entry",
       description:
-        "Correct a recorded history entry, e.g. change discarded to consumed. This never changes the live inventory.",
+        "Correct a recorded history entry, e.g. change discarded to consumed (used). This never changes the live inventory.",
       inputSchema: z.object({
         id: z.string().min(1),
         name: z.string().trim().min(1).optional(),

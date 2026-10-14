@@ -31,15 +31,10 @@ import { apiFetch, queryKeys } from "@/lib/api-client";
 import { API_FOOD_REMOVALS_URL } from "@/lib/urls";
 import {
   filterFoodRemovals,
+  outcomeLabel,
   removalAccentClass,
   type FoodRemovalOutcomeFilter,
 } from "@/lib/food-removal-history";
-
-function labelForReason(reason: FoodRemovalReason) {
-  if (reason === "consumed") return "Consumed";
-  if (reason === "discarded") return "Thrown away";
-  return "Accidental entry";
-}
 
 function dateLabel(date: Date | string) {
   return new Intl.DateTimeFormat(undefined, {
@@ -94,7 +89,7 @@ export default function RemovalHistory({
         <div>
           <h1 className="text-3xl font-bold">Food history</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            What you have used or thrown away.
+            What you have used or discarded.
           </p>
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
@@ -105,7 +100,7 @@ export default function RemovalHistory({
               type="search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search item name"
+              placeholder="Search food name"
               className="sm:w-56"
             />
           </div>
@@ -124,7 +119,7 @@ export default function RemovalHistory({
                 <SelectItem value="all">All outcomes</SelectItem>
                 {Object.values(FoodRemovalReason).map((reason) => (
                   <SelectItem key={reason} value={reason}>
-                    {labelForReason(reason)}
+                    {outcomeLabel(reason)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -142,7 +137,7 @@ export default function RemovalHistory({
         <Table className="bg-foreground/5 text-sm">
           <TableHeader className="bg-black">
             <TableRow>
-              <TableHead>Item</TableHead>
+              <TableHead>Food</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Outcome</TableHead>
               <TableHead className="text-right">When</TableHead>
@@ -159,7 +154,7 @@ export default function RemovalHistory({
                 <TableCell>
                   {formatAmount(removal.amount)} {removal.unit}
                 </TableCell>
-                <TableCell>{labelForReason(removal.reason)}</TableCell>
+                <TableCell>{outcomeLabel(removal.reason)}</TableCell>
                 <TableCell className="text-right text-muted-foreground">
                   {dateLabel(removal.createdAt)}
                 </TableCell>
@@ -276,7 +271,7 @@ function EditRemovalModal({
         {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-1 sm:col-span-2">
-            <Label htmlFor="history-name">Item</Label>
+            <Label htmlFor="history-name">Food</Label>
             <Input
               id="history-name"
               value={changes.name}
@@ -387,7 +382,7 @@ function EditRemovalModal({
               <SelectContent>
                 {Object.values(FoodRemovalReason).map((reason) => (
                   <SelectItem key={reason} value={reason}>
-                    {labelForReason(reason)}
+                    {outcomeLabel(reason)}
                   </SelectItem>
                 ))}
               </SelectContent>

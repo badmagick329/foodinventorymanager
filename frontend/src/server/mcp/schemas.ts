@@ -8,7 +8,7 @@ import { z } from "zod";
 export const id = z.number().int().positive();
 export const storage = z
   .enum(StorageType)
-  .describe("Where the item is kept: fridge, freezer, pantry or spices.");
+  .describe("Where the food is kept: fridge, freezer, pantry or spices.");
 export const unit = z
   .enum(MeasurementUnit)
   .describe(
@@ -19,7 +19,7 @@ export const expiryDate = z.iso.date().describe("Expiry date as YYYY-MM-DD.");
 export const removalReason = z
   .enum(FoodRemovalReason)
   .describe(
-    "consumed = eaten or used; discarded = thrown away; accidental_entry = it was entered by mistake."
+    "consumed = used (eaten or used up); discarded = thrown away; accidental_entry = a mistake (it was entered by mistake). Call these outcomes used, discarded and mistake when talking to the user."
   );
 export const isoDate = z.iso.date();
 

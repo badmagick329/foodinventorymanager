@@ -52,7 +52,7 @@ export async function updateFoodAndRecordUsage(
   source: FoodRemovalSource
 ) {
   const existingFood = await db.food.findUnique({ where: { id: foodId } });
-  if (!existingFood) throw new NotFoundError("Food item not found.");
+  if (!existingFood) throw new NotFoundError("Food not found.");
 
   const consumedAmount = getConsumedAmount(
     existingFood.amount,
@@ -91,7 +91,7 @@ export async function removeFoodsAndRecord(
   const uniqueIds = [...new Set(foodIds)];
   const foods = await db.food.findMany({ where: { id: { in: uniqueIds } } });
   if (foods.length !== uniqueIds.length) {
-    throw new NotFoundError("One or more food items no longer exist.");
+    throw new NotFoundError("One or more foods no longer exist.");
   }
   await recordFoodRemovals(db, foods, reason, source);
   await db.food.deleteMany({ where: { id: { in: uniqueIds } } });

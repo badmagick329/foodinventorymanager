@@ -73,7 +73,7 @@ export async function resolveProposal(input: unknown) {
     const ids = actionFoodIds(action);
     const foods = await tx.food.findMany({ where: { id: { in: ids } } });
     if (foods.length !== new Set(ids).size) {
-      throw new ConflictError("One or more food items no longer exist.");
+      throw new ConflictError("One or more foods no longer exist.");
     }
     await applyAction(tx, action);
     return foods;

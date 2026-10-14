@@ -18,7 +18,7 @@ export async function transferFoodAmount(
   transfer: FoodTransferData
 ) {
   const sourceFood = await db.food.findUnique({ where: { id: foodId } });
-  if (!sourceFood) throw new NotFoundError("Food item not found.");
+  if (!sourceFood) throw new NotFoundError("Food not found.");
 
   if (transfer.storage === sourceFood.storage) {
     throw new InvalidInputError(
@@ -27,7 +27,7 @@ export async function transferFoodAmount(
   }
   if (transfer.amount >= sourceFood.amount) {
     throw new InvalidInputError(
-      "Move less than the current amount. Move the whole item by changing its storage instead."
+      "Move less than the current amount. Move all of it by changing its storage instead."
     );
   }
 
