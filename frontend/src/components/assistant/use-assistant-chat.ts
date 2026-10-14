@@ -200,12 +200,8 @@ export default function useAssistantChat() {
     }
   }
 
-  function confirm(messageId: string, action: AssistantAction) {
-    const selectedFoodIds =
-      action.kind === "batch"
-        ? action.actions.map((item) => item.foodId)
-        : undefined;
-    return resolve(messageId, { selectedFoodIds }, (message) => {
+  function confirm(messageId: string, selectedIndexes?: number[]) {
+    return resolve(messageId, { selectedIndexes }, (message) => {
       // A confirmed change can touch any inventory view.
       queryClient.invalidateQueries();
       updateMessage(messageId, { actionStatus: "confirmed" });

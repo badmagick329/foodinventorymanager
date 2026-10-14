@@ -1,5 +1,11 @@
 import type { Food } from "@prisma/client";
-import { actionFoodIds, describeAction, isAssistantAction } from "../assistant";
+import {
+  actionFoodIds,
+  addFoodContext,
+  describeAction,
+  isAssistantAction,
+  type AssistantAction,
+} from "../assistant";
 
 const foods = [
   {
@@ -20,123 +26,121 @@ const foods = [
   },
 ] as unknown as Food[];
 
-describe("assistant batch actions", () => {
-  it("accepts and describes a partial transfer", () => {
+const soup = {
+  name: "Carrot and parsnip soup",
+  amount: 1,
+  unit: "unit",
+  expiry: "2026-10-24",
+  storage: "fridge",
+};
+
+describe("assistant change proposals", () => {
+  it("accepts a proposal mixing creates, updates, deletes and transfers", () => {
     const action = {
-      kind: "transfer" as const,
-      foodId: 1,
-      amount: 0.5,
-      targetStorage: "fridge" as const,
-      targetExpiry: "2026-08-20",
+      kind: "changes",
+      items: [
+        { kind: "create", food: soup },
+        { kind: "create", food: { ...soup, name: "Gouda slices" } },
+        { kind: "update", foodId: 2, changes: { amount: 3 } },
+        {
+          kind: "transfer",
+          foodId: 1,
+          amount: 1,
+          targetStorage: "fridge",
+          targetExpiry: null,
+        },
+      ],
     };
 
     expect(isAssistantAction(action)).toBe(true);
-    expect(actionFoodIds(action)).toEqual([1]);
-    expect(describeAction(action, foods)).toContain(
-      "Move 0.5 unit of Oatly Barista"
+    expect(actionFoodIds(action as AssistantAction)).toEqual([2, 1]);
+  });
+
+  it("rejects empty proposals, repeated food IDs and invalid items", () => {
+    expect(isAssistantAction({ kind: "changes", items: [] })).toBe(false);
+    expect(
+      isAssistantAction({
+        kind: "changes",
+        items: [
+          { kind: "delete", foodId: 1, removalReason: "consumed" },
+          { kind: "update", foodId: 1, changes: { amount: 1 } },
+        ],
+      })
+    ).toBe(false);
+    expect(
+      isAssistantAction({
+        kind: "changes",
+        items: [{ kind: "update", foodId: 1, changes: { amount: 0 } }],
+      })
+    ).toBe(false);
+    expect(
+      isAssistantAction({
+        kind: "changes",
+        items: [{ kind: "create", food: { ...soup, unit: "slices" } }],
+      })
+    ).toBe(false);
+    expect(
+      isAssistantAction({
+        kind: "changes",
+        items: [
+          { kind: "update", foodId: 1, changes: { expiry: "next tuesday" } },
+        ],
+      })
+    ).toBe(false);
+  });
+
+  it("allows several creates, which have no food ID", () => {
+    expect(
+      isAssistantAction({
+        kind: "changes",
+        items: [
+          { kind: "create", food: soup },
+          { kind: "create", food: soup },
+        ],
+      })
+    ).toBe(true);
+  });
+
+  it("snapshots names and previous values so a top-up reads from → to", () => {
+    const action = addFoodContext(
+      {
+        kind: "changes",
+        items: [{ kind: "update", foodId: 2, changes: { amount: 3 } }],
+      },
+      foods
+    );
+
+    expect(action).toEqual({
+      kind: "changes",
+      items: [
+        {
+          kind: "update",
+          foodId: 2,
+          changes: { amount: 3 },
+          foodName: "Old milk",
+          previous: { amount: 1 },
+        },
+      ],
+    });
+    expect(describeAction(action, foods)).toBe(
+      "Update Old milk: amount 1 → 3."
     );
   });
 
-  it("accepts a fully specified food creation", () => {
-    expect(
-      isAssistantAction({
-        kind: "create",
-        food: {
-          name: "Tinned tomatoes",
-          amount: 2,
-          unit: "unit",
-          expiry: null,
-          storage: "pantry",
-        },
-      })
-    ).toBe(true);
-    expect(
-      isAssistantAction({
-        kind: "create",
-        food: {
-          name: "Tinned tomatoes",
-          amount: 2,
-          unit: "unit",
-          expiry: null,
-        },
-      })
-    ).toBe(false);
-  });
-
-  it("accepts a mixed batch with unique food IDs", () => {
-    expect(
-      isAssistantAction({
-        kind: "batch",
-        actions: [
-          { kind: "update", foodId: 1, changes: { expiry: "2026-12-12" } },
+  it("describes every change in a multi-item proposal", () => {
+    const description = describeAction(
+      {
+        kind: "changes",
+        items: [
+          { kind: "create", food: soup },
           { kind: "delete", foodId: 2, removalReason: "discarded" },
         ],
-      })
-    ).toBe(true);
-  });
+      } as AssistantAction,
+      foods
+    );
 
-  it("rejects empty, duplicate, and malformed batches", () => {
-    expect(isAssistantAction({ kind: "batch", actions: [] })).toBe(false);
-    expect(
-      isAssistantAction({
-        kind: "batch",
-        actions: [
-          { kind: "delete", foodId: 1, removalReason: "consumed" },
-          { kind: "delete", foodId: 1, removalReason: "consumed" },
-        ],
-      })
-    ).toBe(false);
-    expect(
-      isAssistantAction({
-        kind: "batch",
-        actions: [{ kind: "update", foodId: 1, changes: { amount: 0 } }],
-      })
-    ).toBe(false);
-  });
-
-  it("describes every selected batch row", () => {
-    expect(
-      describeAction(
-        {
-          kind: "batch",
-          actions: [
-            { kind: "update", foodId: 1, changes: { expiry: "2026-12-12" } },
-            { kind: "delete", foodId: 2, removalReason: "discarded" },
-          ],
-        },
-        foods
-      )
-    ).toContain("Oatly Barista");
-  });
-
-  it("keeps only the selected batch rows in the confirmation payload", () => {
-    expect(
-      actionFoodIds({
-        kind: "batch",
-        actions: [{ kind: "delete", foodId: 2, removalReason: "consumed" }],
-      })
-    ).toEqual([2]);
-  });
-});
-
-describe("assistant update validation", () => {
-  it("rejects an update whose expiry is not an ISO date", () => {
-    expect(
-      isAssistantAction({
-        kind: "update",
-        foodId: 1,
-        changes: { expiry: "next tuesday" },
-      })
-    ).toBe(false);
-  });
-
-  it("accepts an update with a valid expiry", () => {
-    expect(
-      isAssistantAction({
-        kind: "update",
-        foodId: 1,
-        changes: { expiry: "2026-10-01", amount: 1 },
-      })
-    ).toBe(true);
+    expect(description).toContain("Apply 2 changes");
+    expect(description).toContain("add 1 unit of Carrot and parsnip soup");
+    expect(description).toContain("record Old milk as discarded");
   });
 });

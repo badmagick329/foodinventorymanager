@@ -3,11 +3,16 @@
 import { useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import { Button } from "@/components/ui/button";
-import type { AssistantAction } from "@/lib/assistant";
+import {
+  describeFieldChanges,
+  type AssistantAction,
+  type ProposedChange,
+} from "@/lib/assistant";
 import { formatAssistantCost } from "@/lib/assistant-cost";
+import { formatAmount } from "@/lib/utils";
 import type { ChatMessage } from "./use-assistant-chat";
 
-type BatchAction = Extract<AssistantAction, { kind: "batch" }>;
+type ChangesAction = Extract<AssistantAction, { kind: "changes" }>;
 
 const markdownComponents: Components = {
   h2: ({ children }) => (
@@ -39,7 +44,8 @@ export default function ChatMessageBubble({
 }: {
   message: ChatMessage;
   busy: boolean;
-  onConfirm: (action: AssistantAction) => void;
+  /** Without indexes, confirms every change in the proposal. */
+  onConfirm: (selectedIndexes?: number[]) => void;
   onCancel: () => void;
 }) {
   if (message.role === "user") {
@@ -73,61 +79,67 @@ export default function ChatMessageBubble({
           · {message.usage.totalTokens.toLocaleString()} tokens
         </p>
       )}
-      {pendingAction?.kind === "batch" && (
-        <BatchReview
+      {pendingAction?.kind === "changes" && pendingAction.items.length > 1 ? (
+        <ChangesReview
           action={pendingAction}
           busy={busy}
           onConfirm={onConfirm}
           onCancel={onCancel}
         />
-      )}
-      {pendingAction && pendingAction.kind !== "batch" && (
-        <div className="mt-3 flex gap-2">
-          <Button
-            size="sm"
-            disabled={busy}
-            onClick={() => onConfirm(pendingAction)}
-          >
-            Confirm change
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={busy}
-            onClick={onCancel}
-          >
-            Cancel
-          </Button>
-        </div>
+      ) : (
+        pendingAction && (
+          <div className="mt-3 flex gap-2">
+            <Button size="sm" disabled={busy} onClick={() => onConfirm()}>
+              Confirm change
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy}
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
+          </div>
+        )
       )}
     </div>
   );
 }
 
-function batchItemSummary(item: BatchAction["actions"][number]) {
-  if (item.kind === "delete") {
-    return `Record as ${item.removalReason.replace("_", " ")}`;
-  }
-  return Object.entries(item.changes)
-    .map(
-      ([field, value]) =>
-        `${field} → ${value === null ? "no expiry date" : value}`
-    )
-    .join(", ");
+function changeTitle(item: ProposedChange) {
+  return item.kind === "create"
+    ? item.food.name
+    : (item.foodName ?? "Selected item");
 }
 
-function BatchReview({
+function changeSummary(item: ProposedChange) {
+  switch (item.kind) {
+    case "create": {
+      const { food } = item;
+      return `Add ${formatAmount(food.amount)} ${food.unit} to the ${food.storage}${food.expiry ? `, expires ${food.expiry}` : ""}`;
+    }
+    case "delete":
+      return `Record as ${item.removalReason.replace("_", " ")}`;
+    case "transfer":
+      return `Move ${formatAmount(item.amount)} to the ${item.targetStorage}${item.targetExpiry ? `, expires ${item.targetExpiry}` : ""}`;
+    case "update":
+      return describeFieldChanges(item.changes, item.previous);
+  }
+}
+
+function ChangesReview({
   action,
   busy,
   onConfirm,
   onCancel,
 }: {
-  action: BatchAction;
+  action: ChangesAction;
   busy: boolean;
-  onConfirm: (action: BatchAction) => void;
+  onConfirm: (selectedIndexes: number[]) => void;
   onCancel: () => void;
 }) {
-  const allIndexes = action.actions.map((_, index) => index);
+  const allIndexes = action.items.map((_, index) => index);
   const [selected, setSelected] = useState(allIndexes);
   const selectedSet = new Set(selected);
   const toggle = (index: number) =>
@@ -140,12 +152,12 @@ function BatchReview({
   return (
     <div className="mt-3 rounded-md border bg-background p-3">
       <p className="text-sm font-medium">
-        Review {action.actions.length} proposed changes
+        Review {action.items.length} proposed changes
       </p>
       <div className="mt-2 space-y-2">
-        {action.actions.map((item, index) => (
+        {action.items.map((item, index) => (
           <label
-            key={`${item.foodId}-${index}`}
+            key={index}
             className="flex cursor-pointer gap-2 rounded-md border p-2 text-sm"
           >
             <input
@@ -156,11 +168,9 @@ function BatchReview({
               onChange={() => toggle(index)}
             />
             <span>
-              <span className="font-medium">
-                {item.foodName ?? "Selected item"}
-              </span>
+              <span className="font-medium">{changeTitle(item)}</span>
               <span className="block text-muted-foreground">
-                {batchItemSummary(item)}
+                {changeSummary(item)}
               </span>
             </span>
           </label>
@@ -189,14 +199,7 @@ function BatchReview({
           type="button"
           size="sm"
           disabled={busy || selected.length === 0}
-          onClick={() =>
-            onConfirm({
-              ...action,
-              actions: action.actions.filter((_, index) =>
-                selectedSet.has(index)
-              ),
-            })
-          }
+          onClick={() => onConfirm([...selected].sort((a, b) => a - b))}
         >
           Confirm {selected.length} change{selected.length === 1 ? "" : "s"}
         </Button>

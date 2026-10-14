@@ -12,6 +12,7 @@ import {
   describeAction,
   isAssistantAction,
   type AssistantAction,
+  type ProposedChange,
 } from "@/lib/assistant";
 import { foodSchema } from "@/lib/validators";
 import { consolidateFoods } from "@/server/inventory/consolidation";
@@ -27,8 +28,9 @@ const decisionSchema = z.object({
   messageId: z.string({ message: "A proposed chat message is required." }),
   conversationId: z.string({ message: "A proposed chat message is required." }),
   decision: z.enum(["confirm", "cancel"]).default("confirm"),
-  selectedFoodIds: z
-    .array(z.number().int())
+  // Positions in the proposal's item list: creates have no food ID to key on.
+  selectedIndexes: z
+    .array(z.number().int().nonnegative())
     .min(1, "Select at least one proposed change.")
     .optional(),
 });
@@ -39,7 +41,7 @@ const decisionSchema = z.object({
  * confirmation can never apply twice.
  */
 export async function resolveProposal(input: unknown) {
-  const { messageId, conversationId, decision, selectedFoodIds } = parseInput(
+  const { messageId, conversationId, decision, selectedIndexes } = parseInput(
     decisionSchema,
     input
   );
@@ -60,9 +62,11 @@ export async function resolveProposal(input: unknown) {
 
   const storedAction: unknown = proposal.action;
   if (!isAssistantAction(storedAction) || storedAction.kind === "none") {
-    throw new InvalidInputError("Invalid action.");
+    throw new InvalidInputError(
+      "This proposal is no longer valid. Ask the assistant again."
+    );
   }
-  const action = selectBatchItems(storedAction, selectedFoodIds);
+  const action = selectItems(storedAction, selectedIndexes);
 
   const foods = await prisma.$transaction(async (tx) => {
     await claimProposal(tx, messageId, "confirmed");
@@ -101,18 +105,16 @@ async function claimProposal(
   }
 }
 
-function selectBatchItems(
+function selectItems(
   action: ProposedAction,
-  selectedFoodIds: number[] | undefined
+  selectedIndexes: number[] | undefined
 ): ProposedAction {
-  if (action.kind !== "batch" || selectedFoodIds === undefined) return action;
+  if (action.kind !== "changes" || selectedIndexes === undefined) return action;
 
-  const selectedIds = new Set(selectedFoodIds);
+  const selected = new Set(selectedIndexes);
   if (
-    selectedIds.size !== selectedFoodIds.length ||
-    selectedFoodIds.some(
-      (id) => !action.actions.some((item) => item.foodId === id)
-    )
+    selected.size !== selectedIndexes.length ||
+    selectedIndexes.some((index) => index >= action.items.length)
   ) {
     throw new InvalidInputError(
       "Selected changes must belong to this proposal."
@@ -120,60 +122,51 @@ function selectBatchItems(
   }
   return {
     ...action,
-    actions: action.actions.filter((item) => selectedIds.has(item.foodId)),
+    items: action.items.filter((_, index) => selected.has(index)),
   };
 }
 
 async function applyAction(
   tx: Prisma.TransactionClient,
   action: ProposedAction
+) {
+  if (action.kind === "consolidate") {
+    await consolidateFoods(tx, action.foodIds, {
+      primaryFoodId: action.primaryFoodId,
+      allowDifferentExpiry: true,
+    });
+    return;
+  }
+  for (const item of action.items) await applyChange(tx, item);
+}
+
+async function applyChange(
+  tx: Prisma.TransactionClient,
+  item: ProposedChange
 ): Promise<unknown> {
   const source = FoodRemovalSource.assistant;
-  switch (action.kind) {
+  switch (item.kind) {
     case "create":
-      return tx.food.create({ data: foodSchema.parse(action.food) });
+      return tx.food.create({ data: foodSchema.parse(item.food) });
     case "update":
       return updateFoodAndRecordUsage(
         tx,
-        action.foodId,
-        foodSchema.partial().parse(action.changes),
+        item.foodId,
+        foodSchema.partial().parse(item.changes),
         source
       );
     case "transfer":
-      return transferFoodAmount(tx, action.foodId, {
-        amount: action.amount,
-        storage: action.targetStorage,
-        expiry: action.targetExpiry,
+      return transferFoodAmount(tx, item.foodId, {
+        amount: item.amount,
+        storage: item.targetStorage,
+        expiry: item.targetExpiry,
       });
     case "delete":
       return removeFoodsAndRecord(
         tx,
-        action.foodIds,
-        action.removalReason,
+        [item.foodId],
+        item.removalReason,
         source
       );
-    case "consolidate":
-      return consolidateFoods(tx, action.foodIds, {
-        primaryFoodId: action.primaryFoodId,
-        allowDifferentExpiry: true,
-      });
-    case "batch":
-      for (const item of action.actions) {
-        if (item.kind === "update") {
-          await updateFoodAndRecordUsage(
-            tx,
-            item.foodId,
-            foodSchema.partial().parse(item.changes),
-            source
-          );
-        } else {
-          await removeFoodsAndRecord(
-            tx,
-            [item.foodId],
-            item.removalReason,
-            source
-          );
-        }
-      }
   }
 }

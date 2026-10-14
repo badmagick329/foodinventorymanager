@@ -116,11 +116,12 @@ export async function completeAssistantTurn(
     onDelta,
   });
 
-  const action: AssistantAction = toolArguments
+  const proposal: { action: AssistantAction; message: string } = toolArguments
     ? parseProposedAction(toolArguments, turn.foods)
-    : { kind: "none" };
+    : { action: { kind: "none" }, message: "" };
+  const { action } = proposal;
   const content =
-    reply.trim() ||
+    [reply.trim(), proposal.message].filter(Boolean).join("\n\n") ||
     (action.kind === "none"
       ? "I couldn't produce a response. Please try again."
       : `${describeAction(action, turn.foods)} Confirm this change to apply it.`);

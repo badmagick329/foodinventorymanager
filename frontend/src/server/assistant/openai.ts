@@ -39,6 +39,9 @@ export async function streamAssistantResponse({
       reasoning: { effort: settings.reasoningEffort },
       stream: true,
       tools: [PROPOSE_ACTION_TOOL],
+      // Only the first tool call is read, so a second parallel proposal
+      // would be dropped silently; one call must carry every change.
+      parallel_tool_calls: false,
       input: [
         {
           role: "system",

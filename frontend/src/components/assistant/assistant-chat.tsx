@@ -157,7 +157,9 @@ export default function AssistantChat() {
             key={message.id}
             message={message}
             busy={chat.busy}
-            onConfirm={(action) => chat.confirm(message.id, action)}
+            onConfirm={(selectedIndexes) =>
+              chat.confirm(message.id, selectedIndexes)
+            }
             onCancel={() => chat.cancel(message.id)}
           />
         ))}

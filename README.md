@@ -10,7 +10,7 @@ A smart full-stack app designed to reduce food waste and provide an accessible w
   - _"What is expiring soon?"_
   - _"Delete the milk and eggs"_
   - _"Do I have ingredients for pasta?"_
-- **✅ Confirmed Inventory Changes**: Review assistant-proposed additions, updates, removals, and batch changes before they are applied.
+- **✅ Confirmed Inventory Changes**: Dictate several items in one message; review the assistant's proposed additions, updates, removals and moves, untick any you don't want, then confirm.
 - **📊 Usage Tracking**: Record consumed, discarded, and corrected inventory, including partial quantity usage.
 - **🔌 MCP Server**: Let external agents (e.g. Hermes Agent) read and manage the inventory, history, and shopping list.
 
