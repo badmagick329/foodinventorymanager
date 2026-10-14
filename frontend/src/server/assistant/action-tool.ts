@@ -42,6 +42,7 @@ const changeSchema = {
     "amount",
     "targetStorage",
     "targetExpiry",
+    "clearExpiry",
   ],
   properties: {
     kind: { type: "string", enum: ["create", "update", "delete", "transfer"] },
@@ -66,6 +67,9 @@ const changeSchema = {
     amount: { type: ["number", "null"] },
     targetStorage: { type: ["string", "null"], enum: [...storages, null] },
     targetExpiry: { type: ["string", "null"] },
+    // A null in changes means "unchanged", so removing an expiry date needs
+    // its own flag.
+    clearExpiry: { type: "boolean" },
   },
 } as const;
 
@@ -88,7 +92,7 @@ export const PROPOSE_ACTION_TOOL = {
   type: "function",
   name: "propose_inventory_action",
   description:
-    "Propose inventory changes that the user reviews and confirms before they apply. message is shown to the user: say briefly what is proposed, any storage location or unit you inferred, any item added to an existing one, and ask one concise question per item you left out. For kind changes, put every requested change in items: create uses newFood; update uses foodId and changes (null for fields that stay the same); delete uses foodId and removalReason; transfer uses foodId, amount, targetStorage and targetExpiry. For kind consolidate, use foodIds and primaryFoodId and leave items empty. Leave unused fields null.",
+    "Propose inventory changes that the user reviews and confirms before they apply. message is shown to the user: say briefly what is proposed, any storage location or unit you inferred, any item added to an existing one, and ask one concise question per item you left out. For kind changes, put every requested change in items: create uses newFood; update uses foodId and changes (null for fields that stay the same), and clearExpiry true to remove the item's expiry date (false otherwise); delete uses foodId and removalReason; transfer uses foodId, amount, targetStorage and targetExpiry. For kind consolidate, use foodIds and primaryFoodId and leave items empty. Leave unused fields null.",
   strict: true,
   parameters: actionSchema,
 } as const;
@@ -123,7 +127,10 @@ function normalizeChange(change: Record<string, unknown>) {
       return {
         kind: "update",
         foodId: change.foodId,
-        changes: presentFields(change.changes),
+        changes: {
+          ...presentFields(change.changes),
+          ...(change.clearExpiry === true && { expiry: null }),
+        },
       };
   }
 }

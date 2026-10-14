@@ -127,6 +127,26 @@ describe("assistant change proposals", () => {
     );
   });
 
+  it("describes a cleared expiry as from → no expiry date", () => {
+    expect(
+      describeAction(
+        {
+          kind: "changes",
+          items: [
+            {
+              kind: "update",
+              foodId: 2,
+              changes: { expiry: null },
+              foodName: "Old milk",
+              previous: { expiry: "2026-10-20" },
+            },
+          ],
+        },
+        foods
+      )
+    ).toBe("Update Old milk: expiry 2026-10-20 → no expiry date.");
+  });
+
   it("describes every change in a multi-item proposal", () => {
     const description = describeAction(
       {

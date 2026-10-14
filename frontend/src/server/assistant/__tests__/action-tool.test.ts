@@ -10,6 +10,14 @@ const foods = [
     expiry: null,
     storage: "fridge",
   },
+  {
+    id: 8,
+    name: "Honey",
+    amount: 1,
+    unit: "unit",
+    expiry: "2026-10-20",
+    storage: "pantry",
+  },
 ] as unknown as Food[];
 
 const empty = {
@@ -26,6 +34,7 @@ const empty = {
   amount: null,
   targetStorage: null,
   targetExpiry: null,
+  clearExpiry: false,
 };
 
 function toolCall(items: object[]) {
@@ -157,6 +166,45 @@ describe("parseProposedAction", () => {
       ],
     });
     expect(message).toContain("I couldn't turn Milk, Soup into a valid change");
+  });
+
+  // A null in changes means "unchanged", so only clearExpiry can remove a date.
+  it("removes an expiry date only when clearExpiry is set", () => {
+    const cleared = parseProposedAction(
+      toolCall([{ ...empty, kind: "update", foodId: 8, clearExpiry: true }]),
+      foods
+    );
+    expect(cleared.action).toEqual({
+      kind: "changes",
+      items: [
+        {
+          kind: "update",
+          foodId: 8,
+          changes: { expiry: null },
+          foodName: "Honey",
+          previous: { expiry: "2026-10-20" },
+        },
+      ],
+    });
+
+    const amountOnly = parseProposedAction(
+      toolCall([
+        {
+          ...empty,
+          kind: "update",
+          foodId: 8,
+          changes: { ...empty.changes, amount: 2 },
+        },
+      ]),
+      foods
+    );
+    expect(amountOnly.action).toMatchObject({
+      items: [{ changes: { amount: 2 } }],
+    });
+    expect(
+      (amountOnly.action as { items: Array<{ changes: object }> }).items[0]
+        .changes
+    ).not.toHaveProperty("expiry");
   });
 
   it("proposes nothing when every item is invalid", () => {

@@ -36,4 +36,10 @@ describe("foodSchema expiry", () => {
   it("leaves expiry untouched in a partial update that omits it", () => {
     expect(foodSchema.partial().parse({ amount: 2 })).toEqual({ amount: 2 });
   });
+
+  it("keeps an explicit null in a partial update, which clears the expiry", () => {
+    expect(foodSchema.partial().parse({ expiry: null })).toEqual({
+      expiry: null,
+    });
+  });
 });
