@@ -237,9 +237,14 @@ function EditRemovalModal({
   onCancel: () => void;
   onSave: (changes: FoodRemovalEdit) => void;
 }) {
-  const [changes, setChanges] = useState<FoodRemovalEdit>({
+  // Amount stays the raw input text until save. Held as a number, clearing the
+  // field became 0, React wrote "0" back into it, and the next digit typed
+  // produced "05" (FDI-4).
+  const [changes, setChanges] = useState<
+    Omit<FoodRemovalEdit, "amount"> & { amount: string }
+  >({
     name: removal.name,
-    amount: removal.amount,
+    amount: String(removal.amount),
     unit: removal.unit,
     expiry: removal.expiry,
     storage: removal.storage,
@@ -258,7 +263,7 @@ function EditRemovalModal({
         aria-labelledby="edit-history-entry-title"
         onSubmit={(event) => {
           event.preventDefault();
-          onSave(changes);
+          onSave({ ...changes, amount: Number(changes.amount) });
         }}
       >
         <h2 id="edit-history-entry-title" className="text-xl font-semibold">
@@ -295,7 +300,7 @@ function EditRemovalModal({
               onChange={(event) =>
                 setChanges((current) => ({
                   ...current,
-                  amount: Number(event.target.value),
+                  amount: event.target.value,
                 }))
               }
               required

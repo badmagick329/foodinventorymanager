@@ -40,4 +40,11 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* The browser's default highlight is close to the teal primary, so a
+     selection inside a user chat bubble was nearly invisible (FDI-8). Amber
+     with dark text contrasts with both the teal and the near-black surfaces. */
+  ::selection {
+    background-color: hsl(var(--warning));
+    color: hsl(var(--background));
+  }
 }

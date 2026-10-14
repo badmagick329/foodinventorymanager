@@ -32,6 +32,7 @@ import { ModifyFoodFormInput } from "@/lib/types";
 import useModifyFoodForm from "@/hooks/useModifyFoodForm";
 import { HOME } from "@/lib/urls";
 import { formatAmount } from "@/lib/utils";
+import { hasFoodFormChanges } from "@/lib/food-form";
 
 const DOUBLE_ESCAPE_MS = 400;
 
@@ -42,6 +43,7 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
     control,
     setError,
     clearErrors,
+    watch,
     formState: { errors },
   } = useForm<ModifyFoodFormInput>({
     defaultValues: {
@@ -81,6 +83,9 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
     saveMutation.isPending ||
     deleteMutation.isPending ||
     transferMutation.isPending;
+  // Compared with the food prop, which refetches after a save, so the button
+  // disables again once the saved values come back.
+  const unchanged = food ? !hasFoodFormChanges(food, watch()) : false;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -243,7 +248,7 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
           {errors.storage && <span>{errors.storage.message}</span>}
         </div>
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
-          <Button type="submit" disabled={disableButtons}>
+          <Button type="submit" disabled={disableButtons || unchanged}>
             {saveMutation.isPending ? "Saving..." : "Save Changes"}
           </Button>
           {food && (
@@ -337,11 +342,10 @@ export default function ModifyFoodForm({ food }: { food?: Food }) {
             saveMutation.mutate(pendingSave);
           }}
           onMove={(transfer) => {
-            const hasOtherChanges =
-              pendingSave.name !== food.name ||
-              pendingSave.unit !== food.unit ||
-              pendingSave.expiry !== (food.expiry ?? "") ||
-              pendingSave.storage !== food.storage;
+            const hasOtherChanges = hasFoodFormChanges(food, {
+              ...pendingSave,
+              amount: food.amount,
+            });
             if (hasOtherChanges) {
               setPendingSave(null);
               setError("root", {
