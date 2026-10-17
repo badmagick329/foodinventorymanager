@@ -64,6 +64,53 @@ export async function updateFoodRemoval(id: string, input: unknown) {
   }
 }
 
+/**
+ * Reverse a history entry: its amount goes back into the inventory and the
+ * entry is deleted, as if the use or removal never happened. The amount
+ * rejoins the original food while it still exists in the same unit (a partial
+ * use); otherwise the entry's snapshot becomes a new food.
+ *
+ * The entry is deleted before the inventory changes, and its count checked,
+ * so two concurrent undos of one entry cannot restore the amount twice.
+ */
+export async function undoFoodRemovalInTransaction(
+  db: Prisma.TransactionClient,
+  id: string
+) {
+  const removal = await db.foodRemoval.findUnique({ where: { id } });
+  const { count } = removal
+    ? await db.foodRemoval.deleteMany({ where: { id } })
+    : { count: 0 };
+  if (!removal || count === 0) {
+    throw new NotFoundError("History entry not found.");
+  }
+
+  const originalFood = await db.food.findUnique({
+    where: { id: removal.foodId },
+  });
+  const food =
+    originalFood && originalFood.unit === removal.unit
+      ? await db.food.update({
+          where: { id: originalFood.id },
+          data: { amount: { increment: removal.amount } },
+        })
+      : await db.food.create({
+          data: {
+            name: removal.name,
+            amount: removal.amount,
+            unit: removal.unit,
+            expiry: removal.expiry,
+            storage: removal.storage,
+          },
+        });
+
+  return { removal, food };
+}
+
+export function undoFoodRemoval(id: string) {
+  return prisma.$transaction((tx) => undoFoodRemovalInTransaction(tx, id));
+}
+
 export async function deleteFoodRemoval(id: string) {
   const { count } = await prisma.foodRemoval.deleteMany({ where: { id } });
   if (count === 0) throw new NotFoundError("History entry not found.");

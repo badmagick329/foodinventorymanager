@@ -77,6 +77,18 @@ export default function RemovalHistory({
       queryClient.invalidateQueries({ queryKey: queryKeys.foodRemovals });
     },
   });
+  const undoMutation = useMutation({
+    mutationFn: (id: string) =>
+      apiFetch(`${API_FOOD_REMOVALS_URL}${id}/undo`, { method: "POST" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.foodRemovals });
+      queryClient.invalidateQueries({ queryKey: queryKeys.foods });
+    },
+  });
+  const rowBusy = deleteMutation.isPending || undoMutation.isPending;
+  const actionError = [editMutation, deleteMutation, undoMutation].find(
+    (mutation) => mutation.isError
+  )?.error;
   const displayedRemovals = useMemo(
     () => filterFoodRemovals(removals, search, outcomeFilter),
     [removals, search, outcomeFilter]
@@ -168,9 +180,26 @@ export default function RemovalHistory({
                         editMutation.reset();
                         setEditingRemoval(removal);
                       }}
-                      disabled={deleteMutation.isPending}
+                      disabled={rowBusy}
                     >
                       Edit
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            `Undo this entry? ${formatAmount(removal.amount)} ${removal.unit} of ${removal.name} goes back into your inventory and the entry is removed.`
+                          )
+                        ) {
+                          undoMutation.mutate(removal.id);
+                        }
+                      }}
+                      disabled={rowBusy}
+                    >
+                      Undo
                     </Button>
                     <Button
                       type="button"
@@ -185,7 +214,7 @@ export default function RemovalHistory({
                           deleteMutation.mutate(removal.id);
                         }
                       }}
-                      disabled={deleteMutation.isPending}
+                      disabled={rowBusy}
                     >
                       Delete
                     </Button>
@@ -196,10 +225,8 @@ export default function RemovalHistory({
           </TableBody>
         </Table>
       )}
-      {(editMutation.isError || deleteMutation.isError) && (
-        <p className="mt-3 text-sm text-red-500">
-          {editMutation.error?.message ?? deleteMutation.error?.message}
-        </p>
+      {actionError && (
+        <p className="mt-3 text-sm text-red-500">{actionError.message}</p>
       )}
       {editingRemoval && (
         <EditRemovalModal

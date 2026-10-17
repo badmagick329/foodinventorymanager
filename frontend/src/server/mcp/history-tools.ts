@@ -5,11 +5,13 @@ import {
   deleteFoodRemoval,
   listFoodRemovals,
   summarizeFoodRemovals,
+  undoFoodRemoval,
   updateFoodRemoval,
   type FoodRemovalFilter,
 } from "@/server/inventory/removals";
+import { todayIsoDate } from "@/server/inventory/expiry";
 import { InvalidInputError } from "@/server/errors";
-import { toolHandler } from "./results";
+import { presentFood, toolHandler } from "./results";
 import {
   amount,
   endOfDay,
@@ -117,6 +119,24 @@ export function registerHistoryTools(server: McpServer) {
         throw new InvalidInputError("Provide at least one field to change.");
       }
       return presentRemoval(await updateFoodRemoval(id, changes));
+    })
+  );
+
+  server.registerTool(
+    "undo_history_entry",
+    {
+      title: "Undo a history entry",
+      description:
+        "Reverse a history entry, e.g. food marked as used by mistake: its amount goes back into the inventory (onto the original food if it still exists, otherwise as a new food) and the entry is deleted.",
+      inputSchema: z.object({ id: z.string().min(1) }),
+      annotations: { destructiveHint: false },
+    },
+    toolHandler(async ({ id }) => {
+      const { removal, food } = await undoFoodRemoval(id);
+      return {
+        undone: presentRemoval(removal),
+        restoredFood: presentFood(food, todayIsoDate()),
+      };
     })
   );
 

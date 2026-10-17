@@ -11,7 +11,7 @@ A smart full-stack app designed to reduce food waste and provide an accessible w
   - _"Delete the milk and eggs"_
   - _"Do I have ingredients for pasta?"_
 - **✅ Confirmed Inventory Changes**: Dictate several foods in one message; review the assistant's proposed additions, updates, removals and moves, untick any you don't want, then confirm.
-- **📊 Usage Tracking**: Record food as used, discarded, or a mistake, including partial quantity usage.
+- **📊 Usage Tracking**: Record food as used, discarded, or a mistake, including partial quantity usage. Undo a history entry to put its amount back into the inventory.
 - **🔌 MCP Server**: Let external agents (e.g. Hermes Agent) read and manage the inventory, history, and shopping list.
 
 ## 🛠️ How to Run
@@ -32,7 +32,7 @@ It exposes:
 
 - **Inventory tools**: `list_foods`, `get_food`, `expiry_report`, `add_foods`, `update_food`, `use_food`, `remove_foods`, `move_food`
 - **Duplicates**: `list_consolidation_candidates`, `consolidate_foods`, `consolidate_all_matching`
-- **History**: `list_history`, `history_summary`, `update_history_entry`, `delete_history_entry`
+- **History**: `list_history`, `history_summary`, `update_history_entry`, `undo_history_entry`, `delete_history_entry`
 - **Shopping list**: `list_shopping`, `add_shopping_items`, `remove_shopping_item`, `clear_shopping_list`
 - **Receipts**: `parse_receipt` (base64 Ocado PDF → foods; nothing is saved until `add_foods`)
 - **Resources**: `foodinventory://inventory`, `foodinventory://shopping-list`
