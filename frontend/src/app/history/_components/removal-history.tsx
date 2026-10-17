@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmationModal } from "@/components/ui/confirmation-modal";
 import {
   Table,
   TableBody,
@@ -59,6 +60,10 @@ export default function RemovalHistory({
   const [editingRemoval, setEditingRemoval] = useState<FoodRemoval | null>(
     null
   );
+  const [pendingAction, setPendingAction] = useState<{
+    kind: "undo" | "delete";
+    removal: FoodRemoval;
+  } | null>(null);
   const editMutation = useMutation({
     mutationFn: ({ id, changes }: { id: string; changes: FoodRemovalEdit }) =>
       apiFetch(`${API_FOOD_REMOVALS_URL}${id}`, {
@@ -74,6 +79,7 @@ export default function RemovalHistory({
     mutationFn: (id: string) =>
       apiFetch(`${API_FOOD_REMOVALS_URL}${id}`, { method: "DELETE" }),
     onSuccess: () => {
+      setPendingAction(null);
       queryClient.invalidateQueries({ queryKey: queryKeys.foodRemovals });
     },
   });
@@ -81,14 +87,14 @@ export default function RemovalHistory({
     mutationFn: (id: string) =>
       apiFetch(`${API_FOOD_REMOVALS_URL}${id}/undo`, { method: "POST" }),
     onSuccess: () => {
+      setPendingAction(null);
       queryClient.invalidateQueries({ queryKey: queryKeys.foodRemovals });
       queryClient.invalidateQueries({ queryKey: queryKeys.foods });
     },
   });
   const rowBusy = deleteMutation.isPending || undoMutation.isPending;
-  const actionError = [editMutation, deleteMutation, undoMutation].find(
-    (mutation) => mutation.isError
-  )?.error;
+  const actionMutation =
+    pendingAction?.kind === "undo" ? undoMutation : deleteMutation;
   const displayedRemovals = useMemo(
     () => filterFoodRemovals(removals, search, outcomeFilter),
     [removals, search, outcomeFilter]
@@ -189,13 +195,8 @@ export default function RemovalHistory({
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        if (
-                          window.confirm(
-                            `Undo this entry? ${formatAmount(removal.amount)} ${removal.unit} of ${removal.name} goes back into your inventory and the entry is removed.`
-                          )
-                        ) {
-                          undoMutation.mutate(removal.id);
-                        }
+                        undoMutation.reset();
+                        setPendingAction({ kind: "undo", removal });
                       }}
                       disabled={rowBusy}
                     >
@@ -206,13 +207,8 @@ export default function RemovalHistory({
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        if (
-                          window.confirm(
-                            `Delete the history entry for ${removal.name}? This will not change your live inventory.`
-                          )
-                        ) {
-                          deleteMutation.mutate(removal.id);
-                        }
+                        deleteMutation.reset();
+                        setPendingAction({ kind: "delete", removal });
                       }}
                       disabled={rowBusy}
                     >
@@ -225,8 +221,40 @@ export default function RemovalHistory({
           </TableBody>
         </Table>
       )}
-      {actionError && (
-        <p className="mt-3 text-sm text-red-500">{actionError.message}</p>
+      {pendingAction && (
+        <ConfirmationModal
+          title={
+            pendingAction.kind === "undo"
+              ? "Undo this entry?"
+              : "Delete history entry?"
+          }
+          confirmLabel={
+            pendingAction.kind === "undo" ? "Undo entry" : "Delete entry"
+          }
+          pendingLabel={
+            pendingAction.kind === "undo" ? "Undoing..." : "Deleting..."
+          }
+          confirmVariant={
+            pendingAction.kind === "delete" ? "destructive" : "default"
+          }
+          busy={actionMutation.isPending}
+          error={actionMutation.isError ? actionMutation.error.message : undefined}
+          onCancel={() => setPendingAction(null)}
+          onConfirm={() => actionMutation.mutate(pendingAction.removal.id)}
+        >
+          {pendingAction.kind === "undo" ? (
+            <>
+              {formatAmount(pendingAction.removal.amount)}{" "}
+              {pendingAction.removal.unit} of {pendingAction.removal.name} goes
+              back into your inventory and the entry is removed.
+            </>
+          ) : (
+            <>
+              Delete the history entry for {pendingAction.removal.name}? This
+              will not change your live inventory.
+            </>
+          )}
+        </ConfirmationModal>
       )}
       {editingRemoval && (
         <EditRemovalModal

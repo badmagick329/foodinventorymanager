@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmationModal } from "@/components/ui/confirmation-modal";
 import ErrorBlock from "@/app/_components/error-block";
 import LoadingCat from "@/components/loading-cat";
 import type { Food } from "@prisma/client";
@@ -112,8 +113,9 @@ export default function InventoryManagement() {
 
       {isConfirmOpen && (
         <ConfirmationModal
-          groupCount={groups.length}
-          duplicateItemCount={itemCount - groups.length}
+          title="Consolidate all matching foods?"
+          confirmLabel="Confirm consolidation"
+          pendingLabel="Consolidating..."
           busy={consolidateMutation.isPending}
           error={
             consolidateMutation.isError
@@ -122,7 +124,12 @@ export default function InventoryManagement() {
           }
           onCancel={() => setIsConfirmOpen(false)}
           onConfirm={() => consolidateMutation.mutate()}
-        />
+        >
+          This will consolidate {groups.length} group
+          {groups.length === 1 ? "" : "s"} and remove {itemCount - groups.length}{" "}
+          duplicate food{itemCount - groups.length === 1 ? "" : "s"}. No history
+          entries will be created.
+        </ConfirmationModal>
       )}
     </section>
   );
@@ -159,60 +166,6 @@ function ConsolidationGroupPreview({
           {formatAmount(group.totalAmount)} {firstFood.unit}
         </strong>
       </p>
-    </div>
-  );
-}
-
-function ConfirmationModal({
-  groupCount,
-  duplicateItemCount,
-  busy,
-  error,
-  onCancel,
-  onConfirm,
-}: {
-  groupCount: number;
-  duplicateItemCount: number;
-  busy: boolean;
-  error?: string;
-  onCancel: () => void;
-  onConfirm: () => void;
-}) {
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
-      role="presentation"
-    >
-      <div
-        className="w-full max-w-md rounded-lg border bg-background p-6 shadow-xl"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="consolidate-all-title"
-      >
-        <h2 id="consolidate-all-title" className="text-xl font-semibold">
-          Consolidate all matching foods?
-        </h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          This will consolidate {groupCount} group
-          {groupCount === 1 ? "" : "s"} and remove {duplicateItemCount}{" "}
-          duplicate food{duplicateItemCount === 1 ? "" : "s"}. No history
-          entries will be created.
-        </p>
-        {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
-        <div className="mt-6 flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={busy}
-          >
-            Cancel
-          </Button>
-          <Button type="button" onClick={onConfirm} disabled={busy}>
-            {busy ? "Consolidating..." : "Confirm consolidation"}
-          </Button>
-        </div>
-      </div>
     </div>
   );
 }
