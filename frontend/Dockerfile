@@ -1,6 +1,7 @@
-FROM node:20-alpine3.17 AS deploy
+FROM node:22-alpine AS deploy
 
-RUN apk update && apk add --no-cache libssl1.1
+# Prisma's query engine links against OpenSSL; current Alpine ships 3.x, which Prisma 5 detects.
+RUN apk add --no-cache openssl
 
 WORKDIR /app
 
