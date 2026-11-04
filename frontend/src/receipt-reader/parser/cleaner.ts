@@ -4,10 +4,16 @@ export class Cleaner {
 
   private static startLine = 'Fridge';
   private static junkLines = ['Delivered / ', 'Ordered', 'Price to pay ', '£'];
-  private static endLines = [
+  /**
+   * Headers of the sections that follow the storage sections. Matched by
+   * prefix because Ocado appends varying explanations to them, e.g.
+   * "Missing items - Items where we couldn't deliver an alternative"; an exact
+   * match let that header through and its items were imported (FDI-14).
+   */
+  private static endLinePrefixes = [
     'Offers savings',
     'Missing items',
-    'Substituted items - Alternatives for unavailable items',
+    'Substituted items',
   ];
   private static expiryDayLeadingText = 'Use by end of ';
 
@@ -37,12 +43,15 @@ export class Cleaner {
       if (line === Cleaner.startLine) {
         startReading = true;
       }
-      if (Cleaner.endLines.includes(line)) {
+      if (!startReading) {
+        // The summary above the storage sections has lines such as
+        // "Offers savings-£21.84" that would otherwise end reading early.
+        continue;
+      }
+      if (Cleaner.endLinePrefixes.some((prefix) => line.startsWith(prefix))) {
         break;
       }
-      if (startReading) {
-        outLines.push(line.trim());
-      }
+      outLines.push(line.trim());
     }
     this.processed = outLines;
     return this;

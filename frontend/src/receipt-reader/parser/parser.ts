@@ -167,9 +167,16 @@ export class Parser {
         continue; // skip items that do not match the full item regex
       }
 
+      // `bundle` is the delivered count of "delivered/ordered"; an item that
+      // was ordered but never delivered is not in the household.
+      const delivered = parseFloat(matched.bundle || '1');
+      if (delivered === 0) {
+        continue;
+      }
+
       const { amount, description } =
         this.calculateAmountAndGetUpdatedDescription({
-          bundle: parseFloat(matched.bundle || '1'),
+          bundle: delivered,
           description: matched.description || '',
         });
 
