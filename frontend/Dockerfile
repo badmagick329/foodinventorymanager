@@ -8,8 +8,8 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY next.config.js ./next.config.js
 COPY tsconfig.json ./tsconfig.json
-COPY .env ./.env
-COPY .env.local ./.env.local
+# Env files stay out of the image: Compose supplies runtime configuration, and images
+# built off-host must not carry the build machine's secrets.
 COPY tailwind.config.ts ./tailwind.config.ts
 COPY postcss.config.js ./postcss.config.js
 COPY .eslintrc.json ./.eslintrc.json
